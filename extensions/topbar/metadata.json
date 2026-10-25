@@ -1,0 +1,9 @@
+{
+  "uuid": "lintel-v2@local",
+  "name": "macOS 27 Top Bar",
+  "description": "Barra superior estilo macOS Tahoe: manzana, app activa, menús dinámicos, estado y Centro de control.",
+  "shell-version": ["50", "51"],
+  "session-modes": ["user"],
+  "version": 11
+}
+

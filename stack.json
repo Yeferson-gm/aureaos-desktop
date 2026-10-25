@@ -1,0 +1,13 @@
+{
+  "name": "Aurea 27",
+  "extensions": {
+    "topbar": "Barra superior",
+    "dock": "Dock",
+    "dynamic-island": "Isla dinámica",
+    "app-island": "Isla de aplicaciones",
+    "widgets": "Widgets",
+    "live-wallpaper": "Fondo animado",
+    "desktop-icons": "Iconos del escritorio",
+    "app-center": "Centro de aplicaciones"
+  }
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.lintel-widgets" path="/org/gnome/shell/extensions/lintel-widgets/">
+    <key name="alternar-edicion" type="as">
+      <default><![CDATA[['<Super><Alt>e']]]></default>
+      <summary>Activar o desactivar el modo de edición de widgets</summary>
+    </key>
+  </schema>
+</schemalist>

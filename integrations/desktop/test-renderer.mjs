@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const path = '/home/yefersongm/.local/share/gnome-shell/extensions/gnome-wallpaper-engine@gjs.com/modules/wallpaper50.js';
+const source = fs.readFileSync(path, 'utf8');
+const body = source.match(/windowActor\.connect\("destroy", \(\) => \{([\s\S]*?)\n            \}\);/)[1];
+const destroyedActor = {};
+const newActor = {};
+let cleared = 0;
+const state = {_sourceActor: newActor, _windowFilter: {removeWindow() {}}, _destroyClones() { cleared++; }};
+const callback = new Function('windowActor', 'metaWindow', body);
+callback.call(state, destroyedActor, {});
+assert.equal(cleared, 0, 'La destrucción del reproductor antiguo no debe borrar los clones del nuevo');
+assert.equal(state._sourceActor, newActor);
+callback.call(state, newActor, {});
+assert.equal(cleared, 1, 'La destrucción del reproductor actual debe liberar sus clones');
+assert.equal(state._sourceActor, null);
+console.log('Ciclo de vida: el reproductor antiguo no borra el fondo nuevo.');

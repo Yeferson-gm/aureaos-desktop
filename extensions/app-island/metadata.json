@@ -1,0 +1,7 @@
+{
+  "uuid": "side-dock-gnome50@local",
+  "name": "Isla lateral de aplicaciones",
+  "description": "Isla lateral con tirador integrado, favoritas por categorías y aplicaciones en uso. Sin duplicar el catálogo de aplicaciones.",
+  "shell-version": ["48", "49", "50"],
+  "version": 10
+}

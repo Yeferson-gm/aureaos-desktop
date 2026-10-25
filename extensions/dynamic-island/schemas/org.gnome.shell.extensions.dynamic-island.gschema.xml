@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.dynamic-island" path="/org/gnome/shell/extensions/dynamic-island/">
+    <key name="theme" type="s"><default>'dark'</default><choices><choice value="dark"/><choice value="glass"/></choices><summary>Tema de la isla</summary></key>
+    <key name="opacity" type="d"><default>0.97</default><range min="0.65" max="1.0"/><summary>Opacidad del fondo</summary></key>
+    <key name="animations" type="b"><default>true</default><summary>Animaciones</summary></key>
+    <key name="hover-open" type="b"><default>false</default><summary>Abrir al pasar el cursor</summary></key>
+    <key name="hover-delay" type="i"><default>450</default><range min="200" max="1500"/><summary>Espera al pasar el cursor</summary></key>
+    <key name="auto-close" type="b"><default>true</default><summary>Cerrar al salir cuando se abrió por hover</summary></key>
+    <key name="hide-fullscreen" type="b"><default>true</default><summary>Ocultar en pantalla completa</summary></key>
+    <key name="initial-page" type="s"><default>'home'</default><choices><choice value="home"/><choice value="music"/><choice value="files"/><choice value="notes"/><choice value="system"/><choice value="clock"/><choice value="today"/><choice value="notifications"/></choices><summary>Página inicial</summary></key>
+    <key name="notification-events" type="b"><default>true</default><summary>Avisos de notificaciones</summary></key>
+    <key name="private-previews" type="b"><default>true</default><summary>Ocultar contenido privado en avisos</summary></key>
+    <key name="event-duration" type="i"><default>2500</default><range min="1000" max="8000"/><summary>Duración de avisos</summary></key>
+    <key name="timer-sound" type="b"><default>true</default><summary>Sonido al finalizar temporizador</summary></key>
+    <key name="preferred-player" type="s"><default>''</default><summary>Nombre MPRIS del reproductor preferido</summary></key>
+    <key name="cover-accent" type="b"><default>true</default><summary>Color ambiental de la portada</summary></key>
+    <key name="show-home-music" type="b"><default>true</default><summary>Mostrar música en Inicio</summary></key>
+    <key name="show-home-system" type="b"><default>true</default><summary>Mostrar batería en Inicio</summary></key>
+    <key name="show-home-activities" type="b"><default>true</default><summary>Mostrar actividades en Inicio</summary></key>
+    <key name="toggle-island" type="as"><default>['&lt;Super&gt;&lt;Shift&gt;space']</default><summary>Abrir o cerrar la isla</summary></key>
+  </schema>
+</schemalist>

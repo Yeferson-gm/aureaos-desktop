@@ -1,0 +1,945 @@
+/* ═══ Barra superior transparente, estilo macOS Tahoe ═══════════════════ */
+
+#panel.lintel-panel,
+#panel.lintel-panel.lock-screen,
+#panel.lintel-panel.unlock-screen {
+    background-color: transparent;
+    background-gradient-direction: none;
+    box-shadow: none;
+    border: none;
+    border-image: none;
+    border-radius: 0;
+    height: 26px;
+    font-family: 'Adwaita Sans', Cantarell, sans-serif;
+    font-size: 9.75pt;
+    font-weight: 500;
+}
+
+#panel.lintel-panel .panel-corner {
+    -panel-corner-radius: 0;
+    -panel-corner-background-color: transparent;
+    -panel-corner-border-color: transparent;
+}
+
+#panel .lintel-button {
+    -natural-hpadding: 8px;
+    -minimum-hpadding: 4px;
+    margin: 2px 1px;
+    padding: 0;
+    border: 0 solid transparent;
+    border-radius: 7px;
+    background-color: transparent;
+    box-shadow: none;
+    font-weight: 500;
+    transition-duration: 80ms;
+}
+
+/* Indicadores derechos: separación uniforme sin modificar los menús. */
+#panel .lintel-button.lintel-right {
+    -natural-hpadding: 6px;
+    -minimum-hpadding: 4px;
+    margin: 2px 1px;
+}
+
+#panel .lintel-button.lintel-right-text {
+    -natural-hpadding: 6px;
+    -minimum-hpadding: 4px;
+    margin: 2px 0 2px 2px;
+}
+
+#panel .lintel-button.lintel-right .system-status-icon {
+    margin: 0;
+}
+
+#panel .lintel-bar-bold {
+    font-weight: 700;
+}
+
+.lintel-tnum {
+    font-feature-settings: "tnum";
+}
+
+#panel .lintel-button .system-status-icon {
+    icon-size: 15px;
+    margin: 0 1px;
+}
+
+/* Logo de Apple: más grande que el resto de iconos */
+#panel .lintel-button .lintel-apple-icon {
+    icon-size: 19px;
+    margin: 0 1px;
+}
+
+/* Batería: el SVG es apaisado (28 × 16), así que necesita más ancho. */
+#panel .lintel-button .lintel-battery-icon {
+    icon-size: 24px;
+    margin: 0 1px;
+}
+
+.lintel-battery-indicator {
+    spacing: 3px;
+}
+
+.lintel-kbd-label {
+    font-size: 9pt;
+    font-weight: 600;
+}
+
+/* Indicadores de privacidad: llevan su propio color, como los puntos de macOS. */
+.lintel-privacy-box {
+    spacing: 2px;
+}
+
+#panel .lintel-button .lintel-priv-icon {
+    icon-size: 13px;
+    margin: 0 1px;
+}
+
+#panel .lintel-button .lintel-priv-mic {
+    color: #ff9f0a;
+}
+
+#panel .lintel-button .lintel-priv-camera {
+    color: #30d158;
+}
+
+#panel .lintel-button .lintel-priv-screen {
+    color: #bf5af2;
+}
+
+/* Texto claro (sobre fondos oscuros) */
+#panel.lintel-text-light .lintel-button {
+    color: #ffffff;
+    text-shadow: none;
+    icon-shadow: none;
+}
+
+#panel.lintel-text-light .lintel-button:hover,
+#panel.lintel-text-light .lintel-button:focus {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Texto oscuro (sobre fondos claros) */
+#panel.lintel-text-dark .lintel-button {
+    color: #111216;
+    text-shadow: none;
+    icon-shadow: none;
+}
+
+#panel.lintel-text-dark .lintel-button:hover,
+#panel.lintel-text-dark .lintel-button:focus {
+    color: #111216;
+    background-color: rgba(0, 0, 0, 0.13);
+}
+
+/* Botón con su menú abierto: píldora azul, como macOS */
+#panel.lintel-text-light .lintel-button:active,
+#panel.lintel-text-light .lintel-button:checked,
+#panel.lintel-text-dark .lintel-button:active,
+#panel.lintel-text-dark .lintel-button:checked {
+    color: #ffffff;
+    text-shadow: none;
+    icon-shadow: none;
+    background-color: rgba(79, 135, 245, 0.92);
+}
+
+/* ═══ Menús desplegables de vidrio claro ═════════════════════════════════ */
+
+.popup-menu-boxpointer.lintel-menu {
+    -arrow-rise: 0px;
+    -arrow-base: 0px;
+    -arrow-border-width: 0;
+    -arrow-border-radius: 0;
+    -arrow-background-color: transparent;
+    -arrow-border-color: transparent;
+    box-shadow: none;
+}
+
+.lintel-menu-content.popup-menu-content {
+    min-width: 236px;
+    margin: 0;
+    padding: 6px;
+    color: #1b1d21;
+    background-color: rgba(238, 243, 250, 0.90);
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(248, 250, 254, 0.92);
+    background-gradient-end: rgba(226, 234, 246, 0.90);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 14px;
+    box-shadow: none;
+    font-family: 'Adwaita Sans', Cantarell, sans-serif;
+    font-size: 9.75pt;
+    font-weight: 400;
+}
+
+/* Wi-Fi y Bluetooth: más anchos para nombres de redes y dispositivos. */
+.lintel-menu-content.lintel-menu-wide.popup-menu-content {
+    min-width: 290px;
+}
+
+.lintel-menu-content .popup-menu-ornament {
+    width: 0;
+    min-width: 0;
+    padding: 0;
+    margin: 0;
+}
+
+/* Cada fila: [icono 16px] [texto] .......... [atajo] */
+.lintel-menu-content .popup-menu-item {
+    min-height: 24px;
+    padding: 3px 10px;
+    margin: 0;
+    spacing: 8px;
+    color: #1b1d21;
+    background-color: transparent;
+    border-radius: 8px;
+    box-shadow: none;
+    font-weight: 400;
+    transition-duration: 60ms;
+}
+
+.lintel-menu-content .popup-menu-item:hover,
+.lintel-menu-content .popup-menu-item:focus,
+.lintel-menu-content .popup-menu-item:selected,
+.lintel-menu-content .popup-menu-item:active {
+    color: #ffffff;
+    background-color: #4f87f5;
+}
+
+.lintel-menu-content .lintel-item-info,
+.lintel-menu-content .lintel-item-info:hover,
+.lintel-menu-content .lintel-item-info:focus {
+    color: #1b1d21;
+    background-color: transparent;
+}
+
+/* Cabecera con interruptor (Wi-Fi, Bluetooth): no se resalta en azul. */
+.lintel-menu-content .lintel-toggle-item,
+.lintel-menu-content .lintel-toggle-item:hover,
+.lintel-menu-content .lintel-toggle-item:focus,
+.lintel-menu-content .lintel-toggle-item:active {
+    min-height: 28px;
+    color: #1b1d21;
+    background-color: transparent;
+}
+
+.lintel-menu-content .lintel-toggle-item:focus {
+    background-color: rgba(27, 29, 33, 0.06);
+}
+
+/* Títulos de sección ("Mis dispositivos", "Otras redes"…) */
+.lintel-menu-content .lintel-item-heading {
+    min-height: 20px;
+    padding-top: 6px;
+    padding-bottom: 0;
+}
+
+.lintel-menu-content .lintel-item-heading .lintel-item-label {
+    color: rgba(27, 29, 33, 0.50);
+    font-size: 8.75pt;
+    font-weight: 600;
+}
+
+.lintel-menu-content .popup-menu-item:insensitive {
+    color: rgba(27, 29, 33, 0.38);
+    background-color: transparent;
+}
+
+.lintel-item-label {
+    color: inherit;
+}
+
+.lintel-item-bold {
+    font-weight: 700;
+}
+
+.lintel-item-hint {
+    padding-left: 24px;
+    color: rgba(27, 29, 33, 0.45);
+    font-size: 9.25pt;
+}
+
+.lintel-menu-content .popup-menu-item:hover .lintel-item-hint,
+.lintel-menu-content .popup-menu-item:focus .lintel-item-hint {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.lintel-menu-content .popup-menu-item:insensitive .lintel-item-hint {
+    color: rgba(27, 29, 33, 0.26);
+}
+
+.lintel-item-icon-slot {
+    width: 16px;
+    height: 16px;
+}
+
+.lintel-menu-content .lintel-item-icon {
+    icon-size: 15px;
+    min-width: 16px;
+    color: rgba(27, 29, 33, 0.78);
+}
+
+.lintel-menu-content .popup-menu-item:hover .lintel-item-icon,
+.lintel-menu-content .popup-menu-item:focus .lintel-item-icon {
+    color: #ffffff;
+}
+
+.lintel-menu-content .popup-menu-item:insensitive .lintel-item-icon {
+    color: rgba(27, 29, 33, 0.30);
+}
+
+/* Iconos a la derecha de la fila (candado y señal Wi-Fi) */
+.lintel-menu-content .lintel-item-trailing {
+    icon-size: 14px;
+    color: rgba(27, 29, 33, 0.70);
+}
+
+.lintel-menu-content .popup-menu-item:hover .lintel-item-trailing,
+.lintel-menu-content .popup-menu-item:focus .lintel-item-trailing {
+    color: #ffffff;
+}
+
+.lintel-menu-content .popup-menu-arrow {
+    icon-size: 10px;
+    color: rgba(27, 29, 33, 0.75);
+}
+
+.lintel-menu-content .popup-menu-item:hover .popup-menu-arrow,
+.lintel-menu-content .popup-menu-item:focus .popup-menu-arrow {
+    color: #ffffff;
+}
+
+.lintel-menu-content .popup-separator-menu-item {
+    min-height: 0;
+    height: 11px;
+    padding: 0 10px;
+    background-color: transparent;
+}
+
+.lintel-menu-content .popup-separator-menu-item .popup-separator-menu-item-separator {
+    height: 1px;
+    background-color: rgba(27, 29, 33, 0.12);
+}
+
+.lintel-menu-content .popup-sub-menu {
+    margin: 0 0 3px 0;
+    padding: 2px;
+    background-color: rgba(27, 29, 33, 0.05);
+    border: 0 solid transparent;
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.lintel-menu-content .toggle-switch {
+    margin-left: 6px;
+}
+
+.lintel-menu-content .toggle-switch:checked {
+    background-color: #34c759;
+}
+
+/* Deslizadores de los menús (Sonido) */
+.lintel-slider-row {
+    spacing: 8px;
+}
+
+.lintel-slider-button {
+    padding: 3px;
+    border-radius: 999px;
+}
+
+.lintel-slider-button:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.lintel-slider-icon {
+    icon-size: 14px;
+    color: rgba(27, 29, 33, 0.80);
+}
+
+.lintel-slider {
+    height: 14px;
+    min-width: 150px;
+    color: #4f87f5;
+    -barlevel-height: 5px;
+    -barlevel-background-color: rgba(0, 0, 0, 0.14);
+    -barlevel-active-background-color: #4f87f5;
+    -barlevel-overdrive-color: #ff9f0a;
+    -barlevel-overdrive-separator-width: 0;
+    -slider-handle-radius: 7px;
+}
+
+/* ═══ Calendario ═════════════════════════════════════════════════════════ */
+
+.lintel-menu-content .lintel-cal-holder,
+.lintel-menu-content .lintel-cal-holder:hover,
+.lintel-menu-content .lintel-cal-holder:focus,
+.lintel-menu-content .lintel-cal-holder:active,
+.lintel-menu-content .lintel-cal-holder:selected {
+    color: #1b1d21;
+    background-color: transparent;
+}
+
+.lintel-cal {
+    spacing: 2px;
+    padding: 4px 6px 2px 6px;
+}
+
+.lintel-cal-head {
+    spacing: 2px;
+    padding-bottom: 6px;
+}
+
+.lintel-cal-title {
+    font-weight: 700;
+}
+
+.lintel-cal-nav {
+    padding: 3px;
+    border-radius: 999px;
+}
+
+.lintel-cal-nav:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.lintel-cal-nav-icon {
+    icon-size: 12px;
+    color: rgba(27, 29, 33, 0.80);
+}
+
+.lintel-cal-cell {
+    width: 24px;
+    height: 24px;
+    margin: 0 2px;
+    padding: 0;
+    text-align: center;
+    font-size: 9pt;
+}
+
+.lintel-cal-cell-label {
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+.lintel-cal-weekday {
+    font-size: 8pt;
+    font-weight: 700;
+    color: rgba(27, 29, 33, 0.50);
+}
+
+.lintel-cal-day {
+    font-weight: 500;
+    border-radius: 999px;
+}
+
+.lintel-cal-weekend {
+    color: rgba(27, 29, 33, 0.42);
+}
+
+.lintel-cal-today {
+    color: #ffffff;
+    font-weight: 700;
+    background-color: #ff3b30;
+}
+
+/* ═══ Centro de control: rejilla fija de 280 px ══════════════════════════ */
+
+.popup-menu-boxpointer.lintel-cc-menu {
+    -arrow-rise: 0px;
+    -arrow-base: 0px;
+    -arrow-border-width: 0;
+    -arrow-background-color: transparent;
+    -arrow-border-color: transparent;
+    box-shadow: none;
+}
+
+.lintel-cc-menu-content.popup-menu-content {
+    min-width: 0;
+    padding: 0;
+    background-color: rgba(214, 226, 242, 0.88);
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(224, 234, 247, 0.90);
+    background-gradient-end: rgba(192, 208, 230, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.70);
+    border-radius: 24px;
+    box-shadow: none;
+}
+
+.lintel-cc-menu-content .lintel-cc-holder,
+.lintel-cc-menu-content .lintel-cc-holder:hover,
+.lintel-cc-menu-content .lintel-cc-holder:focus {
+    padding: 0;
+    background-color: transparent;
+}
+
+/* St suma padding y borde al width: 280 + 2×10 = 300 px exteriores. */
+.lintel-cc-content {
+    spacing: 8px;
+    padding: 10px;
+    width: 280px;
+    color: #17212d;
+    font-family: 'Adwaita Sans', Cantarell, sans-serif;
+}
+
+.lintel-cc-primary,
+.lintel-cc-utility-row {
+    spacing: 8px;
+}
+
+/* Tarjeta de conexiones (izquierda) */
+.lintel-cc-group {
+    width: 156px;
+    min-height: 152px;
+    padding: 6px;
+    spacing: 2px;
+    background-color: rgba(255, 255, 255, 0.52);
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 20px;
+    box-shadow: none;
+}
+
+/* Columna de mosaicos verticales (derecha) */
+.lintel-cc-features {
+    width: 102px;
+    spacing: 8px;
+}
+
+/* Base de todos los mosaicos: tarjeta de cristal */
+.lintel-cc-tile {
+    color: #17212d;
+    background-color: rgba(255, 255, 255, 0.52);
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 20px;
+    box-shadow: none;
+    transition-duration: 120ms;
+}
+
+.lintel-cc-tile:hover {
+    background-color: rgba(255, 255, 255, 0.72);
+}
+
+.lintel-cc-tile:focus {
+    border-color: rgba(79, 135, 245, 0.85);
+}
+
+/* Filas dentro de la tarjeta de conexiones: sin fondo propio */
+.lintel-cc-tile.lintel-cc-row {
+    width: 142px;
+    min-height: 32px;
+    padding: 3px 6px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    box-shadow: none;
+}
+
+.lintel-cc-tile.lintel-cc-row:hover {
+    background-color: rgba(255, 255, 255, 0.50);
+}
+
+.lintel-cc-tile.lintel-cc-vtile {
+    width: 84px;
+    min-height: 72px;
+    padding: 8px;
+}
+
+.lintel-cc-tile.lintel-cc-wtile {
+    width: 118px;
+    min-height: 50px;
+    padding: 6px 8px;
+}
+
+.lintel-cc-tile-box {
+    spacing: 8px;
+}
+
+.lintel-cc-tile-vbox {
+    spacing: 5px;
+}
+
+/* Círculo del icono */
+.lintel-cc-tile-icon-shell {
+    width: 28px;
+    height: 28px;
+    color: #243040;
+    background-color: rgba(70, 85, 110, 0.16);
+    border-radius: 999px;
+}
+
+.lintel-cc-row .lintel-cc-tile-icon-shell {
+    width: 26px;
+    height: 26px;
+}
+
+.lintel-cc-tile-icon {
+    icon-size: 15px;
+    color: #243040;
+}
+
+/* Activo: el círculo se llena de color y el icono pasa a blanco */
+.lintel-cc-tile-icon-shell:checked {
+    background-color: #0a84ff;
+}
+
+.lintel-cc-tile-icon-shell:checked .lintel-cc-tile-icon {
+    color: #ffffff;
+}
+
+.lintel-cc-tile-icon-shell.lintel-accent-orange:checked {
+    background-color: #ff9f0a;
+}
+
+.lintel-cc-tile-icon-shell.lintel-accent-purple:checked {
+    background-color: #5e5ce6;
+}
+
+.lintel-cc-tile-icon-shell.lintel-accent-green:checked {
+    background-color: #30a46c;
+}
+
+.lintel-cc-tile-title {
+    color: #17212d;
+    font-size: 9pt;
+    font-weight: 600;
+    text-shadow: none;
+}
+
+.lintel-cc-tile-status {
+    color: rgba(23, 33, 45, 0.62);
+    font-size: 7.75pt;
+    text-shadow: none;
+}
+
+/* Tarjetas con deslizador (Brillo, Sonido y Micrófono) */
+.lintel-cc-slider {
+    width: 254px;
+    padding: 9px 12px 10px 12px;
+    spacing: 6px;
+    background-color: rgba(255, 255, 255, 0.52);
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 20px;
+    box-shadow: none;
+}
+
+.lintel-cc-slider-title {
+    color: #17212d;
+    font-size: 9pt;
+    font-weight: 600;
+    text-shadow: none;
+}
+
+.lintel-cc-slider-stack {
+    height: 24px;
+}
+
+/* El icono va dentro de la barra, a la izquierda */
+.lintel-cc-slider-icon {
+    padding-left: 9px;
+    icon-size: 14px;
+    color: #2a3340;
+}
+
+.lintel-cc-track {
+    height: 24px;
+    color: #ffffff;
+    -barlevel-height: 24px;
+    -barlevel-background-color: rgba(60, 75, 100, 0.22);
+    -barlevel-active-background-color: #ffffff;
+    -barlevel-overdrive-color: #ffffff;
+    -barlevel-border-width: 0;
+    -barlevel-active-border-width: 0;
+    -barlevel-overdrive-separator-width: 0;
+    -slider-handle-radius: 0;
+}
+
+.lintel-cc-pill {
+    padding: 5px 14px;
+    color: rgba(23, 33, 45, 0.70);
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 8.75pt;
+    text-shadow: none;
+}
+
+.lintel-cc-pill:hover,
+.lintel-cc-pill:focus {
+    color: #17212d;
+    background-color: rgba(255, 255, 255, 0.50);
+}
+
+/* ═══ MODO OSCURO de los menús ═══════════════════════════════════════════
+   La extensión añade la clase lintel-dark al menú (según color-scheme o la
+   configuración). Cada regla lleva un prefijo extra para ganar a la versión clara. */
+
+.lintel-dark .lintel-menu-content.popup-menu-content {
+    color: #f2f4f7;
+    background-color: rgba(38, 40, 46, 0.92);
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(50, 52, 59, 0.94);
+    background-gradient-end: rgba(30, 32, 38, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item {
+    color: #f2f4f7;
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:hover,
+.lintel-dark .lintel-menu-content .popup-menu-item:focus,
+.lintel-dark .lintel-menu-content .popup-menu-item:selected,
+.lintel-dark .lintel-menu-content .popup-menu-item:active {
+    color: #ffffff;
+    background-color: #3b82f6;
+}
+
+.lintel-dark .lintel-menu-content .lintel-item-info,
+.lintel-dark .lintel-menu-content .lintel-item-info:hover,
+.lintel-dark .lintel-menu-content .lintel-item-info:focus {
+    color: #f2f4f7;
+    background-color: transparent;
+}
+
+.lintel-dark .lintel-menu-content .lintel-toggle-item,
+.lintel-dark .lintel-menu-content .lintel-toggle-item:hover,
+.lintel-dark .lintel-menu-content .lintel-toggle-item:focus,
+.lintel-dark .lintel-menu-content .lintel-toggle-item:active {
+    color: #f2f4f7;
+    background-color: transparent;
+}
+
+.lintel-dark .lintel-menu-content .lintel-toggle-item:focus {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.lintel-dark .lintel-menu-content .lintel-item-heading .lintel-item-label {
+    color: rgba(242, 244, 247, 0.52);
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:insensitive {
+    color: rgba(242, 244, 247, 0.36);
+    background-color: transparent;
+}
+
+.lintel-dark .lintel-item-hint {
+    color: rgba(242, 244, 247, 0.50);
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:hover .lintel-item-hint,
+.lintel-dark .lintel-menu-content .popup-menu-item:focus .lintel-item-hint {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:insensitive .lintel-item-hint {
+    color: rgba(242, 244, 247, 0.26);
+}
+
+.lintel-dark .lintel-menu-content .lintel-item-icon {
+    color: rgba(242, 244, 247, 0.82);
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:hover .lintel-item-icon,
+.lintel-dark .lintel-menu-content .popup-menu-item:focus .lintel-item-icon {
+    color: #ffffff;
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:insensitive .lintel-item-icon {
+    color: rgba(242, 244, 247, 0.30);
+}
+
+.lintel-dark .lintel-menu-content .lintel-item-trailing {
+    color: rgba(242, 244, 247, 0.72);
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:hover .lintel-item-trailing,
+.lintel-dark .lintel-menu-content .popup-menu-item:focus .lintel-item-trailing {
+    color: #ffffff;
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-arrow {
+    color: rgba(242, 244, 247, 0.78);
+}
+
+.lintel-dark .lintel-menu-content .popup-menu-item:hover .popup-menu-arrow,
+.lintel-dark .lintel-menu-content .popup-menu-item:focus .popup-menu-arrow {
+    color: #ffffff;
+}
+
+.lintel-dark .lintel-menu-content .popup-separator-menu-item .popup-separator-menu-item-separator {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.lintel-dark .lintel-menu-content .popup-sub-menu {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.lintel-dark .lintel-slider-button:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.lintel-dark .lintel-slider-icon {
+    color: rgba(242, 244, 247, 0.85);
+}
+
+.lintel-dark .lintel-slider {
+    color: #3b82f6;
+    -barlevel-background-color: rgba(255, 255, 255, 0.20);
+    -barlevel-active-background-color: #3b82f6;
+}
+
+/* Calendario */
+.lintel-dark .lintel-menu-content .lintel-cal-holder,
+.lintel-dark .lintel-menu-content .lintel-cal-holder:hover,
+.lintel-dark .lintel-menu-content .lintel-cal-holder:focus,
+.lintel-dark .lintel-menu-content .lintel-cal-holder:active,
+.lintel-dark .lintel-menu-content .lintel-cal-holder:selected {
+    color: #f2f4f7;
+    background-color: transparent;
+}
+
+.lintel-dark .lintel-cal-nav:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.lintel-dark .lintel-cal-nav-icon {
+    color: rgba(242, 244, 247, 0.85);
+}
+
+.lintel-dark .lintel-cal-weekday {
+    color: rgba(242, 244, 247, 0.52);
+}
+
+.lintel-dark .lintel-cal-weekend {
+    color: rgba(242, 244, 247, 0.44);
+}
+
+.lintel-dark .lintel-cal-today {
+    color: #ffffff;
+}
+
+/* Centro de control */
+.lintel-dark .lintel-cc-menu-content.popup-menu-content {
+    background-color: rgba(30, 33, 40, 0.92);
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(40, 44, 52, 0.94);
+    background-gradient-end: rgba(24, 27, 33, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.lintel-dark .lintel-cc-content {
+    color: #f2f4f7;
+}
+
+.lintel-dark .lintel-cc-group,
+.lintel-dark .lintel-cc-slider {
+    background-color: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.lintel-dark .lintel-cc-tile {
+    color: #f2f4f7;
+    background-color: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.lintel-dark .lintel-cc-tile:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.lintel-dark .lintel-cc-tile:focus {
+    border-color: rgba(59, 130, 246, 0.90);
+}
+
+.lintel-dark .lintel-cc-tile.lintel-cc-row {
+    background-color: transparent;
+    border: 1px solid transparent;
+}
+
+.lintel-dark .lintel-cc-tile.lintel-cc-row:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.lintel-dark .lintel-cc-tile-icon-shell {
+    color: #f2f4f7;
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.lintel-dark .lintel-cc-tile-icon {
+    color: #f2f4f7;
+}
+
+.lintel-dark .lintel-cc-tile-icon-shell:checked {
+    background-color: #0a84ff;
+}
+
+.lintel-dark .lintel-cc-tile-icon-shell:checked .lintel-cc-tile-icon {
+    color: #ffffff;
+}
+
+.lintel-dark .lintel-cc-tile-icon-shell.lintel-accent-orange:checked {
+    background-color: #ff9f0a;
+}
+
+.lintel-dark .lintel-cc-tile-icon-shell.lintel-accent-purple:checked {
+    background-color: #5e5ce6;
+}
+
+.lintel-dark .lintel-cc-tile-icon-shell.lintel-accent-green:checked {
+    background-color: #30a46c;
+}
+
+.lintel-dark .lintel-cc-tile-title,
+.lintel-dark .lintel-cc-slider-title {
+    color: #f2f4f7;
+}
+
+.lintel-dark .lintel-cc-tile-status {
+    color: rgba(242, 244, 247, 0.62);
+}
+
+.lintel-dark .lintel-cc-slider-icon {
+    color: #4b5563;
+}
+
+.lintel-dark .lintel-cc-track {
+    color: #e5e7eb;
+    -barlevel-background-color: rgba(255, 255, 255, 0.18);
+    -barlevel-active-background-color: #e5e7eb;
+    -barlevel-overdrive-color: #e5e7eb;
+}
+
+.lintel-dark .lintel-cc-pill {
+    color: rgba(242, 244, 247, 0.72);
+}
+
+.lintel-dark .lintel-cc-pill:hover,
+.lintel-dark .lintel-cc-pill:focus {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* El contenedor no es una opción seleccionable: solo sus controles. */
+.lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder,
+.lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:hover,
+.lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:focus,
+.lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:selected,
+.lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:active {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:hover,
+.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:focus,
+.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:active {
+    background-color: #3584e4;
+    border-color: #3584e4;
+    color: #ffffff;
+}
+.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:hover StLabel,
+.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:focus StLabel,
+.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:active StLabel {
+    color: #ffffff;
+}

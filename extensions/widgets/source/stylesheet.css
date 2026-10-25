@@ -1,0 +1,103 @@
+/* ── Marcos de widget ─────────────────────────────────────────────────── */
+.lw-btn { border-radius: 8px; padding: 2px 4px; }
+.lw-dark .lw-hover:hover { background-color: rgba(255, 255, 255, 0.12); }
+.lw-light .lw-hover:hover { background-color: rgba(0, 0, 0, 0.07); }
+.lw-dark .lw-hover:focus { background-color: rgba(255, 255, 255, 0.10); }
+.lw-light .lw-hover:focus { background-color: rgba(0, 0, 0, 0.06); }
+
+.lw-edit { border: 2px dashed rgba(255, 255, 255, 0.75); border-radius: 24px; background-color: rgba(255, 255, 255, 0.04); }
+.lw-handle {
+    width: 16px; height: 16px; border-radius: 8px; background-color: #ffffff;
+    border: 2px solid #0a84ff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.lw-handle:hover { background-color: #0a84ff; }
+.lw-tools {
+    spacing: 6px; padding: 4px; border-radius: 14px;
+    background-color: rgba(40, 42, 52, 0.92); border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+.lw-tool { padding: 4px 10px; border-radius: 10px; font-size: 12px; color: #f5f5f7; background-color: rgba(255, 255, 255, 0.10); }
+.lw-tool:hover { background-color: rgba(255, 255, 255, 0.22); }
+.lw-tool-rojo { color: #ff6b63; }
+.lw-tool-rojo:hover { background-color: #ff453a; color: #ffffff; }
+.lw-fondo-edicion { background-color: rgba(8, 10, 18, 0.46); }
+.lw-barra {
+    spacing: 8px; padding: 8px 10px; border-radius: 18px;
+    background-color: rgba(44, 46, 58, 0.88); border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5);
+}
+.lw-foto-pie { padding: 10px 12px; border-radius: 0 0 24px 24px; background-color: rgba(0, 0, 0, 0.28); }
+.lw-foto-cor { padding: 4px 8px; border-radius: 99px; background-color: rgba(0, 0, 0, 0.35); }
+.lw-check { border-radius: 99px; }
+
+/* ── Hojas modales ────────────────────────────────────────────────────── */
+.lintel-hoja-dim { background-color: rgba(6, 8, 14, 0.5); }
+.lintel-hoja {
+    padding: 18px 20px 20px 20px; border-radius: 22px; color: #f5f5f7;
+    background-color: rgba(40, 42, 54, 0.94); border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+.lintel-hoja-cab { padding-bottom: 12px; }
+.lintel-hoja-titulo { font-size: 17px; font-weight: bold; }
+.lintel-hoja-x { padding: 5px; border-radius: 99px; color: rgba(255, 255, 255, 0.7); }
+.lintel-hoja-x:hover { background-color: rgba(255, 255, 255, 0.16); }
+
+.lintel-btn { padding: 6px 14px; border-radius: 10px; font-size: 13px; color: #f5f5f7; background-color: rgba(255, 255, 255, 0.13); }
+.lintel-btn:hover { background-color: rgba(255, 255, 255, 0.22); }
+.lintel-btn-primary { background-color: #0a84ff; color: #ffffff; }
+.lintel-btn-primary:hover { background-color: #3b9bff; }
+.lintel-btn-danger { color: #ff6b63; }
+.lintel-btn-danger:hover { background-color: #ff453a; color: #ffffff; }
+.lintel-chip { padding: 4px 11px; border-radius: 99px; font-size: 12px; color: #f5f5f7; background-color: rgba(255, 255, 255, 0.12); }
+.lintel-chip:hover { background-color: rgba(255, 255, 255, 0.22); }
+.lintel-chip:checked { background-color: #0a84ff; color: #ffffff; }
+
+.lintel-lbl { font-size: 13px; color: #f5f5f7; }
+.lintel-ayuda { font-size: 11px; color: rgba(255, 255, 255, 0.55); }
+.lintel-valor { font-size: 12px; color: rgba(255, 255, 255, 0.7); min-width: 52px; }
+.lintel-sec2 { font-size: 11px; font-weight: bold; color: rgba(255, 255, 255, 0.45); padding: 14px 4px 2px 4px; }
+.lintel-h1 { font-size: 20px; font-weight: bold; color: #ffffff; padding-bottom: 4px; }
+.lintel-fila { spacing: 14px; padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+
+.lintel-seg2 { background-color: rgba(255, 255, 255, 0.10); border-radius: 9px; padding: 2px; }
+.lintel-seg2-b { padding: 4px 11px; border-radius: 7px; font-size: 12px; color: rgba(255, 255, 255, 0.8); }
+.lintel-seg2-b:hover { background-color: rgba(255, 255, 255, 0.10); }
+.lintel-seg2-b:checked { background-color: rgba(255, 255, 255, 0.26); color: #ffffff; }
+
+.lintel-sw { width: 42px; height: 24px; border-radius: 12px; padding: 2px; background-color: rgba(255, 255, 255, 0.22); }
+.lintel-sw:checked { background-color: #30d158; }
+.lintel-knob { width: 20px; height: 20px; border-radius: 10px; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+
+.lintel-muestra { width: 20px; height: 20px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0.25); }
+.lintel-muestra:hover { border-color: rgba(255, 255, 255, 0.7); }
+.lintel-muestra:checked { border-color: #ffffff; box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.9); }
+
+.lintel-input {
+    padding: 5px 10px; border-radius: 9px; font-size: 13px; color: #ffffff; caret-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.11); border: 1px solid rgba(255, 255, 255, 0);
+    selection-background-color: rgba(10, 132, 255, 0.7);
+}
+.lintel-input:focus { border-color: rgba(10, 132, 255, 0.95); box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.3); }
+.lintel-input StLabel.hint-text { color: rgba(255, 255, 255, 0.45); }
+
+.lintel-nav { padding: 7px 12px; border-radius: 9px; font-size: 13px; color: #f5f5f7; text-align: left; }
+.lintel-nav:hover { background-color: rgba(255, 255, 255, 0.09); }
+.lintel-nav:checked { background-color: rgba(10, 132, 255, 0.45); }
+
+.lintel-card { padding: 14px; spacing: 6px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.1); }
+.lintel-card-t { font-size: 14px; font-weight: bold; color: #ffffff; }
+.lintel-card-icono { color: #64d2ff; }
+.lintel-thumb { width: 96px; height: 96px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0); }
+.lintel-thumb:hover { border-color: #0a84ff; }
+
+/* ── Menú contextual ──────────────────────────────────────────────────── */
+.lintel-ctx {
+    min-width: 210px; padding: 6px; border-radius: 12px; color: #f5f5f7;
+    background-color: rgba(44, 46, 56, 0.92); border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.55);
+}
+.lintel-ctx-item { padding: 6px 10px; border-radius: 7px; font-size: 13px; color: #f5f5f7; text-align: left; }
+.lintel-ctx-item:hover, .lintel-ctx-item:focus { background-color: rgba(10, 132, 255, 0.92); }
+.lintel-ctx-item.danger { color: #ff6b63; }
+.lintel-ctx-item.danger:hover { background-color: rgba(255, 69, 58, 0.92); color: #ffffff; }
+.lintel-ctx-sep { height: 1px; margin: 5px 6px; background-color: rgba(255, 255, 255, 0.12); }

@@ -1,0 +1,18 @@
+{
+  "description": "Dock personalizado con ampliación coordinada al estilo macOS.",
+  "gettext-domain": "dashtodock",
+  "name": "Dock macOS 27",
+  "original-author": "micxgx@gmail.com",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "url": "https://micheleg.github.io/dash-to-dock/",
+  "uuid": "macos27-dock@local",
+  "version": 7
+}

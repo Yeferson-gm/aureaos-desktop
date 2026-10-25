@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source = fs.readFileSync(new URL('./extension.js', import.meta.url), 'utf8')
+    .replace(/^import .*;\n/gm, '').replace('export default class', 'class');
+const context = vm.createContext({Extension: class {}, Clutter: {AnimationMode: {EASE_OUT_CUBIC: 1}}});
+vm.runInContext(`${source}\nglobalThis.Dock = SideDock;`, context);
+const dock = Object.create(context.Dock.prototype);
+dock._root = {hover: false, ease(props) {Object.assign(this, props);}};
+dock._clear = () => {};
+dock._open = false;
+dock._syncAutoHide(false);
+assert.equal(dock._root.translation_x, 48, 'Leave a six-pixel edge handle');
+dock._root.hover = true;
+dock._syncAutoHide(false);
+assert.equal(dock._root.translation_x, 0);
+dock._root.hover = false;
+dock._open = true;
+dock._syncAutoHide(false);
+assert.equal(dock._root.translation_x, 0, 'Never hide an open panel');
+console.log('PASS: hide, reveal, open panel');

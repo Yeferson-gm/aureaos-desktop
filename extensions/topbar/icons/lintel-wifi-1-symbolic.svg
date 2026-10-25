@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <path fill="#bebebe" d="M8 13.3 L5.6 10.9 A3.4 3.4 0 0 1 10.4 10.9 Z"/>
+  <path fill="#bebebe" opacity=".35" d="M3.26 8.56 A6.7 6.7 0 0 1 12.74 8.56 L11.46 9.84 A4.9 4.9 0 0 0 4.54 9.84 Z"/>
+  <path fill="#bebebe" opacity=".35" d="M0.93 6.23 A10 10 0 0 1 15.07 6.23 L13.8 7.5 A8.2 8.2 0 0 0 2.2 7.5 Z"/>
+</svg>

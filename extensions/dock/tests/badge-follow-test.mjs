@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source = fs.readFileSync(new URL('../appIconIndicators.js', import.meta.url), 'utf8');
+const start = source.indexOf('    _syncBadgePosition() {');
+assert.ok(start >= 0, 'Missing badge position synchronization');
+const end = source.indexOf('\n    _updateNotificationBadgeStyle()', start);
+const context = vm.createContext({});
+vm.runInContext(`class Badge {${source.slice(start, end)}};globalThis.Badge = Badge;`, context);
+const badge = new context.Badge();
+const icon = {width: 48, height: 48, scale_x: 1.75, scale_y: 1.75,
+    translation_x: 20, translation_y: -8, get_pivot_point: () => [0.5, 1]};
+badge._source = {icon: {_iconBin: icon}};
+badge._notificationBadgeBin = {scale_x: 1, scale_y: 1};
+badge._syncBadgePosition();
+assert.equal(badge._notificationBadgeBin.translation_x, 38);
+assert.equal(badge._notificationBadgeBin.translation_y, -44);
+assert.equal(badge._notificationBadgeBin.scale_x, 1);
+icon.scale_x = icon.scale_y = 1;
+icon.translation_x = icon.translation_y = 0;
+badge._syncBadgePosition();
+assert.equal(badge._notificationBadgeBin.translation_x, 0);
+assert.equal(badge._notificationBadgeBin.translation_y, 0);
+console.log('PASS: badge follows icon corner, bounce and reset at native size');
