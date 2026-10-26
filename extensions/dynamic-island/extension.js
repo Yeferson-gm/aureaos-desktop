@@ -16,13 +16,13 @@ import {Slider} from 'resource:///org/gnome/shell/ui/slider.js';
 import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
 import {ActivityQueue, springProgress} from './activities.js';
 
-// ======================= AJUSTES =======================
-const OCULTAR_OSD_SISTEMA = true;   // oculta el cartel de volumen/brillo de GNOME y usa el notch
-const CIUDAD_MANUAL = null;         // ej: {nombre: 'Lima', lat: -12.04, lon: -77.03}  (null = detectar sola)
+
+const OCULTAR_OSD_SISTEMA = true;
+const CIUDAD_MANUAL = null;
 const CIUDAD_RESPALDO = {nombre: 'Huánuco', lat: -9.93, lon: -76.24};
-const MARQUEE = 212;                // ancho visible del nombre en el notch
-const MARQUEE_SPEED = 32;           // píxeles por segundo
-// =======================================================
+const MARQUEE = 212;
+const MARQUEE_SPEED = 32;
+
 
 const PREFIX = 'org.mpris.MediaPlayer2.';
 const PATH = '/org/mpris/MediaPlayer2';
@@ -33,7 +33,7 @@ const UPOWER = 'org.freedesktop.UPower';
 const UPOWER_DEV = '/org/freedesktop/UPower/devices/DisplayDevice';
 
 const WIDTH = 380;
-const PAD = 46; // Mantener el espacio interior del panel expandido.
+const PAD = 46;
 const PAGE_H = 160;
 const PAGE_CLIP_LIST = 190;
 const ISLAND_W = WIDTH + PAD * 2;
@@ -104,9 +104,9 @@ const aqiInfo = aqi => {
 };
 
 export default class DynamicIsland extends Extension {
-    // =====================================================================
-    //  Ciclo de vida
-    // =====================================================================
+
+
+
     enable() {
         this._alive = true;
         this._sources = new Set();
@@ -136,7 +136,7 @@ export default class DynamicIsland extends Extension {
         this._hardwareAt = 0;
         this._notificationSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.notifications'});
 
-        // música
+
         this._generation = 0;
         this._requestGeneration = 0;
         this._name = null;
@@ -156,7 +156,7 @@ export default class DynamicIsland extends Extension {
         this._marqueeOn = false;
         this._tickId = 0;
 
-        // sistema
+
         this._mixer = null;
         this._mixerSignals = [];
         this._sink = null;
@@ -174,12 +174,12 @@ export default class DynamicIsland extends Extension {
         this._awake = {mode: null, end: 0, cookie: 0};
         this._awakeTimer = 0;
 
-        // pill / toast
+
         this._hudActive = false;
         this._hudTimer = 0;
         this._clockLabelVisible = false;
 
-        // productividad
+
         this._tab = 'music';
         this._pages = {};
         this._tabButtons = {};
@@ -204,13 +204,13 @@ export default class DynamicIsland extends Extension {
         this._notificationSignals = [];
         this._notificationRefresh = 0;
 
-        // reloj
+
         this._tm = {mode: 'timer', left: 0, total: 0, endAt: 0, running: false, started: false,
             sw: 0, swStart: 0, swRunning: false, swStarted: false};
         this._clockTimer = 0;
         this._pomodoro = null;
 
-        // hoy
+
         this._events = null;
         this._eventsSig = 0;
         this._weather = null;
@@ -289,12 +289,12 @@ export default class DynamicIsland extends Extension {
         this._generation++;
         this._requestGeneration++;
 
-        // soltar el bloqueo de "mantener despierto"
+
         if (this._awake?.cookie) {
             try {
                 this._bus.call('org.gnome.SessionManager', '/org/gnome/SessionManager', 'org.gnome.SessionManager',
                     'Uninhibit', new GLib.Variant('(u)', [this._awake.cookie]), null, Gio.DBusCallFlags.NONE, 1000, null, null);
-            } catch (e) { /* nada */ }
+            } catch (e) {            }
         }
         this._closeMirror();
         this._fileJob?.send_signal(15);
@@ -305,7 +305,7 @@ export default class DynamicIsland extends Extension {
         this._saveNotes();
         this._saveClips(true);
 
-        for (const id of [...this._sources]) { try { GLib.Source.remove(id); } catch (e) { /* nada */ } }
+        for (const id of [...this._sources]) { try { GLib.Source.remove(id); } catch (e) {            } }
         this._sources.clear();
         this._cancel?.cancel();
 
@@ -317,24 +317,24 @@ export default class DynamicIsland extends Extension {
         this._brightnessSignal = 0;
         this._brightnessScale = null;
 
-        for (const [obj, id] of this._signals) { try { obj.disconnect(id); } catch (e) { /* nada */ } }
+        for (const [obj, id] of this._signals) { try { obj.disconnect(id); } catch (e) {            } }
         this._signals = [];
 
         this._disconnectNotificationSignals();
 
-        if (this._sink) for (const id of this._sinkSignals) { try { this._sink.disconnect(id); } catch (e) { /* nada */ } }
-        for (const id of this._mixerSignals) { try { this._mixer?.disconnect(id); } catch (e) { /* nada */ } }
+        if (this._sink) for (const id of this._sinkSignals) { try { this._sink.disconnect(id); } catch (e) {            } }
+        for (const id of this._mixerSignals) { try { this._mixer?.disconnect(id); } catch (e) {            } }
         this._sink = null;
         this._mixer = null;
 
         if (this._osdShow) { Main.osdWindowManager.show = this._osdShow; this._osdShow = null; }
         if (this._events) {
-            try { if (this._eventsSig) this._events.disconnect(this._eventsSig); this._events.destroy?.(); } catch (e) { /* nada */ }
+            try { if (this._eventsSig) this._events.disconnect(this._eventsSig); this._events.destroy?.(); } catch (e) {            }
             this._events = null;
         }
         this._releaseInteraction();
         if (this._island) {
-            try { Main.layoutManager.removeChrome(this._island); } catch (e) { /* nada */ }
+            try { Main.layoutManager.removeChrome(this._island); } catch (e) {            }
             this._island.destroy();
             this._island = null;
         }
@@ -352,9 +352,9 @@ export default class DynamicIsland extends Extension {
         this._settings = null;
     }
 
-    // =====================================================================
-    //  Utilidades
-    // =====================================================================
+
+
+
     _safe(name, fn) {
         try { fn(); } catch (e) { console.error(`Dynamic Island [${name}]: ${e.message}`); }
     }
@@ -510,9 +510,9 @@ export default class DynamicIsland extends Extension {
         return head;
     }
 
-    // =====================================================================
-    //  Notch (píldora del panel) + avisos (HUD)
-    // =====================================================================
+
+
+
     _buildPill() {
         this._button = new PanelMenu.Button(0.5, 'Dynamic Island', true);
         this._button.add_style_class_name('di-button');
@@ -580,9 +580,9 @@ export default class DynamicIsland extends Extension {
 
         this._button.add_child(this._pill);
         Main.panel.addToStatusArea('dynamic-island-native', this._button, 0, 'center');
-        // Abrir después de soltar el puntero. Durante button-press-event el
-        // botón del panel aún conserva el grab y GNOME rechaza el grab modal
-        // de la isla, por lo que ésta se ocultaba inmediatamente.
+
+
+
         this._connect(this._button, 'button-release-event', () => {
             this._openedByHover = false;
             this._menu?.toggle();
@@ -632,8 +632,8 @@ export default class DynamicIsland extends Extension {
             return;
         }
 
-        // Geometría de la isla lateral rotada al borde superior. Los hombros
-        // cóncavos conservan la unión a la pantalla durante toda la expansión.
+
+
         const shoulder = Math.max(1, Math.min(8, height / 3, width / 4));
         const radius = Math.max(1, Math.min(ISLAND_R,
             height - shoulder, (width - shoulder * 2) / 2));
@@ -648,8 +648,8 @@ export default class DynamicIsland extends Extension {
             radius, Math.PI / 2, 0);
         context.lineTo(width - shoulder, shoulder);
         context.arc(width, shoulder, shoulder, Math.PI, Math.PI * 1.5);
-        // Rellenar cierra el contorno; dejar el trazo abierto evita una línea
-        // horizontal sobre el borde de la pantalla, igual que la isla lateral.
+
+
         const glass = this._settings.get_string('theme') === 'glass';
         context.setSourceRGBA(glass ? 0.10 : 0.031, glass ? 0.13 : 0.035,
             glass ? 0.18 : 0.047, this._settings.get_double('opacity'));
@@ -661,7 +661,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _sizePill() {
-        // El notch ocupa todo el alto del panel, pegado al borde superior, como en un Mac.
+
         this._pill?.set_height(Math.max(34, Main.panel.height || 0));
         this._pillBackground?.queue_repaint();
         this._centerPill();
@@ -723,8 +723,8 @@ export default class DynamicIsland extends Extension {
         const playing = active && this._status === 'Playing';
         this._hud.visible = hud;
         this._bars.visible = !hud && active;
-        // Repartir el espacio de la antigua portada entre ambos márgenes:
-        // mantiene márgenes equilibrados sin cargar ninguna imagen aquí.
+
+
         this._pillContent.set_style(!hud && active ? 'padding: 0 30px 0 29px;' : null);
         this._marquee.visible = !hud && active;
         this._pillTimer.visible = !hud && this._clockLabelVisible;
@@ -747,7 +747,7 @@ export default class DynamicIsland extends Extension {
 
     _startBars() {
         if (this._barsTimer) return;
-        // Indica reproducción, no amplitud de audio: no se fabrican muestras de sonido.
+
         let phase = 0;
         const animate = () => {
             for (const [i, bar] of this._barItems.entries()) {
@@ -808,9 +808,9 @@ export default class DynamicIsland extends Extension {
         if (this._marqueeRow) this._marqueeRow.translation_x = 0;
     }
 
-    // =====================================================================
-    //  Tarjeta: pestañas
-    // =====================================================================
+
+
+
     _buildCard() {
         this._menu = {
             isOpen: false,
@@ -825,7 +825,7 @@ export default class DynamicIsland extends Extension {
         this._notch = {x: 0, y: 0, w: 180, h: 34};
         this._fin = {x: 0, y: 0, w: ISLAND_W, h: 300};
 
-        // La isla es una sola pieza negra pegada al borde superior que crece desde el notch.
+
         this._island = new St.Widget({
             reactive: true, visible: false, clip_to_allocation: true,
             layout_manager: new Clutter.FixedLayout(),
@@ -841,7 +841,7 @@ export default class DynamicIsland extends Extension {
         this._topSpacer = new St.Widget({height: 28});
         body.add_child(this._topSpacer);
 
-        // barra de pestañas
+
         const tabs = new St.BoxLayout({style_class: 'di-tabs', width: WIDTH, y_align: Clutter.ActorAlign.CENTER});
         tabs.reactive = true;
         this._connect(tabs, 'scroll-event', (_actor, event) => {
@@ -950,7 +950,7 @@ export default class DynamicIsland extends Extension {
         this._islandBackground.queue_repaint();
     }
 
-    // ---------- Apertura / cierre: el notch crece hacia abajo ----------
+
     _applyIsland(p) {
         if (!this._island) return;
         this._p = p;
@@ -1008,7 +1008,7 @@ export default class DynamicIsland extends Extension {
         const h = Math.ceil(this._content.get_preferred_height(ISLAND_W)[1]);
         if (h === this._fin.h) return;
         this._fin.h = h;
-        if (this._tweenSource) return;   // la animación de apertura ya usa la nueva altura
+        if (this._tweenSource) return;
         this._island.remove_all_transitions();
         this._island.ease({height: h, duration: this._duration(240), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
     }
@@ -1068,15 +1068,15 @@ export default class DynamicIsland extends Extension {
         const iw = this._island.width;
         const ih = this._island.height;
         let target = null;
-        try { target = global.stage.get_event_actor(event); } catch (e) { /* prueba sintética */ }
+        try { target = global.stage.get_event_actor(event); } catch (e) {                         }
         const insideBounds = x >= ix && x <= ix + iw && y >= iy && y <= iy + ih;
         const inside = target ? this._island.contains(target) && insideBounds : insideBounds;
-        // clic fuera de la isla, o sobre la zona del notch: se cierra
+
         if (!inside || y <= iy + this._topSpacer.height) {
             this._closeIsland();
-            // Este primer clic sólo descarta la isla. Propagarlo activaría el
-            // control o la ventana que quede debajo y se percibiría como un
-            // clic fantasma.
+
+
+
             return Clutter.EVENT_STOP;
         }
         return Clutter.EVENT_PROPAGATE;
@@ -1085,8 +1085,8 @@ export default class DynamicIsland extends Extension {
     _acquireInteraction() {
         if (this._grab) return true;
         try {
-            // Igual que PopupMenuManager de GNOME: el grab hace que los clics
-            // sobre clientes Wayland lleguen al actor de la isla.
+
+
             this._capId = this._island.connect(
                 'captured-event', (_actor, event) => this._onCaptured(event));
             this._grab = Main.pushModal(this._island, {
@@ -1104,7 +1104,7 @@ export default class DynamicIsland extends Extension {
 
     _releaseInteraction() {
         if (this._capId) {
-            try { this._island?.disconnect(this._capId); } catch (e) { /* nada */ }
+            try { this._island?.disconnect(this._capId); } catch (e) {            }
             this._capId = 0;
         }
         if (this._grab) {
@@ -1117,8 +1117,8 @@ export default class DynamicIsland extends Extension {
     }
 
     _closeIsland() {
-        // Liberar la entrada antes de cualquier limpieza que pueda fallar.
-        // También recupera un grab residual si el estado ya cambió a cerrado.
+
+
         this._releaseInteraction();
         if (!this._menu?.isOpen || !this._island) return;
         this._menu.isOpen = false;
@@ -1262,9 +1262,9 @@ export default class DynamicIsland extends Extension {
         });
     }
 
-    // =====================================================================
-    //  Página: Música
-    // =====================================================================
+
+
+
     _buildHomePage() {
         const page = this._newPage('home');
         this._homeDate = this._label('', 'di-hint');
@@ -1446,9 +1446,9 @@ export default class DynamicIsland extends Extension {
         if (!inputs.length) this._appAudio.add_child(this._label('No hay aplicaciones emitiendo audio', 'di-hint'));
     }
 
-    // =====================================================================
-    //  Página: Estante de archivos
-    // =====================================================================
+
+
+
     _buildFilesPage() {
         const page = this._newPage('files');
         page.add_child(this._head('Estante de archivos',
@@ -1528,7 +1528,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _saveShelf() {
-        try { GLib.file_set_contents(this._shelfFile(), JSON.stringify({files: this._shelf})); } catch (e) { /* nada */ }
+        try { GLib.file_set_contents(this._shelfFile(), JSON.stringify({files: this._shelf})); } catch (e) {            }
     }
 
     _shelfAddFromClipboard() {
@@ -1547,7 +1547,7 @@ export default class DynamicIsland extends Extension {
                 let uris = [];
                 try {
                     if (bytes) uris = dec.decode(bytes.get_data()).split('\n').map(s => s.trim()).filter(s => s.startsWith('file://'));
-                } catch (e) { /* nada */ }
+                } catch (e) {            }
                 if (uris.length) this._shelfAdd(uris);
                 else fromText();
             });
@@ -1560,7 +1560,7 @@ export default class DynamicIsland extends Extension {
             try {
                 const path = GLib.filename_from_uri(uri)[0];
                 if (GLib.file_test(path, GLib.FileTest.EXISTS) && !this._shelf.includes(path)) { this._shelf.push(path); added++; }
-            } catch (e) { /* nada */ }
+            } catch (e) {            }
         }
         this._saveShelf();
         this._renderShelf();
@@ -1597,7 +1597,7 @@ export default class DynamicIsland extends Extension {
             check.accessible_name = `${selected ? 'Deseleccionar' : 'Seleccionar'} ${GLib.path_get_basename(path)}`;
             row.add_child(check);
             let gicon = null;
-            try { gicon = Gio.File.new_for_path(path).query_info('standard::icon', Gio.FileQueryInfoFlags.NONE, null).get_icon(); } catch (e) { /* nada */ }
+            try { gicon = Gio.File.new_for_path(path).query_info('standard::icon', Gio.FileQueryInfoFlags.NONE, null).get_icon(); } catch (e) {            }
             row.add_child(gicon ? new St.Icon({gicon, icon_size: 20}) : new St.Icon({icon_name: 'text-x-generic-symbolic', icon_size: 20}));
             const open = new St.Button({style_class: 'di-row-name', reactive: true, can_focus: true, x_expand: true, x_align: Clutter.ActorAlign.START});
             const name = new St.Label({text: GLib.path_get_basename(path), width: 120});
@@ -1642,15 +1642,15 @@ export default class DynamicIsland extends Extension {
 
     _sendFile(path, uri) {
         if (GLib.find_program_in_path('localsend') && this._spawn(['localsend', path])) return;
-        // Equivalente a AirDrop en Linux: KDE Connect o Bluetooth.
+
         if (GLib.find_program_in_path('kdeconnect-handler') && this._spawn(['kdeconnect-handler', uri])) return;
         if (GLib.find_program_in_path('bluetooth-sendto') && this._spawn(['bluetooth-sendto', path])) return;
         this._toast({icon: 'dialog-information-symbolic', text: 'Instala LocalSend, KDE Connect o bluetooth-sendto', ms: 3200, warn: true});
     }
 
-    // =====================================================================
-    //  Página: Portapapeles (historial con texto e imágenes)
-    // =====================================================================
+
+
+
     _clipFile() { return GLib.build_filenamev([this._dataDir, 'portapapeles.json']); }
     _clipDir() { return GLib.build_filenamev([this._dataDir, 'clips']); }
     _clipPath(e) { return GLib.build_filenamev([this._clipDir(), e.file]); }
@@ -1669,7 +1669,7 @@ export default class DynamicIsland extends Extension {
                     this._validStoredImage(e))));
                 if (this._clips.length !== entries.length) this._saveClips(true);
             }
-        } catch (e) { /* primera vez */ }
+        } catch (e) {                   }
         this._purgeClipFiles(this._clips);
     }
 
@@ -1711,7 +1711,7 @@ export default class DynamicIsland extends Extension {
                 const name = info.get_name();
                 if (!keep.has(name)) dir.get_child(name).delete(null);
             }
-        } catch (e) { /* nada */ }
+        } catch (e) {            }
     }
 
     _saveClips(final = false) {
@@ -1720,7 +1720,7 @@ export default class DynamicIsland extends Extension {
             try {
                 GLib.mkdir_with_parents(this._dataDir, 0o755);
                 GLib.file_set_contents(this._clipFile(), JSON.stringify({cfg: this._cfg, entries: this._persistedClips()}));
-            } catch (e) { /* nada */ }
+            } catch (e) {            }
         };
         this._clear(this._clipSaveTimer);
         this._clipSaveTimer = 0;
@@ -1744,14 +1744,14 @@ export default class DynamicIsland extends Extension {
         if (!this._alive || this._cfg.private || Date.now() < this._ignoreUntil) return;
         const clipboard = St.Clipboard.get_default();
         let mimes = [];
-        try { mimes = clipboard.get_mimetypes(St.ClipboardType.CLIPBOARD) ?? []; } catch (e) { /* nada */ }
+        try { mimes = clipboard.get_mimetypes(St.ClipboardType.CLIPBOARD) ?? []; } catch (e) {            }
         if (this._cfg.ignorePw && mimes.some(m => m.toLowerCase().includes('passwordmanagerhint'))) return;
         const imageMime = ['image/png', 'image/jpeg', 'image/webp', 'image/bmp'].find(m => mimes.includes(m));
         if (imageMime) {
             try {
                 clipboard.get_content(St.ClipboardType.CLIPBOARD, imageMime, (_c, bytes) => this._addImage(bytes, imageMime));
                 return;
-            } catch (e) { /* cae a texto */ }
+            } catch (e) {                   }
         }
         clipboard.get_text(St.ClipboardType.CLIPBOARD, (_c, text) => this._addText(text));
     }
@@ -1766,7 +1766,7 @@ export default class DynamicIsland extends Extension {
             this._clips.unshift(entry);
             this._currentId = entry.id;
         }
-        // limitar historial (fijados y favoritos nunca se borran solos)
+
         let count = 0;
         const removed = [];
         this._clips = this._clips.filter(e => {
@@ -1808,7 +1808,7 @@ export default class DynamicIsland extends Extension {
 
     _deleteClipFile(e) {
         if (e.type !== 'image' || !e.file) return;
-        try { Gio.File.new_for_path(this._clipPath(e)).delete(null); } catch (err) { /* nada */ }
+        try { Gio.File.new_for_path(this._clipPath(e)).delete(null); } catch (err) {            }
     }
 
     _copyClip(e) {
@@ -1826,7 +1826,7 @@ export default class DynamicIsland extends Extension {
             this._toast({icon: 'dialog-warning-symbolic', text: 'No se pudo copiar', warn: true});
             return;
         }
-        // La lista conserva su orden: solo se mueve el punto naranja hasta la copia elegida.
+
         e.t = Date.now();
         const previous = this._currentId;
         this._currentId = e.id;
@@ -1889,7 +1889,7 @@ export default class DynamicIsland extends Extension {
 
     _footRow(icon, text, cb, withSwitch = false, state = false) {
         const button = new St.Button({style_class: 'di-foot', reactive: true, can_focus: true, x_expand: true, width: WIDTH});
-        // ancho fijo para que el texto quede a la izquierda y el interruptor a la derecha
+
         const row = new St.BoxLayout({style_class: 'di-foot-row', width: WIDTH - 20, y_align: Clutter.ActorAlign.CENTER});
         if (icon) row.add_child(new St.Icon({icon_name: icon, icon_size: 15, y_align: Clutter.ActorAlign.CENTER}));
         row.add_child(new St.Label({text, y_align: Clutter.ActorAlign.CENTER}));
@@ -1985,7 +1985,7 @@ export default class DynamicIsland extends Extension {
                 this._timeout(40, () => {
                     try {
                         slot.dot.ease({scale_x: 1, scale_y: 1, duration: 320, mode: Clutter.AnimationMode.EASE_OUT_BACK});
-                    } catch (err) { /* la fila ya no existe */ }
+                    } catch (err) {                            }
                     return GLib.SOURCE_REMOVE;
                 });
             }
@@ -2073,9 +2073,9 @@ export default class DynamicIsland extends Extension {
         list.add_child(maxRow);
     }
 
-    // =====================================================================
-    //  Página: Notas rápidas
-    // =====================================================================
+
+
+
     _buildNotesPage() {
         const page = this._newPage('notes');
         page.add_child(this._head('Notas rápidas',
@@ -2118,7 +2118,7 @@ export default class DynamicIsland extends Extension {
         try {
             const data = JSON.parse(dec.decode(GLib.file_get_contents(`${this._dataDir}/tasks.json`)[1]));
             if (Array.isArray(data)) this._tasks = data.filter(item => typeof item?.text === 'string').slice(0, 200);
-        } catch (e) { /* primera ejecución */ }
+        } catch (e) {                          }
         this._renderTasks();
     }
 
@@ -2158,17 +2158,17 @@ export default class DynamicIsland extends Extension {
         try {
             const [ok, data] = GLib.file_get_contents(this._notesFile());
             if (ok) this._noteEntry.set_text(dec.decode(data));
-        } catch (e) { /* aún no hay notas */ }
+        } catch (e) {                         }
     }
 
     _saveNotes() {
         if (!this._noteEntry) return;
-        try { GLib.file_set_contents(this._notesFile(), this._noteEntry.get_text()); } catch (e) { /* nada */ }
+        try { GLib.file_set_contents(this._notesFile(), this._noteEntry.get_text()); } catch (e) {            }
     }
 
-    // =====================================================================
-    //  Página: Notificaciones nativas de GNOME
-    // =====================================================================
+
+
+
     _buildNotificationsPage() {
         const page = this._newPage('notifications', 208);
         page.add_style_class_name('di-page-notifications');
@@ -2190,16 +2190,16 @@ export default class DynamicIsland extends Extension {
         this._connect(Main.messageTray, 'source-added', () => this._scheduleNotificationsRender());
         this._connect(Main.messageTray, 'source-removed', () => this._scheduleNotificationsRender());
         this._bindNotificationSources();
-        // Interceptar la presentación, no la entrega ni las preferencias globales.
-        // _showNotification se consulta al mostrar; interceptar la señal ya
-        // enlazada de cada fuente no cubriría las aplicaciones existentes.
+
+
+
         const tray = Main.messageTray;
         this._bannerOverrides = new InjectionManager();
         this._bannerOverrides.overrideMethod(tray, '_showNotification', () => function () {
             this._notificationQueue.length = 0;
             this.emit('queue-changed');
         });
-        // No reproducir banners atrasados ni dejar visible uno anterior.
+
         if (tray.queueCount) {
             tray._notificationQueue.length = 0;
             tray.emit('queue-changed');
@@ -2234,7 +2234,7 @@ export default class DynamicIsland extends Extension {
         for (const source of Main.messageTray.getSources()) {
             try {
                 this._watchNotificationObject(source, ['notification-added']);
-            } catch (e) { /* fuente eliminada durante la actualización */ }
+            } catch (e) {                                                  }
 
             for (const notification of source.notifications ?? []) {
                 if (!this._notificationSeen.has(notification)) {
@@ -2248,7 +2248,7 @@ export default class DynamicIsland extends Extension {
                     }
                 }
                 try { this._watchNotificationObject(notification, ['notify::acknowledged']); }
-                catch (e) { /* notificación transitoria */ }
+                catch (e) {                                 }
             }
         }
         this._notificationPrimed = true;
@@ -2322,7 +2322,7 @@ export default class DynamicIsland extends Extension {
             });
             try {
                 if (source.icon) icon.gicon = source.icon;
-            } catch (e) { /* conservar icono genérico */ }
+            } catch (e) {                                 }
             row.add_child(icon);
 
             const texts = new St.BoxLayout({vertical: true, style_class: 'di-notification-texts', x_expand: true});
@@ -2340,7 +2340,7 @@ export default class DynamicIsland extends Extension {
             button.set_child(row);
             button.accessible_name = body ? `${title}. ${body}` : title;
             button.connect('clicked', () => {
-                try { notification.activate?.(); } catch (e) { /* algunas notificaciones no son activables */ }
+                try { notification.activate?.(); } catch (e) {                                                }
                 this._closeIsland();
             });
             this._notificationList.add_child(button);
@@ -2349,14 +2349,14 @@ export default class DynamicIsland extends Extension {
 
     _clearNotifications() {
         for (const {notification} of this._notificationEntries()) {
-            try { notification.destroy?.(); } catch (e) { /* ya eliminada */ }
+            try { notification.destroy?.(); } catch (e) {                    }
         }
         this._scheduleNotificationsRender();
     }
 
-    // =====================================================================
-    //  Página: Sistema (CPU, RAM, batería, brillo, mantener despierto)
-    // =====================================================================
+
+
+
     _sysRow(label) {
         const row = new St.BoxLayout({style_class: 'di-sysrow', width: WIDTH, y_align: Clutter.ActorAlign.CENTER});
         row.add_child(this._label(label, 'di-sys-label', {width: 58}));
@@ -2500,7 +2500,7 @@ export default class DynamicIsland extends Extension {
                 this._cpuVal.set_text(`${Math.round(ratio * 100)}%`);
             }
             this._cpuPrev = {total, idle};
-        } catch (e) { /* nada */ }
+        } catch (e) {            }
         try {
             const mem = dec.decode(GLib.file_get_contents('/proc/meminfo')[1]);
             const get = key => Number((mem.match(new RegExp(`${key}:\\s+(\\d+)`)) ?? [])[1] ?? 0);
@@ -2511,7 +2511,7 @@ export default class DynamicIsland extends Extension {
                 this._ramBar.set(ratio);
                 this._ramVal.set_text(`${(((total - avail) / 1048576)).toFixed(1)} GB`);
             }
-        } catch (e) { /* nada */ }
+        } catch (e) {            }
         this._updateAwakeUI();
         try {
             const text = dec.decode(GLib.file_get_contents('/proc/net/dev')[1]);
@@ -2559,7 +2559,7 @@ export default class DynamicIsland extends Extension {
         });
     }
 
-    // ---------- mantener despierto ----------
+
     _toggleAwake(mode) {
         const same = this._awake.mode === mode;
         this._stopAwake();
@@ -2606,9 +2606,9 @@ export default class DynamicIsland extends Extension {
         }
     }
 
-    // =====================================================================
-    //  Volumen del sistema + HUD
-    // =====================================================================
+
+
+
     _setupVolume() {
         this._mixer = Volume.getMixerControl();
         this._mixerSignals = [
@@ -2622,7 +2622,7 @@ export default class DynamicIsland extends Extension {
         if (!this._alive || !this._mixer) return;
         const sink = this._mixer.get_default_sink();
         if (sink === this._sink) { this._syncVolume(false); return; }
-        if (this._sink) for (const id of this._sinkSignals) { try { this._sink.disconnect(id); } catch (e) { /* nada */ } }
+        if (this._sink) for (const id of this._sinkSignals) { try { this._sink.disconnect(id); } catch (e) {            } }
         this._sinkSignals = [];
         this._sink = sink;
         if (this._outputButton) this._outputButton._label.set_text(sink ? 'Cambiar salida' : 'Sin salida de audio');
@@ -2685,14 +2685,14 @@ export default class DynamicIsland extends Extension {
                 const names = icon?.get_names?.() ?? icon?.names ?? [];
                 if (/volume/.test(names.join(' ')) && this._sink) return undefined;
                 if (/brightness/.test(names.join(' ')) && this._brightnessScale) return undefined;
-            } catch (e) { /* nada */ }
+            } catch (e) {            }
             return original.apply(osd, args);
         };
     }
 
-    // =====================================================================
-    //  Brillo
-    // =====================================================================
+
+
+
     _setupBrightness() {
         const bind = () => {
             if (this._brightnessSignal) this._brightnessScale.disconnect(this._brightnessSignal);
@@ -2721,9 +2721,9 @@ export default class DynamicIsland extends Extension {
             this._toast({icon: 'display-brightness-symbolic', fraction: value / 100, text: `${value}%`, ms: 1400});
     }
 
-    // =====================================================================
-    //  Batería
-    // =====================================================================
+
+
+
     _batteryIcon(pct, charging) {
         const level = Math.min(100, Math.max(0, Math.round(pct / 10) * 10));
         return charging ? `battery-level-${level}-charging-symbolic` : `battery-level-${level}-symbolic`;
@@ -2775,9 +2775,9 @@ export default class DynamicIsland extends Extension {
         });
     }
 
-    // =====================================================================
-    //  Bluetooth (AirPods y otros)
-    // =====================================================================
+
+
+
     _setupBluetooth() {
         this._readBluetoothDevices();
         this._subscribe('org.bluez', PROPS, 'PropertiesChanged', null, null, () => this._readBluetoothDevices());
@@ -2803,7 +2803,7 @@ export default class DynamicIsland extends Extension {
     _readBluetoothDevices() {
         if (this._bluetoothReadPending) return;
         this._bluetoothReadPending = true;
-        // GetManagedObjects siempre se consulta en el bus de sistema.
+
         Gio.DBus.system.call('org.bluez', '/', 'org.freedesktop.DBus.ObjectManager', 'GetManagedObjects',
             null, null, Gio.DBusCallFlags.NONE, 2500, this._cancel, (bus, result) => {
                 this._bluetoothReadPending = false;
@@ -2858,9 +2858,9 @@ export default class DynamicIsland extends Extension {
         });
     }
 
-    // =====================================================================
-    //  Página: Temporizador / Cronómetro
-    // =====================================================================
+
+
+
     _now() { return GLib.get_monotonic_time() / 1000; }
     _timerLeft() { return this._tm.running ? Math.max(0, this._tm.endAt - this._now()) : this._tm.left; }
     _swElapsed() { return this._tm.swRunning ? this._tm.sw + (this._now() - this._tm.swStart) : this._tm.sw; }
@@ -2997,7 +2997,7 @@ export default class DynamicIsland extends Extension {
             `${this._pomodoro === 'break' ? 'Descanso de 5 minutos' : 'Concentración de 25 minutos'} preparado. Pulsa reproducir para continuar.` : '¡Se acabó el tiempo!');
         if (!this._settings.get_boolean('timer-sound')) return;
         try { global.display.get_sound_player().play_from_theme('alarm-clock-elapsed', 'Temporizador', null); } catch (e) {
-            try { global.display.get_sound_player().play_from_theme('complete', 'Temporizador', null); } catch (e2) { /* nada */ }
+            try { global.display.get_sound_player().play_from_theme('complete', 'Temporizador', null); } catch (e2) {            }
         }
     }
 
@@ -3016,7 +3016,7 @@ export default class DynamicIsland extends Extension {
             if (timer) { this._modeTimer.add_style_class_name('di-chip-on'); this._modeSw.remove_style_class_name('di-chip-on'); }
             else { this._modeSw.add_style_class_name('di-chip-on'); this._modeTimer.remove_style_class_name('di-chip-on'); }
         }
-        // contador visible siempre en el notch
+
         let text = null;
         if (t.running || t.started) text = formatClock(this._timerLeft());
         else if (t.swRunning || t.swStarted) text = formatClock(this._swElapsed(), true);
@@ -3053,12 +3053,12 @@ export default class DynamicIsland extends Extension {
                 else this._clockTickStart();
             }
             this._renderClock();
-        } catch (e) { /* aún no hay temporizador guardado */ }
+        } catch (e) {                                         }
     }
 
-    // =====================================================================
-    //  Página: Hoy (calendario + clima)
-    // =====================================================================
+
+
+
     _buildTodayPage() {
         const page = this._newPage('today');
         page.add_style_class_name('di-page-today');
@@ -3275,9 +3275,9 @@ export default class DynamicIsland extends Extension {
         this._aqiChip.style_class = `di-aqi ${aqiClass}`;
     }
 
-    // =====================================================================
-    //  Página: Espejo (cámara)
-    // =====================================================================
+
+
+
     _buildMirrorPage() {
         const page = this._newPage('mirror');
         page.add_style_class_name('di-page-mirror');
@@ -3328,7 +3328,7 @@ export default class DynamicIsland extends Extension {
                     win.make_above();
                     win.stick();
                     win.move_frame(true, Math.round(mon.x + (mon.width - r.width) / 2), mon.y + Main.panel.height + 14);
-                } catch (e) { /* nada */ }
+                } catch (e) {            }
             };
             this._timeout(250, () => { place(); return GLib.SOURCE_REMOVE; });
             this._timeout(800, () => { place(); return GLib.SOURCE_REMOVE; });
@@ -3357,14 +3357,14 @@ export default class DynamicIsland extends Extension {
         if (!m) return;
         this._mirror = null;
         this._clear(m.poll);
-        if (m.sig) { try { global.display.disconnect(m.sig); } catch (e) { /* nada */ } }
-        try { m.proc.force_exit(); } catch (e) { /* nada */ }
+        if (m.sig) { try { global.display.disconnect(m.sig); } catch (e) {            } }
+        try { m.proc.force_exit(); } catch (e) {            }
         this._renderMirror();
     }
 
-    // =====================================================================
-    //  Música: D-Bus
-    // =====================================================================
+
+
+
     _discover() {
         const generation = ++this._generation;
         this._request(DBUS, DBUS, 'ListNames', null, reply => {
@@ -3383,7 +3383,7 @@ export default class DynamicIsland extends Extension {
                         try {
                             const [state] = bus.call_finish(result).recursiveUnpack();
                             if (state === 'Playing') playing.push(candidate);
-                        } catch (e) { /* el reproductor puede cerrarse durante el descubrimiento */ }
+                        } catch (e) {                                                               }
                         if (--remaining || !this._alive || generation !== this._generation) return;
                         this._usePlayer(playing.includes(this._name) ? this._name : playing[0] ??
                             (players.includes(this._name) ? this._name : players[0]));
@@ -3560,7 +3560,7 @@ export default class DynamicIsland extends Extension {
                         }
                         const rgb = sum.map(value => Math.round(value / count));
                         this._musicSurface.set_style(`background-gradient-direction: horizontal; background-gradient-start: rgba(${rgb.join(',')},0.24); background-gradient-end: rgba(${rgb.join(',')},0.02); border-radius: 14px;`);
-                    } catch (error) { /* Portada inválida: conservar la superficie neutra. */ }
+                    } catch (error) {                                                          }
                     finally { stream.close(null); }
                 });
             });

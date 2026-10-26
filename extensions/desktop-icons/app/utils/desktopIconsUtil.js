@@ -32,9 +32,9 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     * Returs the Gtk Application ID
-     */
+
+
+
     getMainApp() {
         return this.mainApp;
     }
@@ -51,10 +51,10 @@ const DesktopIconsUtil = class {
         return path;
     }
 
-    /**
-     *
-     * Returns the Nautilus scripts directory as a Gio.File
-     */
+
+
+
+
     getScriptsDir() {
         return Gio.File.new_build_filenamev([
             GLib.get_home_dir(),
@@ -114,10 +114,10 @@ const DesktopIconsUtil = class {
         return systemDataTerminalFiles;
     }
 
-    /**
-     *
-     * Returns the users Templates directory as a Gio.File
-     */
+
+
+
+
     getTemplatesDir() {
         let templatesDir =
             GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_TEMPLATES);
@@ -129,12 +129,12 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     * XDG user data dir for this app:
-     *   $XDG_DATA_HOME/<app-id>  (usually ~/.local/share/<app-id>)
-     *
-     * @returns {Gio.File}
-     */
+
+
+
+
+
+
     getAppUserDataDir() {
         const userDataDir = GLib.get_user_data_dir();
         const appId = this.mainApp?.get_application_id
@@ -147,38 +147,38 @@ const DesktopIconsUtil = class {
         return Gio.File.new_build_filenamev([userDataDir, appId]);
     }
 
-    /**
-     * Widgets state file under the app data dir:
-     *   $XDG_DATA_HOME/<app-id>/widgets.json
-     *
-     * @returns {Gio.File}
-     */
+
+
+
+
+
+
     getWidgetsStateFile() {
         const appDir = this.getAppUserDataDir();
         return appDir.get_child('widgets.json');
     }
 
-    /**
-     *
-     * @param {float} value number
-     * @param {integer}  min number
-     * @param {integer} max number
-     */
+
+
+
+
+
+
     clamp(value, min, max) {
         return Math.max(Math.min(value, max), min);
     }
 
 
-    /**
-     *
-     */
+
+
+
     getFilteredEnviron() {
         let environ = [];
         for (let env of GLib.get_environ()) {
-            /* It's a must to remove the WAYLAND_SOCKET environment variable
-            because, under Wayland, DING uses an specific socket to allow the
-            extension to detect its windows. But the scripts must run under
-            the normal socket */
+
+
+
+
             if (env.startsWith('WAYLAND_SOCKET='))
                 continue;
 
@@ -188,13 +188,13 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     *
-     * @param {string} commandLine command to execute
-     * @param {Array} environ child's environment, or <code>null</code>
-     * to inherit parent's
-     * @param {Function?} onChildExit callback for child exit
-     */
+
+
+
+
+
+
+
     spawnCommandLine(commandLine, environ = null, onChildExit = null) {
         try {
             const [, argv] = GLib.shell_parse_argv(commandLine);
@@ -205,22 +205,22 @@ const DesktopIconsUtil = class {
         }
     }
 
-    /**
-     *
-     * @param {string} workdir working directory path
-     * @param  {Array(String)} argv child's argument vector
-     * @param {Array} environ child's environment, or <code>null</code> to
-     * inherit parent's
-     * @param {bool}  async or async execution
-     * @param {Function?} onChildExit callback for child exit
-     */
+
+
+
+
+
+
+
+
+
     trySpawn(workdir, argv, environ = null, async = true, onChildExit = null) {
-        /* The following code has been extracted from GNOME Shell's
-        * source code in Misc.Util.trySpawn function and modified to
-        * set the working directory.
-        *
-        * https://gitlab.gnome.org/GNOME/gnome-shell/blob/gnome-3-30/js/misc/util.js
-        */
+
+
+
+
+
+
         const exec = async ? GLib.spawn_async : GLib.spawn_sync;
         const flags =
             async
@@ -233,18 +233,18 @@ const DesktopIconsUtil = class {
             [, pid] = exec(workdir, argv, environ, flags,
                 () => {});
         } catch (err) {
-            /* Rewrite the error in case of ENOENT */
+
             if (err.matches(GLib.SpawnError, GLib.SpawnError.NOENT)) {
                 throw new GLib.SpawnError({
                     code: GLib.SpawnError.NOENT,
                     message: _('Command not found'),
                 });
             } else if (err instanceof GLib.Error) {
-                // The exception from gjs contains an error string like:
-                // Error invoking GLib.spawn_command_line_async: Failed to
-                // execute child process "foo" (No such file or directory)
-                // We are only interested in the part in the parentheses. (And
-                // we can't pattern match the text, since it gets localized.)
+
+
+
+
+
                 let message = err.message.replace(/.*\((.+)\)/, '$1');
                 throw new err.constructor({
                     code: err.code,
@@ -258,10 +258,10 @@ const DesktopIconsUtil = class {
         if (!async)
             return pid;
 
-        // Dummy child watch; we don't want to double-fork internally
-        // because then we lose the parent-child relationship, which
-        // can break polkit.
-        // See https://bugzilla.redhat.com//show_bug.cgi?id=819275
+
+
+
+
         GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, (childPid, status) => {
             if (onChildExit)
                 onChildExit(childPid, status);
@@ -271,22 +271,22 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     *
-     * @param {float} x first x coordinate
-     * @param {float} y first y coordinate
-     * @param {float} x2 second x coordinate
-     * @param {float} y2 second y coordinate
-     * @returns {float} Distance between points
-     */
+
+
+
+
+
+
+
+
     distanceBetweenPoints(x, y, x2, y2) {
         return Math.pow(x - x2, 2) + Math.pow(y - y2, 2);
     }
 
 
-    /**
-     *
-     */
+
+
+
     getExtraFolders() {
         const extraFolders = [];
 
@@ -312,10 +312,10 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     *
-     * @param {Gio.VolumeMonitor} volumeMonitor A Gio.VolumeMonitor
-     */
+
+
+
+
     getMounts(volumeMonitor) {
         const showVolumes =
             this.Prefs.desktopSettings.get_boolean('show-volumes');
@@ -363,31 +363,31 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     *
-     * @param {string} filename Name of file
-     * @param {object} opts Oject with boolean option keys
-     */
+
+
+
+
+
     getFileExtensionOffset(filename, opts = {'isDirectory': false}) {
         return this.FileUtils.getFileExtensionOffset(filename, opts);
     }
 
-    /**
-     * Extracts the original basename prefix from a Nautilus collision name.
-     * Nautilus builds duplicate names from the unchanged basename, a
-     * localized parenthesized copy tag, and the original file extension:
-     * "Example" + " (copy)" + ".txt". The words and ordinal forms inside
-     * the parentheses vary by locale, so this deliberately recognizes the
-     * parenthesized structure instead of matching translated text.
-     * For example, "Example (copy).txt" returns "Example".
-     * An ordinary filename can have the same structure, so this is only a
-     * placement heuristic. A false match cannot affect file names or data;
-     * at worst, the pending drop position is lost and normal icon placement
-     * is used, as it would be when no collision name can be recognized.
-     *
-     * @param {string} basename name chosen by Nautilus for the copied file
-     * @returns {?string} basename before the copy suffix, or null when absent
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     getBasenameBeforeCopySuffix(basename) {
         const copySuffix = /\(.*\)[^()]*$/;
         const suffixPosition = basename.search(copySuffix);
@@ -398,14 +398,14 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     *
-     * @param {Gio.File} file a file Gio
-     * @param {stirng} contents file contents
-     * @param {Gio.Cancellable} cancellable gio cancellable
-     */
+
+
+
+
+
+
     replaceFileContentsAsync(file, contents, cancellable) {
-        /* Promisify doesn't work with this */
+
         const textCoder = new TextEncoder();
         const byteArray = new GLib.Bytes(textCoder.encode(contents));
 
@@ -427,11 +427,11 @@ const DesktopIconsUtil = class {
         });
     }
 
-    /**
-     *
-     * @param {Gio.File} file a file Gio
-     * @param {Gio.Cancellable} cancellable gio cancellable
-     */
+
+
+
+
+
     readFileContentsAsync(file, cancellable = null) {
         return new Promise((resolve, reject) => {
             try {
@@ -462,17 +462,17 @@ const DesktopIconsUtil = class {
         });
     }
 
-    /**
-     * Read up to `bytes` bytes from a Gio.File.
-     * If fromTail == false: read from start of file.
-     * If fromTail == true:  read the last `bytes` bytes of the file.
-     *
-     * @param {Gio.File} file a file Gio
-     * @param {number} bytes number of bytes to read
-     * @param {Gio.Cancellable?} cancellable gio cancellable
-     * @param {boolean} fromTail read from tail if true else from start
-     * @returns {Promise<Gio.Bytes>}
-     */
+
+
+
+
+
+
+
+
+
+
+
     readFileBytesAsync(file, bytes, cancellable = null, fromTail = false) {
         return new Promise((resolve, reject) => {
             let offset = 0;
@@ -514,7 +514,7 @@ const DesktopIconsUtil = class {
                             try {
                                 inputstream.close(cancellable);
                             } catch (e) {
-                            // ignore close error
+
                             }
                             reject(new Error(message));
                         }
@@ -541,7 +541,7 @@ const DesktopIconsUtil = class {
                                         try {
                                             inputstream.close(cancellable);
                                         } catch (e) {
-                                        /* ignore */
+
                                         }
                                         resolve(data);
                                         return;
@@ -589,13 +589,13 @@ const DesktopIconsUtil = class {
         });
     }
 
-    /**
-     * Check if a pdf file is encrypted
-     *
-     * @param {Gio.File} file a file Gio of pdf file
-     * @param {Gio.Cancellable} cancellable gio cancellable
-     * @returns boolean
-     */
+
+
+
+
+
+
+
     async checkIfPdfEncrypted(file, cancellable = null) {
         const fromTail = true;
         const data = await this.readFileBytesAsync(
@@ -625,13 +625,13 @@ const DesktopIconsUtil = class {
         return encrypted;
     }
 
-    /**
-     * Check if a zip file is encrypted
-     *
-     * @param {Gio.File} file a file Gio of zip file
-     * @param {Gio.Cancellable} cancellable gio cancellable
-     * @returns boolean
-     */
+
+
+
+
+
+
+
     async checkIfZipEncrypted(file, cancellable = null) {
         const data = await this.readFileBytesAsync(
             file,
@@ -642,15 +642,15 @@ const DesktopIconsUtil = class {
         if (!data)
             return false;
 
-        // Zip Encryption single file archive
-        // Check if the 6th bit in the 7th byte (flag field) is set
+
+
         const generalPurposeFlag = new Uint8Array([data.get_data()[6]]);
         const zipEncrypted = (generalPurposeFlag & 0x01) === 0x01;
 
         if (zipEncrypted)
             return true;
 
-        // Multiple zip file archive- needs external checking
+
         const command = `zipinfo -v '${file.get_path()}'`;
         const decoder = new TextDecoder();
 
@@ -673,12 +673,12 @@ const DesktopIconsUtil = class {
         return false;
     }
 
-    /**
-     * Check if a 7z file is encrypted
-     *
-     * @param {Gio.File} file a file Gio of 7z file
-     * @returns boolean
-     */
+
+
+
+
+
+
     checkIf7zEncrypted(file) {
         const command = `7z l -pBadPassword -slt '${file.get_path()}'`;
         const decoder = new TextDecoder();
@@ -698,12 +698,12 @@ const DesktopIconsUtil = class {
         return false;
     }
 
-    /**
-     *
-     * @param {string} fileList text with list of Terminals, new line terminated
-     * @returns {Array} an array of Gio.DesktopAppInfo for each desktop
-     * entry in file
-     */
+
+
+
+
+
+
     parseTerminalList(fileList) {
         const regexpattern = /^[/\\*#-]/;
         const terminalGioDesktopAppInfoArray = [];
@@ -726,11 +726,11 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     *
-     * @param {string} content text of the user-dirs.dirs file
-     * @returns {string} path of Desktop Directory
-     */
+
+
+
+
+
     parseUserDirsFile(content) {
         if (!content)
             return null;
@@ -747,14 +747,14 @@ const DesktopIconsUtil = class {
         return xdgDesktopPath;
     }
 
-    /**
-     *
-     * @param {string} text text to write in the file
-     * @param {string} destinationDir path
-     * @param {string} filename name of file
-     * @param {Array(integer)} dropCoordinates coordiantes for the dropped file
-     * @param {Gio.Cancellable} cancellable a Gio.Cancellable
-     */
+
+
+
+
+
+
+
+
     async writeTextFileToPath(text, destinationDir, filename,
         dropCoordinates, cancellable = null) {
         const file = destinationDir.get_child(filename);
@@ -782,15 +782,15 @@ const DesktopIconsUtil = class {
         await this.FileUtils.setDropPosition(file, dropCoordinates, cancellable, GLib.PRIORITY_LOW);
     }
 
-    /**
-     *
-     * @param {string} fileUri The system file URI of the .desktop
-     * file of the installed application
-     *
-     * @param {Array} dropCoordinates the drop cooordinates of the .desktop file
-     *
-     * Makes an executable .desktop file on the desktop with metadata set trusted.
-     */
+
+
+
+
+
+
+
+
+
     copyDesktopFileToDesktop(fileUri, dropCoordinates) {
         return new Promise((resolve, reject) => {
             let gioFile = Gio.File.new_for_uri(fileUri);
@@ -873,11 +873,11 @@ const DesktopIconsUtil = class {
         });
     }
 
-    /**
-     *
-     * @param {Gtk.Window} window The window
-     * @param {boolean} modal If the window should be modal
-     */
+
+
+
+
+
     windowHidePagerTaskbarModal(window, modal) {
         window.set_application(this.mainApp);
         let title = window.get_title();
@@ -897,10 +897,10 @@ const DesktopIconsUtil = class {
         }
     }
 
-    /**
-     *
-     * @param {integer} ms milliseconds
-     */
+
+
+
+
     waitDelayMs(ms) {
         return new Promise(resolve => {
             GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
@@ -911,13 +911,13 @@ const DesktopIconsUtil = class {
     }
 
 
-    /**
-     * Coordiantes are the same
-     *
-     * @param {Array(integer)} coordA coordinates
-     * @param {Array(integer)} coordB coordinates
-     * @returns {boolean} true or false
-     */
+
+
+
+
+
+
+
     coordinatesEqual(coordA, coordB) {
         if (coordA === coordB)
             return true;
@@ -967,13 +967,13 @@ const DesktopIconsUtil = class {
         return {canopenFile, Appname};
     }
 
-    /**
-     * Read JSON from a file. Returns parsed object or null on error.
-     *
-     * @param {Gio.File} file File to read JSON from.
-     * @param {Gio.Cancellable?} cancellable Optional cancellable for the read.
-     * @returns {Promise<object|null>}
-     */
+
+
+
+
+
+
+
     async readJsonFile(file, cancellable = null) {
         try {
             const text = await this.readFileContentsAsync(file, cancellable);
@@ -989,15 +989,15 @@ const DesktopIconsUtil = class {
         }
     }
 
-    /**
-     * Write JSON to a file (pretty-printed).
-     *
-     * Mirrors writeTextFileToPath() by ensuring the parent dir via FileUtils.
-     *
-     * @param {Gio.File} file File to write JSON into.
-     * @param {object} data Plain object to serialize as JSON.
-     * @param {Gio.Cancellable?} cancellable Optional cancellable for the write.
-     */
+
+
+
+
+
+
+
+
+
     async writeJsonFile(file, data, cancellable = null) {
         const parent = file.get_parent();
 
@@ -1021,13 +1021,13 @@ const DesktopIconsUtil = class {
         await this.replaceFileContentsAsync(file, text, cancellable);
     }
 
-    /**
-     * Keep a descriptive title, otherwise name the link from its URL.
-     *
-     * @param {string} title page title
-     * @param {?string} url fallback URL
-     * @returns {string} safe basename
-     */
+
+
+
+
+
+
+
     linkBasename(title, url) {
         const fallback = url
             ? WebUtils.filenameFromURL(url) ?? 'Link'
@@ -1036,15 +1036,15 @@ const DesktopIconsUtil = class {
         return this.FileUtils.sanitizeFilename(descriptiveTitle, fallback);
     }
 
-    /**
-     * Save supplied file contents without overwriting or trusting executable data.
-     *
-     * @param {Gio.File} directory desktop directory
-     * @param {object} data suggested name and owned bytes
-     * @param {?object} pendingPlacement callbacks that register the candidate
-     * basename with its pending desktop position
-     * @returns {Promise<Gio.File>} created file
-     */
+
+
+
+
+
+
+
+
+
     createContentFile(directory, data, pendingPlacement = null) {
         const name = this.linkBasename(data.name, null);
         return this.FileUtils.createUniqueFile(
@@ -1076,16 +1076,16 @@ const DesktopIconsUtil = class {
         );
     }
 
-    /**
-     * Persist normalized contents produced by ContentReader.
-     *
-     * @param {Gio.File} directory target desktop directory
-     * @param {DropContents} contents decoded transfer contents
-     * @param {object} pendingPlacement callbacks that register each candidate
-     * basename with its pending desktop position before the folder monitor can
-     * observe the created file
-     * @returns {Promise<boolean>} whether supported contents were written
-     */
+
+
+
+
+
+
+
+
+
+
     async writeTransferContentToDesktop(
         directory,
         contents,
@@ -1114,7 +1114,7 @@ const DesktopIconsUtil = class {
             }
 
             for (const link of contents.links) {
-                // Serialize writes so duplicate titles get predictable suffixes.
+
                 // eslint-disable-next-line no-await-in-loop
                 await this.createLinkFile(
                     directory,
@@ -1138,14 +1138,14 @@ const DesktopIconsUtil = class {
         return false;
     }
 
-    /**
-     * Create collision-free symbolic links for a file-reference operation.
-     *
-     * @param {Gio.File} directory destination directory
-     * @param {string[]} fileReferences source URIs
-     * @param {?object} pendingPlacement optional desktop placement callbacks
-     * @returns {Promise<Gio.File[]>} created symbolic links
-     */
+
+
+
+
+
+
+
+
     createSymbolicLinks(
         directory,
         fileReferences,
@@ -1162,16 +1162,16 @@ const DesktopIconsUtil = class {
         }));
     }
 
-    /**
-     * Create a uniquely named HTML link; optional metadata failures are nonfatal.
-     *
-     * @param {Gio.File} directory target desktop directory
-     * @param {object} link validated URL and title
-     * @param {?object} pendingPlacement callbacks that register the candidate
-     * basename with its pending desktop position
-     * @param {?string} customIconURI persistent custom-icon URI
-     * @returns {Promise<Gio.File>} created file
-     */
+
+
+
+
+
+
+
+
+
+
     async createLinkFile(
         directory,
         link,

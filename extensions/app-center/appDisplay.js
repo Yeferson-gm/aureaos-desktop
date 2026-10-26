@@ -68,27 +68,27 @@ class VerticalAppDisplay extends St.Widget {
   }
 
   _connectSignals() {
-    // Redisplay the app grid when an app was installed or removed
+
     this._appSystem.connectObject('installed-changed', () => {
       this._redisplay();
     }, this);
 
-    // Redisplay when favorites change
+
     this._appFavorites.connectObject('changed', () => {
       this._redisplay();
     }, this);
 
-    // Redisplay when parental controls change
+
     this._parentalControls.connectObject('app-filter-changed', () => {
       this._redisplay();
     }, this);
 
-    // Reset scroll when the overview is hidden
+
     this._overview.connectObject('hidden', () => {
       this._scrollView.scrollTo(0, false);
     }, this);
 
-    // Update layout when settings change
+
     this._settings.connectObject('changed', (_, key) => {
       switch (key) {
         case 'app-sorting':
@@ -143,7 +143,7 @@ class VerticalAppDisplay extends St.Widget {
     const favs = [];
     const apps = [];
 
-    // Filter out hidden apps and split off favorites
+
     const favSection = this._settings.get_boolean('favorites-section');
 
     installedApps.forEach(appInfo => { try {
@@ -159,7 +159,7 @@ class VerticalAppDisplay extends St.Widget {
       }
     } catch { } });
 
-    // Sort favorites
+
     const favSorting = this._settings.get_string('favorites-sorting');
     const favIds = this._appFavorites._getIds();
 
@@ -176,7 +176,7 @@ class VerticalAppDisplay extends St.Widget {
       }
     });
 
-    // Sort apps
+
     const appSorting = this._settings.get_string('app-sorting');
 
     apps.sort((a, b) => {
@@ -236,7 +236,7 @@ class VerticalAppDisplay extends St.Widget {
       return Clutter.EVENT_PROPAGATE;
     }
 
-    // Keyboard scroll
+
     const adjustment = this._scrollView.vadjustment;
     const pageSize = adjustment.page_size;
 
@@ -251,7 +251,7 @@ class VerticalAppDisplay extends St.Widget {
       return this._scrollView.scrollTo(scroll[key]);
     }
 
-    // Tab and arrow key navigation
+
     const navTarget = this._getNavTarget(focused, key);
 
     if (navTarget) {
@@ -353,7 +353,7 @@ class VerticalScrollView extends St.ScrollView {
   scrollToChild(child) {
     const childBox = child.get_allocation_box();
 
-    // Get the child's vertical position inside the scroll view
+
     let actor = child;
     let childY = childBox.y1;
 
@@ -361,7 +361,7 @@ class VerticalScrollView extends St.ScrollView {
       childY += actor.get_allocation_box().y1;
     }
 
-    // Scroll to keep the child vertically centered
+
     const adjustment = this.vadjustment;
 
     const childCenter = childY + childBox.get_height() / 2;
@@ -376,8 +376,8 @@ class VerticalScrollView extends St.ScrollView {
     const adjustment = this.vadjustment;
     const anim = this._scrollAnim;
 
-    // Only scroll if the clamped distance is greater than zero to prevent
-    // rapidly retriggering the animation while holding down a key
+
+
     const min = adjustment.lower;
     const max = adjustment.upper - adjustment.page_size;
 
@@ -391,7 +391,7 @@ class VerticalScrollView extends St.ScrollView {
     this._scroll = scrollClamped;
 
     if (animate) {
-      // Init scroll animation
+
       anim.startTime = now;
       anim.startValue = adjustment.value;
       anim.delta = this.scroll - adjustment.value;
@@ -401,7 +401,7 @@ class VerticalScrollView extends St.ScrollView {
         anim.duration = duration * 1000;
       }
     } else {
-      // Cancel running animation
+
       if (anim.lock) {
         anim.lock = global.stage.disconnect(anim.lock) || null;
       }
@@ -409,7 +409,7 @@ class VerticalScrollView extends St.ScrollView {
       adjustment.value = this.scroll;
     }
 
-    // Redraw to trigger the next animation frame
+
     this.queue_redraw();
 
     return Clutter.EVENT_STOP;
@@ -421,7 +421,7 @@ class VerticalScrollView extends St.ScrollView {
     const adjustment = this.vadjustment;
     const anim = this._scrollAnim;
 
-    // Animate towards the scroll target
+
     const elapsed = now - anim.startTime;
     const progress = Math.clamp(elapsed / anim.duration, 0, 1);
 
@@ -445,12 +445,12 @@ class VerticalScrollView extends St.ScrollView {
   _animateScroll(event) {
     const now = GLib.get_monotonic_time();
 
-    // Ignore emulated events
+
     if (event.get_flags() & Clutter.EventFlags.FLAG_POINTER_EMULATED) {
       return Clutter.EVENT_STOP;
     }
 
-    // Get scroll delta
+
     const adjustment = this.vadjustment;
 
     const direction = event.get_scroll_direction();
@@ -460,9 +460,9 @@ class VerticalScrollView extends St.ScrollView {
     let animate = false;
 
     if (direction === Clutter.ScrollDirection.SMOOTH) {
-      // Sometimes events without a smooth delta are emitted when using a
-      // trackpad, so this debounce timestamp is used to prevent any sudden
-      // jumps while scrolling
+
+
+
       this._trackpadTime = now;
 
       delta = event.get_scroll_delta()[Clutter.Orientation.VERTICAL] ?? 0;
@@ -476,7 +476,7 @@ class VerticalScrollView extends St.ScrollView {
       animate = true;
     }
 
-    // Animate to the new scroll position
+
     const min = adjustment.lower;
     const max = adjustment.upper - adjustment.page_size;
 

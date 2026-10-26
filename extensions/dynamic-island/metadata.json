@@ -1,8 +1,9 @@
 {
   "uuid": "dynamic-island-gnome50@local",
-  "name": "Isla dinámica para GNOME 50",
-  "description": "Isla superior con controles multimedia, utilidades y avisos del sistema.",
-  "shell-version": ["50"],
-  "settings-schema": "org.gnome.shell.extensions.dynamic-island",
-  "version": 24
+  "name": "Aurea 27 · Isla dinámica",
+  "description": "Isla dinámica del escritorio Aurea 27.",
+  "shell-version": [
+    "50"
+  ],
+  "settings-schema": "org.gnome.shell.extensions.dynamic-island"
 }

@@ -31,31 +31,31 @@ const appID = 'com.desktop.ding';
 const appPath = GLib.build_filenamev(['/', ...appID.split('.')]);
 
 class ManageWindow {
-    /* This class is added to each managed window, and it's used to make it
-       behave like a desktop window.
 
-       Trusted windows will set in the title the characters @!, followed by
-       the coordinates where to put the window separated by a colon, and
-       ended in a semicolon. After that, it can have one or more of these
-       letters:
 
-       * B : put and always keep this window at the bottom of the stack of
-             windows on screen
-       * T : put and always keep this window at the top of the stack of
-             windows on the screen
-       * D : show this window in all desktops
-       * H : hide this window from the window list
-       * K : make this window a dock window (takes precedence over desktop flags)
-       * F : keep the window in the same position, even if it is moved by the
-             user or by the system (for example when changing screen resolution)
 
-       Using the title is generally not a problem because the desktop windows
-       do not have a title. But some other windows may have and still need to
-       set a title and use this class, so adding a single blank space at the
-       end of the title is equivalent to @!H, and having two blank spaces at
-       the end of the title is equivalent to @!HTD. This allows use of these
-       flags for decorated or titled windows.
-    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     constructor(window, waylandClient, remoteActionGroup, changedStatusCB) {
         this._waylandClient = waylandClient ?? null;
@@ -135,31 +135,31 @@ class ManageWindow {
         this._applyParsedTitleState(parsedTitle);
     }
 
-    /*
-       Expected managed-window title protocol after legacy normalization:
 
-       @!<x>,<y>;<flags>[;KEY=VALUE ...]
 
-       Examples:
-       - @!120,340;BDH;I=550e8400-e29b-41d4-a716-446655440000
-       - @!120,340;TH;I=550e8400-e29b-41d4-a716-446655440000
 
-       Grammar:
-       - @! introduces a DING-managed window directive
-       - <x>,<y> are integer global coordinates
-       - <flags> is a compact string of zero or more of:
-         B, T, D, H, F, K
-       - optional metadata segments follow as ;KEY=VALUE
-       - multiple metadata segments are allowed for forward compatibility
-       - unknown metadata keys are ignored
-       - currently supported metadata:
-         I=<uuid>  instance id for pinned widget windows
 
-       Legacy compatibility is handled before parsing:
-       - null title on transient dialogs -> @!H
-       - one trailing space -> @!H
-       - two trailing spaces -> @!HTD
-    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     _buildParsedTitleState(title) {
         const parsed = {
             x: null,
@@ -193,8 +193,8 @@ class ManageWindow {
         let normalizedTitle = title;
 
         if (!normalizedTitle && !!this._window.get_transient_for()) {
-            // Transient dialog window
-            // Does not have title, hide from windowlist
+
+
             normalizedTitle = '@!H';
         }
 
@@ -580,8 +580,8 @@ class ManageWindow {
             )
         );
 
-        /* If a window is lowered below us with shortcuts,
-        detect and fix DING window */
+
+
         this._restackedBottomID = global.display.connect('restacked',
             this._syncToBottomOfStack.bind(this)
         );
@@ -703,10 +703,10 @@ class ManageWindow {
             return;
         }
 
-        // Window manager bug - it treats request to resize window
-        // to monitor size as a fullscreen window request as well and makes
-        // the window fullscreen for some apps.
-        // This makes intellihide for docks/panels hide from desktop window
+
+
+
+
         this._keepWindowUnFullScreen();
 
         const activateTopWindowOnWorkspace = true;
@@ -715,7 +715,7 @@ class ManageWindow {
 
     _raiseDesktopAsDockWindow() {
         this._makeWindowTypeNormal();
-        // Keep it raised without using DOCK so focus behavior stays normal.
+
         this._keepWindowUnFullScreen();
         this._keepWindowOnTop();
         this._showWindowOnAllDesktops();
@@ -822,12 +822,12 @@ class ManageWindow {
 }
 
 var WindowTypeManager = class {
-    /*
-     This class handles DING window registration and window-type management.
-     Just make one instance of it, call enable(), and whenever a window
-     that you want to give "superpowers" is mapped, add it with the
-     "addWindowManagedCustomJS_ding" method. That's all.
-     */
+
+
+
+
+
+
     constructor() {
         this._windowList = new Set();
         this._overviewHiding = true;
@@ -896,9 +896,9 @@ var WindowTypeManager = class {
                 }
             );
 
-        /* But in Overview mode it is paramount to not change the workspace to
-             emulate "stick", or the windows will appear
-         */
+
+
+
         this._showingId = Main.overview.connect('showing', () => {
             this._overviewHiding = false;
         });
@@ -919,7 +919,7 @@ var WindowTypeManager = class {
 
         this._windowList.clear();
 
-        // disconnect signals
+
         if (this._idMap) {
             global.window_manager.disconnect(this._idMap);
             this._idMap = null;
@@ -942,7 +942,7 @@ var WindowTypeManager = class {
     }
 
     _addWindowManagedCustomJS_ding(window, windowActor) {
-        if (window.get_meta_window) { // it is a MetaWindowActor
+        if (window.get_meta_window) {
             window = window.get_meta_window();
         }
 
@@ -1030,8 +1030,8 @@ var WindowTypeManager = class {
         }
     }
 
-    // After shell unlock, window seems to lose stick property,
-    // refresh window properties
+
+
     refreshWindows() {
         for (let window of this._windowList)
             window.customJS_ding.refreshProperties(true);
@@ -1070,10 +1070,10 @@ var WindowTypeManager = class {
 };
 
 class HandleDragActors {
-    /* This class is added to each managed windowActor, and it's used to
-       make it behave like a shell Actor that can accept drops from
-       Gnome Shell dnd.
-    */
+
+
+
+
 
     constructor(windowActor) {
         this.windowActor = windowActor;

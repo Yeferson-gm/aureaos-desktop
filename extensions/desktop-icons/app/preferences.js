@@ -37,7 +37,7 @@ const Preferences = class {
         this._pendingWidgetStateSave = null;
         this.desktopWidgetCapability = DesktopWidgetCapability;
 
-        // Adw Style Manager
+
         this._adwStyleManager =
             Adw.StyleManager.get_default();
 
@@ -51,11 +51,11 @@ const Preferences = class {
             this.accentColorsAvailable = false;
         }
 
-        // Gtk
+
         const schemaGtk = schemaSource.lookup(this._Enums.SCHEMA_GTK, true);
         this.gtkSettings = new Gio.Settings({settings_schema: schemaGtk});
 
-        // Gnome Files
+
         const schemaObj =
             schemaSource.lookup(this._Enums.SCHEMA_NAUTILUS, true);
 
@@ -80,7 +80,7 @@ const Preferences = class {
 
         this._updateFileManager();
 
-        // Compression
+
         const compressionSchema =
             schemaSource.lookup(this._Enums.SCHEMA_NAUTILUS_COMPRESSION, true);
 
@@ -91,7 +91,7 @@ const Preferences = class {
                 new Gio.Settings({settings_schema: compressionSchema});
         }
 
-        // Mutter Settings
+
         const schemaMutter =
             schemaSource.lookup(this._Enums.SCHEMA_MUTTER, true);
 
@@ -100,7 +100,7 @@ const Preferences = class {
                 new Gio.Settings({settings_schema: schemaMutter});
         }
 
-        // Depreciated Gnome Default Terminal Settings
+
         const schemaTerminalSettings =
             schemaSource.lookup(this._Enums.TERMINAL_SCHEMA, true);
 
@@ -111,13 +111,13 @@ const Preferences = class {
             this.schemaTerminalSettings = null;
         }
 
-        // Our Settings
+
         this.desktopSettings = this._get_schema(this._Enums.SCHEMA);
 
         this._cacheInitialSettings();
 
-        // Gnome Theme settings for fallback for older
-        // Adw and Gnome versions accent colors
+
+
         const schemaGnomeSettings =
             schemaSource.lookup(this._Enums.SCHEMA_GNOME_SETTINGS, true);
 
@@ -137,11 +137,11 @@ const Preferences = class {
     }
 
     _get_schema(schema) {
-        // check if this extension was built with "make zip-file", and thus
-        // has the schema files in a subfolder
-        // otherwise assume that extension has been installed in the
-        // same prefix as gnome-shell (and therefore schemas are available
-        // in the standard folders)
+
+
+
+
+
         let schemaSource;
 
         const schemaFile =
@@ -230,7 +230,7 @@ const Preferences = class {
         this.darkmode = this._adwStyleManager.get_dark();
         this._premultiplied = this._getPreMultiplied();
 
-        // Gtk Theme and animation Changes
+
         this._gtkSettings =
             Gtk.Settings.get_for_display(Gdk.Display.get_default());
         this._refreshAnimations();
@@ -246,7 +246,7 @@ const Preferences = class {
         return this.AdwPreferencesWindow;
     }
 
-    // Updaters
+
     _updateIconSize() {
         let iconSize = this.desktopSettings.get_string('icon-size');
         this.IconSize = this._Enums.ICON_SIZE[iconSize];
@@ -254,7 +254,7 @@ const Preferences = class {
         this.DesiredHeight = this._Enums.ICON_HEIGHT[iconSize];
     }
 
-    // Monitoring
+
     _updateFileManager() {
         this._fileManagerAppInfo =
             Gio.AppInfo.get_default_for_type('inode/directory', false);
@@ -296,7 +296,7 @@ const Preferences = class {
         if (!this._desktopManager)
             return;
 
-        // Desktop Settings
+
         this.desktopSettings.connect('changed', (obj, key) => {
             if (key === 'keep-pinned-widgets-below-apps') {
                 this._desktopManager.widgetManager?.refreshPinnedWindowStacking();
@@ -351,10 +351,10 @@ const Preferences = class {
                 this.showOnSecondaryMonitor =
                     this.desktopSettings.get_boolean('show-second-monitor');
 
-                // The initialRead parameter insures tha grid positions are
-                // recalculated and remapped to new monitors. Recaculated
-                //  postions of all fileItems will be re-written to disk with
-                // write mode 'OVERWRITE'
+
+
+
+
                 if (this.showOnSecondaryMonitor) {
                     this._desktopManager.refreshDesktop();
                 } else {
@@ -458,7 +458,7 @@ const Preferences = class {
                 this._desktopManager.onWidgetDisplayChanged();
             }
 
-            // fallthrough
+
             this._desktopManager.reLoadDesktop()
             .catch(e => {
                 console.log('Exception while updating Desktop after the' +
@@ -467,7 +467,7 @@ const Preferences = class {
             });
         });
 
-        // Gtk Settings
+
         this.gtkSettings.connect('changed', (obj, key) => {
             if (key === 'show-hidden') {
                 this.showHidden = this.gtkSettings.get_boolean('show-hidden');
@@ -481,7 +481,7 @@ const Preferences = class {
             }
         });
 
-        // Gnome Files Settings
+
         this.nautilusSettings.connect('changed', (obj, key) => {
             if (key === 'show-image-thumbnails') {
                 this.showImageThumbnails =
@@ -511,7 +511,7 @@ const Preferences = class {
             }
         });
 
-        // Icon Theme Changes
+
         this._gtkIconTheme =
             Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
 
@@ -526,24 +526,24 @@ const Preferences = class {
                 this._refreshAnimations();
         });
 
-        // Callback to handle accent color changes
+
         this._adwStyleManager.connect('notify::accent-color', () => {
             this._refreshBackgroundColor();
         });
 
-        // Callback to handle theme (color scheme) changes
+
         this._adwStyleManager.connect('notify::dark', () => {
             this.darkmode = this._adwStyleManager.get_dark();
             this._refreshBackgroundColor();
         });
 
-        // Terminal settings Changes
+
         this.schemaTerminalSettings?.connect('changed', () => {
             this._updateTerminalSettings()
             .catch(e => logError(e));
         });
 
-        // Mutter settings
+
         this.mutterSettings.connect('changed', () => {
             this._premultiplied = this._getPreMultiplied();
             this._desktopManager.onMutterSettingsChanged();
@@ -552,10 +552,10 @@ const Preferences = class {
         if (this.accentColorsAvailable)
             return;
 
-        // Gnome Theme Settings monitoring for older gnome and Adw versions
+
         this.schemaGnomeThemeSettings?.connect('changed', (obj, key) => {
             if (key === 'accent-color') {
-                // Color changes do not seem to be applied immediately, wait..
+
                 if (this.cssColorDefinitionChangeID)
                     GLib.source_remove(this.cssColorDefinitionChangeID);
 
@@ -627,11 +627,11 @@ const Preferences = class {
 
         this._cssColorProviderSelection = new Gtk.CssProvider();
 
-        // fix for api change Gtk 4.9
+
         try {
             this._cssColorProviderSelection.load_from_data(cssColorDefinition);
         } catch (e) {
-            const gsizeLength = -1; // NULL terminated string
+            const gsizeLength = -1;
             this._cssColorProviderSelection.load_from_data(
                 cssColorDefinition,
                 gsizeLength
@@ -691,7 +691,7 @@ const Preferences = class {
 
         cssProvider.load_from_resource(`${resourcePath}/stylesheet.css`);
 
-        // Load user-local stylesheet override from config directory
+
         this._cssOverrideProvider = new Gtk.CssProvider();
         this._loadCSSOverride();
 
@@ -939,9 +939,9 @@ const Preferences = class {
         }
     }
 
-    /*
-     * Load widget layout/config state from widgets.json into _widgetState.
-     */
+
+
+
     async _loadWidgetState(cancellable = null) {
         if (!this._desktopIconsUtil)
             return;
@@ -974,12 +974,12 @@ const Preferences = class {
         this._desktopManager.widgetManager.loadState(state);
     }
 
-    /*
-     * Save widget layout/config state back to widgets.json.
-     *
-     * @param {object|null} state plain JSON-serializable object
-     *                            (or null to just clear cache)
-     */
+
+
+
+
+
+
     async _saveWidgetState(state, cancellable = null) {
         if (!this._desktopIconsUtil)
             return;
@@ -1000,9 +1000,9 @@ const Preferences = class {
 
                 const file = this._desktopIconsUtil.getWidgetsStateFile();
 
-                // Always write the latest queued full snapshot.
-                // If more changes arrive while writing, the loop will save the
-                // newest one next.
+
+
+
                 // eslint-disable-next-line no-await-in-loop
                 await this._desktopIconsUtil.writeJsonFile(
                     file,
@@ -1018,10 +1018,10 @@ const Preferences = class {
         }
     }
 
-    // Setters
-    /**
-     * @param {any} order
-     */
+
+
+
+
     set SortOrder(order) {
         this._sortOrder = order;
         this.desktopSettings.set_enum(this._Enums.SortOrder.ORDER, order);
@@ -1049,7 +1049,7 @@ const Preferences = class {
         });
     }
 
-    // Getters
+
     get fileManagerAppInfo() {
         return this._fileManagerAppInfo;
     }
@@ -1060,14 +1060,14 @@ const Preferences = class {
     }
 
     get StartCorner() {
-        // Return a shallow copy that can be mutated without affecting other
-        //  icons with cornerinversion in DesktopGrid
+
+
         return [...this._StartCorner];
     }
 
     get UnstackList() {
-        // Return a shallow copy that can be mutated without
-        // affecting the original
+
+
         return [...this._UnstackList];
     }
 

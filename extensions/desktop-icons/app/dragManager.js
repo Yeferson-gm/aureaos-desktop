@@ -39,7 +39,7 @@ const DragManager = class {
         this._stopGnomeShellDrag();
     }
 
-    // Drag and Drop local Methods
+
 
     _startGnomeShellDrag() {
         if (!this._localDrag &&
@@ -62,10 +62,10 @@ const DragManager = class {
             grid.updateOverlay();
     }
 
-    // Global Methods
-    // *******************************************************
 
-    // Drag Preperation
+
+
+
 
     prepareDrag(controller, item, hotspot) {
         if (this.rubberBand)
@@ -157,8 +157,8 @@ const DragManager = class {
         ]);
     }
 
-    // The following code is translated from Nautilus C to Javascript
-    //  to form the similar stack of items
+
+
 
     _createStackedDragIcon(draggedItem) {
         const  selectionArray = this._desktopManager.getCurrentSelection();
@@ -177,7 +177,7 @@ const DragManager = class {
 
         const dragIcon = Gtk.Snapshot.new();
 
-        /* A wide shadow for the pile of icons gives a sense of floating. */
+
         const stackShadow =
             {
                 color: {red: 0, green: 0, blue: 0, alpha: 0.15},
@@ -186,7 +186,7 @@ const DragManager = class {
                 radius: 10,
             };
 
-        /* A slight shadow swhich makes each icon in the stack look separate. */
+
         const iconShadow =
             new Gsk.Shadow({
                 color: {red: 0, green: 0, blue: 0, alpha: 0.30},
@@ -340,7 +340,7 @@ const DragManager = class {
         return null;
     }
 
-    // Drag Methods
+
 
     startRubberband(X, Y) {
         this.rubberBandInitX = X;
@@ -388,7 +388,7 @@ const DragManager = class {
         this._dragList = null;
         for (let desktop of this._desktops)
             desktop.refreshDrag(null, 0, 0);
-        // Synthesise, extrapolate drag motion on a shell actor
+
         this._startGnomeShellDrag();
     }
 
@@ -399,9 +399,9 @@ const DragManager = class {
                 this.gnomeShellDrag?.completeGnomeShellDrop() ?? false;
 
             if (shellDropHandled) {
-                // GTK accepts that we handled the failed drag, but on
-                // Wayland the compositor has already cancelled it, so
-                // this cannot prevent the return animation.
+
+
+
                 return true;
             }
         }
@@ -433,8 +433,8 @@ const DragManager = class {
             deltaY = yDestination - yOrigin - this.localDragOffset[1];
         }
 
-        // Force the drag update onto the same serialized desktop mutation
-        // queue as geometry and file-list updates.
+
+
         this._desktopManager.runSerializedDesktopMutation(
             this._doMoveWithDragAndDrop.bind(
                 this,
@@ -471,14 +471,14 @@ const DragManager = class {
             }
         });
 
-        // Force write the new coordinates
+
         this._desktopManager._addFilesToDesktop(
             fileItems,
             this._Enums.StoredCoordinates.OVERWRITE
         );
     }
 
-    // Drag Motion
+
 
     onMotion(X, Y) {
         this.pointerX = X;
@@ -522,7 +522,7 @@ const DragManager = class {
         return false;
     }
 
-    // Selection HighLighting
+
 
     clearDropTargetHighlight() {
         this._displayList.forEach(item => item.unHighLightDropTarget());
@@ -577,7 +577,7 @@ const DragManager = class {
         this._desktopManager.desktopActions.lastAnchorSelected = null;
     }
 
-    // Getters and Setters
+
 
     get _currentSelection() {
         return this._desktopManager.getCurrentSelection();
@@ -590,8 +590,8 @@ const DragManager = class {
         if (!selection?.length)
             return noAction;
 
-        // Special icons only expose DING's private format. MOVE means
-        // repositioning those icons on the desktop, not moving their files.
+
+
         if (selection.some(fileItem => fileItem.isSpecial))
             return Gdk.DragAction.MOVE;
 

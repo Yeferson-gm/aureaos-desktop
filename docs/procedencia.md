@@ -1,0 +1,31 @@
+# Procedencia y licencias
+
+Aurea 27 es el nombre de esta integración y sus modificaciones. No reemplaza la
+autoría de sus bases ni altera sus licencias. Repositorio local sin publicación.
+
+| Base | Contenido importado | Licencia/evidencia |
+|---|---|---|
+| WhiteSur GTK, vinceliuice | Tema instalado completo y personalización GTK4 | `theme/gtk/COPYING`, obtenido del repositorio original |
+| WhiteSur icons, vinceliuice | Familia completa de iconos y carpetas personalizadas | `theme/icons/COPYING`, obtenido del repositorio original |
+| WhiteSur cursors, vinceliuice | Cursores instalados | `theme/cursors/LICENSE`, obtenido del repositorio original |
+| Dash to Dock | Dock completo con efectos y correcciones locales | `extensions/dock/COPYING` y avisos originales |
+| GTK4 Desktop Icons NG, smedius y colaboradores | Extensión completa instalada y corrección de arrastre | Cabeceras GPL3 y `extensions/desktop-icons/COPYING` |
+| Vertical App Grid, lublst | Centro de aplicaciones completo | `extensions/app-center/LICENSE`, del repositorio original |
+| Gnome Live Wallpaper, achu94 | Extensión instalada con renderer GNOME50 y correcciones de vídeo | La instalación y la raíz consultada del repositorio no incluyen un texto LICENSE/COPYING; confirmar permiso antes de redistribuir |
+| Barra, islas y widgets personalizados | Fuentes actuales, herramientas y pruebas | Conservar procedencia de los scripts aportados por el usuario; no se declara una licencia nueva sin decisión del propietario |
+
+Fuentes de consulta:
+
+- https://github.com/vinceliuice/WhiteSur-gtk-theme
+- https://github.com/vinceliuice/WhiteSur-icon-theme
+- https://github.com/vinceliuice/WhiteSur-cursors
+- https://github.com/micheleg/dash-to-dock
+- https://gitlab.com/smedius/desktop-icons-ng
+- https://github.com/lublst/gnome-vertical-app-grid
+- https://github.com/achu94/gnome-wallpaper-engine
+
+La importación parte de las copias instaladas y los proyectos existentes, no
+afirma contener el historial remoto ni los archivos de construcción originales
+que no estaban presentes localmente. Los iconos y marcas de aplicaciones siguen
+perteneciendo a sus respectivos titulares. Los nombres de licencias y avisos
+legales no se sustituyen por la marca Aurea.

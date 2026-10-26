@@ -40,7 +40,7 @@ function check(code) {
     assert.equal(tray._showNotification, original, 'Restaurar el método original');
 }
 check(source);
-// Comprobar que la prueba detecta la inversión de la condición de limpieza.
+
 const mutant = source.replace('if (tray._notification && tray._banner)',
     'if (!tray._notification && tray._banner)');
 assert.notEqual(mutant, source);

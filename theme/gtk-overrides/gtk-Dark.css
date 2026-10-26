@@ -91,9 +91,9 @@
 @define-color dark_3 #3d3846;
 @define-color dark_4 #241f31;
 @define-color dark_5 #000000;
-/* GTK NAMED COLORS
-   ----------------
-   use responsibly! */
+
+
+
 @define-color accent_bg_color #0860F2;
 @define-color accent_fg_color #ffffff;
 @define-color accent_color #0860F2;
@@ -141,7 +141,7 @@
 @define-color thumbnail_fg_color #dadada;
 @define-color shade_color rgba(255, 255, 255, 0.12);
 @define-color scrollbar_outline_color rgba(255, 255, 255, 0.12);
-/* This stylesheet is generated, DO NOT EDIT */
+
 window.background.csd > dialog-host > widget > widget > box > leaflet list.navigation-sidebar {
   background-image: linear-gradient(to left, rgba(0, 0, 0, 0.06), transparent 6px);
   background-color: rgba(51, 51, 51, 0.96);
@@ -5109,13 +5109,13 @@ columnview row:not(:selected) cell editablelabel.editing text selection {
 }
 
 .rich-list {
-  /* rich lists usually containing other widgets than just labels/text */
+
 }
 
 .rich-list > row {
   padding: 8px 12px;
   min-height: 32px;
-  /* should be tall even when only containing a label */
+
 }
 
 .rich-list > row > box {
@@ -5127,9 +5127,9 @@ columnview row:not(:selected) cell editablelabel.editing text selection {
   padding-right: 12px;
 }
 
-/****************
- * AdwActionRow *
- ****************/
+
+
+
 row label.subtitle {
   font-size: smaller;
 }
@@ -5191,9 +5191,9 @@ row.property.monospace > box.header > box.title > .subtitle, row.expander.proper
   font-family: monospace;
 }
 
-/******************************
- * AdwEntryRow and AdwSpinRow *
- ******************************/
+
+
+
 row.entry:disabled text {
   opacity: 0.45;
 }
@@ -5317,9 +5317,9 @@ row.spin.success .subtitle {
   opacity: 1;
 }
 
-/***************
- * AdwComboRow *
- ***************/
+
+
+
 row.combo image.dropdown-arrow:disabled {
   filter: opacity(0.45);
 }
@@ -5349,9 +5349,9 @@ row.combo popover > contents .combo-searchbar + scrolledwindow > undershoot.top 
   background: linear-gradient(to bottom, alpha(rgba(0, 0, 0, 0.2),0.25), transparent 6px);
 }
 
-/******************
- * AdwExpanderRow *
- ******************/
+
+
+
 row.expander {
   background: none;
   padding: 0px;
@@ -5404,9 +5404,9 @@ row.expander:checked image.expander-row-arrow:not(:disabled) {
   color: inherit;
 }
 
-/***************
- * AdwButtonRow *
- ***************/
+
+
+
 row.button > box {
   margin-left: 12px;
   margin-right: 12px;
@@ -5418,9 +5418,9 @@ row.button > box > .icon:disabled {
   filter: opacity(0.45);
 }
 
-/*****************
- * Boxed Lists *
- *****************/
+
+
+
 list.boxed-list-separate > row.expander row.header, list.boxed-list-separate > row, list.boxed-list > row, list.boxed-list > row.expander row.header, row.expander list.nested > row {
   outline: none;
   border: none;
@@ -7352,7 +7352,7 @@ flowboxchild.card:not(.category-tile) {
 
 .category-tile.card.category-work {
   padding: 1px;
-  /* FIXME: work around https://gitlab.gnome.org/GNOME/gtk/-/issues/4324 */
+
   color: #1c71d8;
   background-color: #fdf8d7;
   background-image: linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
@@ -7644,9 +7644,9 @@ carousel.card {
   font-size: 24px;
   padding: 16px;
   min-width: 24px;
-  /* 60px minus the left and right padding */
+
   min-height: 24px;
-  /* 60px minus the top and bottom padding */
+
 }
 
 .context-tile-lozenge.wide-image image {
@@ -7765,7 +7765,7 @@ row.app label.warning {
   }
 }
 
-/* Give a fade-in animation to spinners. */
+
 spinner.fade-in:checked {
   animation: pre-delay 0.5s linear 1, fade-in 1s linear 1, spin 1s linear infinite;
   animation-delay: 0s, 0.5s, 0.5s;
@@ -8653,7 +8653,7 @@ toolbarview.undershoot-bottom scrolledwindow > undershoot.bottom {
   background-color: mix(#0860F2,rgba(51, 51, 51, 0.96),0.7);
 }
 
-/* Middle pane in three-pane setups */
+
 .content-pane .sidebar-pane,
 .sidebar-pane .content-pane {
   background-color: #242424;
@@ -9261,5 +9261,5 @@ tabthumbnail picture {
 @define-color placeholder_text_color #E9873A;
 @define-color link_color #3484e2;
 @define-color content_view_bg #242424;
-/* Very contrasty background for text views (@theme_text_color foreground) */
+
 @define-color text_view_bg #242424;

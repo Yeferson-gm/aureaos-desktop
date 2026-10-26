@@ -87,9 +87,9 @@ const DingManager = class {
         this._init();
     }
 
-    /**
-     * Inits the Class
-     */
+
+
+
     _init() {
         this.launchDesktop = 0;
         this.waylandClient = null;
@@ -102,27 +102,27 @@ const DingManager = class {
         this.GnomeShellVersion = GnomeShellVersion;
         this.ShortcutManager = null;
 
-        /* The constructor of the window manager class only initializes some
-         * internal properties, but nothing else. In fact, it has its own
-         * enable() and disable() methods. That's why it could have been
-         * created here, in init(). But since the rule seems to be NO CLASS
-         * CREATION IN INIT UNDER NO CIRCUMSTANCES...
-         */
+
+
+
+
+
+
         this.windowTypeManager = null;
         this.visibleArea = null;
 
-        /* Ensures that there aren't "rogue" processes.
-         * This is a safeguard measure for the case of Gnome Shell being
-         * relaunched (for example with Alt+F2 and R), to kill
-         * any old DING instance before launching a new one.
-         */
+
+
+
+
+
         this.killingProcess = false;
     }
 
 
-    /**
-     * Enables the extension
-     */
+
+
+
     enable() {
         if (typeof Meta.is_wayland_compositor === 'function' &&
             !Meta.is_wayland_compositor()
@@ -156,7 +156,7 @@ const DingManager = class {
             this.visibleArea = this.DesktopIconsUsableArea;
         }
 
-        // If the desktop is still starting up, we wait until it is ready
+
         if (Main.layoutManager._startingUp) {
             this.startupPreparedId =
                 Main.layoutManager.connect(
@@ -169,9 +169,9 @@ const DingManager = class {
         }
     }
 
-    /**
-     * The true code that configures everything and launches the desktop program
-     */
+
+
+
     _activateDelayedLaunch() {
         if (this.killingProcess) {
             this.startupProcessKillWaitId =
@@ -197,40 +197,40 @@ const DingManager = class {
 
         this.windowTypeManager.enable();
 
-        /*
-         * If the desktop geometry changes (because a new monitor has
-            been added, for example),
-         */
+
+
+
+
         this.monitorsChangedId =
             Main.layoutManager.connect(
                 'monitors-changed',
                 this._updateDesktopGeometry.bind(this)
             );
 
-        /*
-         * Any change in the workareas must be detected too,
-            for example if the used size changes.
-         */
+
+
+
+
         this.workareasChangedId =
             global.display.connect(
                 'workareas-changed',
                 this._updateDesktopGeometry.bind(this)
             );
 
-        /*
-         * This callback allows to detect a change in the
-            working area (like when changing the Scale value)
-         */
+
+
+
+
         this.visibleAreaId =
             this.visibleArea.connect(
                 'updated-usable-area',
                 this._updateDesktopGeometry.bind(this)
             );
 
-        /*
-         * Detect changes in the shell scale factor so desktop geometry is
-         * refreshed whenever GNOME Shell changes scaling.
-         */
+
+
+
+
         this.scaleFactorId =
             St.ThemeContext.get_for_stage(global.stage).connect(
                 'notify::scale-factor',
@@ -280,20 +280,20 @@ const DingManager = class {
         console.log('Adw-DING enabled.');
     }
 
-    /**
-     * Disables the extension.
-     *
-     * For Gnome > 42 the extension runs with the
-     * session mode 'unlock-dialog'. This allows the extension to keep running
-     * when the lock screen comes on. This way, the programs spawned by
-     * this extension keep running, rendering all the file icons on the desktop.
-     * When the user logs back in the desktop is already rendered and running,
-     * the desktop program is not killed on the lock-screen and then launced
-     * again on unlock.
-     *
-     * If disable is called, it explictly kills the desktop program.
-     * This will hapen on log out.
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     disable() {
         this.DesktopIconsUsableArea = null;
         if (this.startupProcessKillWaitId) {
@@ -350,10 +350,10 @@ const DingManager = class {
         console.log('Adw-DING disabled.');
     }
 
-    /**
-     * Acquire the DBus Name on the Session Bus
-     *
-     */
+
+
+
+
     _acquireDBusName() {
         const ID = Gio.bus_own_name(
             Gio.BusType.SESSION,
@@ -373,11 +373,11 @@ const DingManager = class {
         return ID;
     }
 
-    /**
-     * Start the Dbus Service
-     *
-     * @param {GObject} connection the Dbus Connection
-     */
+
+
+
+
+
     _onBusAcquired(connection) {
         this.dingExtensionServiceImplementation =
             new DingExtensionService(
@@ -421,16 +421,16 @@ const DingManager = class {
     }
 
 
-    /**
-     * Start stop needed functions with screen locks and unlocks
-     *
-     * @param {GObject} connection the Dbus Connection
-     * @param {string} sender the numeric Dbus Sender address
-     * @param {string} path the Dbus Sender path
-     * @param {string} iface the Sender Dbus interface
-     * @param {string} signal the signal name
-     * @param {GLib.variant} params the GLib.variant with parameters
-     */
+
+
+
+
+
+
+
+
+
+
     _onActiveChanged(connection, sender, path, iface, signal, params) {
         const value = params.get_child_value(0);
         const locked = value.get_boolean();
@@ -443,9 +443,9 @@ const DingManager = class {
         this.windowTypeManager?.setWindowsRaisedAsDock(raised);
     }
 
-    /**
-     * Sends updated geometry data to the DING desktop program over DBus
-     */
+
+
+
     _updateDesktopGeometry() {
         if (this.remoteDingActions &&
             (Main.layoutManager.monitors.length !== 0)
@@ -457,9 +457,9 @@ const DingManager = class {
         }
     }
 
-    /**
-     * Gets current desktop Geometry from visibleArea.js
-     */
+
+
+
     _getDesktopGeometry() {
         let desktopList = [];
         let ws = global.workspace_manager.get_workspace_by_index(0);
@@ -491,16 +491,16 @@ const DingManager = class {
         return new GLib.Variant('av', desktopList);
     }
 
-    /**
-     * Kills the current desktop program
-     */
+
+
+
     _killCurrentProcess() {
         if (this.launchDesktop) {
             GLib.source_remove(this.launchDesktop);
             this.launchDesktop = 0;
         }
 
-        // kill the desktop program. It will be reloaded automatically.
+
         if (this.waylandClient && this.waylandClient.subprocess) {
             this.waylandClient.cancellable.cancel();
             this.waylandClient.subprocess.send_signal(15);
@@ -510,13 +510,13 @@ const DingManager = class {
         this.windowTypeManager?.set_wayland_client(null);
     }
 
-    /**
-     * This function checks all the processes in the system and kills those
-     * that are a desktop manager from the current user (but not others).
-     * This allows to avoid having several ones in case gnome shell resets,
-     * or other odd cases. It requires the /proc virtual filesystem, but
-     * doesn't fail if it doesn't exist.
-     */
+
+
+
+
+
+
+
     async _doKillAllOldDesktopProcesses() {
         const procFolder = Gio.File.new_for_path('/proc');
         const processes = await FileUtils.enumerateDirOrEmpty(procFolder);
@@ -561,11 +561,11 @@ const DingManager = class {
         await Promise.all(killPromises);
     }
 
-    /**
-     *
-     * @param {integer} reloadTime Relaunch time after crash in ms
-     * @param {LaunchSubprocess} client Process owner requesting the relaunch
-     */
+
+
+
+
+
     _doRelaunch(reloadTime, client) {
         if (!client || this.waylandClient !== client)
             return;
@@ -587,26 +587,26 @@ const DingManager = class {
             );
     }
 
-    /**
-     * Launches the desktop program, passing to it the current desktop geometry
-     * for each monitor and the path where it is stored. It also monitors it,
-     * to relaunch it in case it dies or is killed. Finally, it reads STDOUT
-     * and STDERR and redirects them to the journal, to help debug it.
-     */
+
+
+
+
+
+
     async _launchDesktop() {
         console.log('Launching Adw-DING process');
         let argv = [];
         argv.push(GLib.build_filenamev([this.path, 'app', 'adw-ding.js']));
-        // Specify that it must work as true desktop
+
         argv.push('-E');
-        // The current Gnome Shell Version for correct operation of clipboard
-        // with Gtk4.
+
+
         argv.push('-V');
         argv.push(`${this.GnomeShellVersion}`);
-        // The current version of the Extension to show in preferences
+
         argv.push('-v');
         argv.push(`${this.version}`);
-        // Give the uuid of the extension starting the app
+
         argv.push('-U');
         argv.push(`${this.uuid}`);
 
@@ -635,23 +635,23 @@ const DingManager = class {
             return;
         }
 
-        /*
-        If the desktop process dies, wait 100ms and relaunch it, unless the
-        exit status is different than zero, in which case it will wait one
-        second. This is done this way to avoid relaunching the desktop
-        too fast if it has a bug that makes it fail continuously,
-        avoiding filling the journal too fast.
-        */
+
+
+
+
+
+
+
         const delta = GLib.get_monotonic_time() - launchTime;
         let reloadTime;
 
         if (delta < 1000000) {
-            // If the process is dying over and over again, ensure that it isn't
-            // respawn faster than once per second
+
+
             reloadTime = 1000;
         } else {
-            // but if the process just died after having run for at least
-            // one second, reload it ASAP
+
+
             reloadTime = 1;
         }
 
@@ -668,16 +668,16 @@ const DingManager = class {
     }
 };
 
-/**
- * This class encapsulates the code to launch a subprocess and detect whether
- * a window belongs to it.
- *
- * It is compatible with-
- * https://gitlab.gnome.org/GNOME/mutter/merge_requests/754 to simplify the code
- *
- * @param {int} flags Flags for the SubprocessLauncher class
- * @param {string} process_id An string id for the debug output
- */
+
+
+
+
+
+
+
+
+
+
 var LaunchSubprocess = class {
     constructor(flags, processId) {
         this._processID = processId;
@@ -704,8 +704,8 @@ var LaunchSubprocess = class {
 
         let subprocess;
 
-        // New API introduced in
-        // https://gitlab.gnome.org/GNOME/mutter/-/merge_requests/4491
+
+
         if (typeof Meta.WaylandClient.new_subprocess === 'function') {
             this._waylandClient =
                 Meta.WaylandClient.new_subprocess(
@@ -713,18 +713,18 @@ var LaunchSubprocess = class {
                 );
             subprocess = this._waylandClient.get_subprocess();
         } else {
-            // Old APIs
+
             try {
-                // Previous API
+
                 this._waylandClient =
                     Meta.WaylandClient.new(global.context, this._launcher);
             } catch (e) {
-                // Oldest API
+
                 this._waylandClient = Meta.WaylandClient.new(this._launcher);
             }
 
             if (Config.PACKAGE_VERSION === '3.38.0') {
-                // workaround for bug in 3.38.0
+
                 this._launcher.ref();
             }
 
@@ -756,18 +756,18 @@ var LaunchSubprocess = class {
         const cancellable = new Gio.Cancellable();
         this.cancellable = cancellable;
 
-        // This is for GLib 2.68 or greater
+
         if (this._launcher.close)
             this._launcher.close();
 
         this._launcher = null;
 
-        /*
-        This reads STDOUT and STDERR and sends it to the journal using
-        global.log(). This allows to have any error from the desktop app in the
-        same journal like other extensions. Every line from the desktop program
-        is prepended with the "process_id" parameter sent in the constructor.
-         */
+
+
+
+
+
+
         const dataInputStream =
             Gio.DataInputStream.new(this.subprocess.get_stdout_pipe());
 
@@ -865,11 +865,11 @@ var LaunchSubprocess = class {
         }
     }
 
-    /**
-     * Queries whether the passed window belongs to the launched subprocess.
-     *
-     * @param {MetaWindow} window The window to check.
-     */
+
+
+
+
+
     query_window_belongs_to(window) {
         if (!this.isWayland)
             return false;
@@ -896,7 +896,7 @@ var LaunchSubprocess = class {
             return;
 
         if (typeof window.show_in_window_list === 'function')
-            // New Gnome 49 API
+
             window.show_in_window_list();
         else
             this._waylandClient?.show_in_window_list(window);
@@ -907,16 +907,16 @@ var LaunchSubprocess = class {
             return;
 
         if (typeof window.hide_from_window_list === 'function')
-            // New Gnome 49 API
+
             window.hide_from_window_list();
         else
             this._waylandClient?.hide_from_window_list(window);
     }
 };
 
-/**
- * This class implements the Dbus Services Provided for the extension
- */
+
+
+
 var DingExtensionService = class {
     constructor(updateDesktopGeometryCB, setWidgetLayerRaisedCB) {
         this.geometryUpdate = updateDesktopGeometryCB;
@@ -1020,17 +1020,17 @@ var DingExtensionService = class {
             const ownedActor = this._shellDragCursorActorRef?.deref();
             this._shellDragCursorActorRef = null;
 
-            // Mutter resets and destroys its drag actor when the grab ends.
-            // Only reset our override while that same grab is still current;
-            // never call methods on an actor retained from an earlier grab.
+
+
+
             if (currentGrabActor && currentGrabActor === ownedActor)
                 currentGrabActor.set_cursor_type(cursorType);
             return;
         }
 
-        // Workspace animations grab the persistent Shell stage. Never put a
-        // drag cursor on that actor, or on another Shell modal grab: it can
-        // outlive the drag and leave the cursor stuck across the desktop.
+
+
+
         if (!currentGrabActor || currentGrabActor === global.stage ||
             Main.modalCount > 0)
             return;
@@ -1046,9 +1046,9 @@ var DingExtensionService = class {
     }
 };
 
-/** This class simulates a hover on the Dock so that the dock app items
- * can be visible and scroll automatically on drops.
- */
+
+
+
 var SynthesizeHover = class {
     constructor() {
         this._hoveredActor = null;
@@ -1111,11 +1111,11 @@ var SynthesizeHover = class {
     }
 };
 
-/** This class sets global keyboard acclelerators for our application
- */
+
+
 var ShortcutManager = class {
     constructor(dingManager) {
-        // Define default keybindings with their corresponding action
+
         this.keyBindings = GlobalShortcuts;
         this._settings = dingManager.settings;
         this._remoteAction = dingManager.remoteDingActions;

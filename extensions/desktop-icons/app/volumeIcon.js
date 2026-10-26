@@ -30,7 +30,7 @@ const VolumeIcon = class extends FileItemIcon {
         this._umountCancellable = null;
 
         if (this._gioMount) {
-            /* gjs doesn't handle some virtual implementations well*/
+
             Gio._promisify(this._gioMount.constructor.prototype,
                 'eject_with_operation');
             Gio._promisify(this._gioMount.constructor.prototype,
@@ -64,10 +64,10 @@ const VolumeIcon = class extends FileItemIcon {
         const driveName = _('Drive');
 
         if (this._fileTypeEnum === this.Enums.FileType.EXTERNAL_DRIVE) {
-        /** TRANSLATORS: when using a screen reader, this is the text
-         * read when an external drive is selected.
-         * Example: if a USB stick named "my_portable"
-         * is selected, it will say "my_portable Drive" */
+
+
+
+
             this.container.update_property(
                 [Gtk.AccessibleProperty.LABEL],
                 [`${visibleName} ${driveName}`]
@@ -100,9 +100,9 @@ const VolumeIcon = class extends FileItemIcon {
                 cancellable
             );
         } catch (e) {
-            // I cannot find the exact Gio Enum, Gio.MountOperationResult
-            // does not work. Shortcut :)
-            // logError(e, `Mount failed: ${e.domain} ${e.code}`);
+
+
+
             if (!this._isCancellationError(e) && !(e.domain === 195 && e.code === 30)) {
                 console.error(
                     e,
@@ -136,9 +136,9 @@ const VolumeIcon = class extends FileItemIcon {
                 cancellable
             );
         } catch (e) {
-            // I cannot find the exact Gio Enum, Gio.MountOperationResult
-            // does not work. Shortcut :)
-            // logError(e, `Mount failed: ${e.domain} ${e.code}`);
+
+
+
             if (!this._isCancellationError(e) && !(e.domain === 195 && e.code === 30)) {
                 console.error(
                     e,

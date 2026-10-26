@@ -44,12 +44,12 @@ const SymLinkIcon = class {
                     Gio.FILE_ATTRIBUTE_STANDARD_IS_SYMLINK
                 );
 
-                /*
-                * This is a glib trick to detect broken symlinks. If a file is a
-                * symlink, the filetype points to the final file, unless it is broken;
-                * thus if the file type is SYMBOLIC_LINK, it must be a broken link.
-                * https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
-                */
+
+
+
+
+
+
                 this._isBrokenSymlink =
                     this._isSymlink &&
                     this._fileType === Gio.FileType.SYMBOLIC_LINK;
@@ -65,12 +65,12 @@ const SymLinkIcon = class {
                     Gio.FILE_ATTRIBUTE_STANDARD_IS_SYMLINK
                 );
 
-                /*
-                * This is a glib trick to detect broken symlinks. If a file is a
-                * symlink, the filetype points to the final file, unless it is broken;
-                * thus if the file type is SYMBOLIC_LINK, it must be a broken link.
-                * https://developer.gnome.org/gio/stable/GFile.html#g-file-query-info
-                */
+
+
+
+
+
+
                 this._isBrokenSymlink =
                     this._isSymlink &&
                     this._fileType === Gio.FileType.SYMBOLIC_LINK;
@@ -145,8 +145,8 @@ const SymLinkIcon = class {
                     ))
                         throw error;
 
-                    // A followed query fails when the target disappears. Read
-                    // the link itself so its icon becomes a broken-link icon.
+
+
                     try {
                         return await this._file.query_info_async(
                             this.Enums.DEFAULT_ATTRIBUTES,

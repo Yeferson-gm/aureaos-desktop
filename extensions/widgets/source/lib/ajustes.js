@@ -285,8 +285,8 @@ export function abrirGaleria(core) {
             core.cfg.global.estilo = v;
             core.guardarCfg();
         }), 'Después puedes cambiarlo en cada widget.'));
-    // Filas explícitas: FlowLayout no resuelve bien la altura natural de estas
-    // tarjetas con etiquetas multilínea dentro del ScrollView.
+
+
     const disponible = Math.min(880, Main.layoutManager.primaryMonitor.width - 60) - 60;
     const columnas = Math.max(1, Math.min(3, Math.floor((disponible + 12) / 268)));
     const anchoTarjeta = Math.floor((disponible - (columnas - 1) * 12) / columnas);

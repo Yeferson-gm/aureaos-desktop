@@ -4,7 +4,7 @@
 .sd-btn:active { background-color: rgba(255,255,255,0.24); }
 .sd-btn:focus { background-color: rgba(255,255,255,0.18); }
 
-/* Tirador dentro de la altura existente: sin pie ni flecha. */
+
 .sd-handle { padding: 0; border: none; background-color: transparent; }
 .sd-grip { border-radius: 1px; background-color: rgba(255,255,255,0.48); }
 .sd-handle:hover .sd-grip, .sd-handle:focus .sd-grip { background-color: white; }

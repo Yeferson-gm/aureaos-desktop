@@ -12,7 +12,7 @@ const STOP = Clutter.EVENT_STOP;
 const PASS = Clutter.EVENT_PROPAGATE;
 const CENTER = Clutter.ActorAlign.CENTER;
 
-// Hoja modal de vidrio: base de ajustes, galería, editores y avisos.
+
 export class Hoja {
     constructor(core, o = {}) {
         this.core = core;
@@ -102,7 +102,7 @@ export class Hoja {
     }
 }
 
-// ── Controles reutilizables ─────────────────────────────────────────────
+
 export function boton(texto, cb, clase = 'lintel-btn') {
     const b = new St.Button({label: texto, style_class: clase, can_focus: true, reactive: true});
     b.connect('clicked', cb);
@@ -220,7 +220,7 @@ export function campo(valor, hint, cb, {multi = false, ancho = 230, alto = 0, nu
     return e;
 }
 
-// Cuadro para pedir datos: campos [{k, etq, valor, ph, tipo:'texto'|'sel'|'multi', ops}]
+
 export function pedir(core, {titulo, texto = '', campos = [], ok = 'Guardar', cb, acciones = [], ancho = 440}) {
     const h = new Hoja(core, {titulo, ancho});
     const vals = {};
@@ -256,7 +256,7 @@ export function pedir(core, {titulo, texto = '', campos = [], ok = 'Guardar', cb
     return h.abrir();
 }
 
-// Selector visual de imágenes (miniaturas) a partir de una lista de rutas.
+
 export function elegirImagen(core, rutas, alElegir, titulo = 'Elegir imagen') {
     const h = new Hoja(core, {titulo, ancho: 640, alto: 460});
     const cuad = new St.Widget({

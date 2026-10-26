@@ -76,7 +76,7 @@ var GsConnectSendFileOperationsManager =  class {
     }
 
     _on_g_signal(proxy, senderName, signalName, parameters) {
-        // Wait until the service is ready
+
         if (!this.gsConnectProxy.get_name_owner())
             return;
 
@@ -110,7 +110,7 @@ var GsConnectSendFileOperationsManager =  class {
     }
 
     _on_name_owner_changed() {
-        // Wait until the service is ready
+
         if (!this.gsConnectProxy.get_name_owner()) {
             this.gsConnectDevices = {};
         } else {
@@ -164,8 +164,8 @@ var GsConnectSendFileOperationsManager =  class {
     }
 
     _send_files(device) {
-        // send files to shareFile action in actiongroup
-        //  for the devices actiongroup
+
+
         let actionGroup = this.devices[device];
 
         for (let file of this.sendablefiles) {
@@ -184,7 +184,7 @@ var GsConnectSendFileOperationsManager =  class {
     }
 
     _get_devices() {
-        // No capable devices
+
         if (!Object.keys(this.devices).length > 0)
             return null;
         else
@@ -192,8 +192,8 @@ var GsConnectSendFileOperationsManager =  class {
     }
 
     _sendable_file_items(files) {
-        // Return a list of select files to be sent
-        // Only accept regular files
+
+
         for (let f of files) {
             if (f.get_uri_scheme() !== 'file')
                 return null;

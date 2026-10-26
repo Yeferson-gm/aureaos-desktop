@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 const file=process.argv[2] ?? new URL('../extension.js',import.meta.url);
 const code=fs.readFileSync(file,'utf8');
 const start=code.indexOf('class Bluetooth extends Model');
-const end=code.indexOf('// ── Privacidad:',start);
+const end=code.indexOf('\nclass Privacy extends Model',start);
+assert.ok(start >= 0 && end > start, 'La clase Bluetooth debe estar delimitada por código');
 const calls=[];
 const context=vm.createContext({Model:class{},BLUEZ:'org.bluez',
     Gio:{DBus:{system:{call(...args){calls.push(args.at(-1));}}},DBusCallFlags:{NO_AUTO_START:0}},

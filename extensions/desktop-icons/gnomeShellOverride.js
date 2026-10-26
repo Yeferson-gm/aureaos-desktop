@@ -1,6 +1,6 @@
 /* eslint-disable no-invalid-this */
 /* eslint-disable no-undef */
-/* The above is for use of global in this file as Shell.global */
+
 /* Gnome Shell Override
  *
  * Copyright (C) 2023 Sundeep Mediratta (smedius@gmail.com)
@@ -22,7 +22,7 @@
 
 const {Meta, Clutter, GObject} = imports.gi;
 
-// Show desktop windows on workspace thumbnails
+
 const SHOW_ON_WORKSPACE_THUMBNAILS = true;
 const SHOW_ICONS_ON_OVERVIEW = false;
 const ANIMATION_MULTIPLE = 1;
@@ -56,7 +56,7 @@ var GnomeShellOverride = class {
         return function (...args) {
             origninalMethod.call(this, ...args);
 
-            /** @enum {number} */
+
             const ControlsState = {
                 HIDDEN: 0,
                 WINDOW_PICKER: 1,

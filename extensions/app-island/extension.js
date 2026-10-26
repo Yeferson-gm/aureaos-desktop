@@ -7,22 +7,22 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-// ======================= AJUSTES =======================
-const LADO = 'derecha';     // 'derecha' o 'izquierda'
-const MAX_FAVS = 5;         // favoritos visibles en la barra
-const MAX_GUARDADOS = 24;   // panel personal, no catálogo de aplicaciones
-const ICONO = 28;           // icono en la barra
-const BOTON = 40;           // botón compacto en la barra
-const OFFSET_Y = 0;         // sube/baja la isla (negativo = sube)
-const CURVA = 8;            // unión corta al borde, igual que el notch superior
-const RADIO = 8;            // esquinas discretas, casi rectangulares
+
+const LADO = 'derecha';
+const MAX_FAVS = 5;
+const MAX_GUARDADOS = 24;
+const ICONO = 28;
+const BOTON = 40;
+const OFFSET_Y = 0;
+const CURVA = 8;
+const RADIO = 8;
 const ANCHO_BARRA = 54;
 const ANCHO_PANEL = 360;
 const ALTO_PANEL = 560;
-const COLOR = [0.12, 0.14, 0.17, 0.78];   // Vidrio ahumado: conserva contraste sin negro opaco
+const COLOR = [0.12, 0.14, 0.17, 0.78];
 const AUTO_OCULTAR = true;
 const BORDE_VISIBLE = 6;
-// =======================================================
+
 
 const CATEGORIAS = [
     ['Internet', ['WebBrowser', 'Network', 'Email', 'InstantMessaging', 'Chat', 'P2P']],
@@ -101,7 +101,7 @@ export default class SideDock extends Extension {
         this._panel.set_style(`padding: ${CURVA + 12}px 20px;`);
         this._root.add_child(this._panel);
 
-        // Tirador superpuesto al margen: no añade altura ni invade los iconos.
+
         this._handle = new St.Button({
             name: 'sideDockHandle', style_class: 'sd-handle', width: 7,
             reactive: true, can_focus: true, x_expand: true, y_expand: true,
@@ -113,9 +113,9 @@ export default class SideDock extends Extension {
         this._handle.connect('clicked', () => this._setOpen(true));
         this._root.add_child(this._handle);
 
-        // En GNOME Shell 50 un actor reactivo ya pertenece a la región de
-        // entrada. El parámetro antiguo affectsInputRegion provoca que la
-        // extensión falle al iniciar.
+
+
+
         Main.layoutManager.addChrome(this._root, {trackFullscreen: true});
 
         this._connect(this._appSystem, 'app-state-changed', () => this._queue());
@@ -132,13 +132,13 @@ export default class SideDock extends Extension {
     disable() {
         this._alive = false;
         this._releaseInteraction();
-        for (const id of [...this._sources]) { try { GLib.Source.remove(id); } catch (e) { /* nada */ } }
+        for (const id of [...this._sources]) { try { GLib.Source.remove(id); } catch (e) {            } }
         this._sources.clear();
-        for (const [obj, id] of this._signals) { try { obj.disconnect(id); } catch (e) { /* nada */ } }
+        for (const [obj, id] of this._signals) { try { obj.disconnect(id); } catch (e) {            } }
         this._signals = [];
         if (this._root) {
             this._root.remove_all_transitions();
-            try { Main.layoutManager.removeChrome(this._root); } catch (e) { /* nada */ }
+            try { Main.layoutManager.removeChrome(this._root); } catch (e) {            }
             this._root.destroy();
             this._root = null;
         }
@@ -147,7 +147,7 @@ export default class SideDock extends Extension {
         this._appSystem = null;
     }
 
-    // ---------------------------------------------------------------- utilidades
+
     _connect(obj, signal, fn) {
         this._signals.push([obj, obj.connect(signal, fn)]);
     }
@@ -179,7 +179,7 @@ export default class SideDock extends Extension {
         try { return this._scroll?.vadjustment ?? this._scroll?.vscroll?.adjustment ?? null; } catch (e) { return null; }
     }
 
-    // ---------------------------------------------------------------- favoritos
+
     _loadFavs() {
         this._favIds = null;
         try {
@@ -188,7 +188,7 @@ export default class SideDock extends Extension {
                 const d = JSON.parse(new TextDecoder().decode(bytes));
                 if (Array.isArray(d.favoritos)) this._favIds = [...new Set(d.favoritos.filter(x => typeof x === 'string'))];
             }
-        } catch (e) { /* primera vez */ }
+        } catch (e) {                   }
         if (!this._favIds) {
             this._favIds = AppFavorites.getAppFavorites().getFavorites().map(a => a.get_id()).slice(0, MAX_FAVS);
             this._saveFavs();
@@ -230,7 +230,7 @@ export default class SideDock extends Extension {
         this._hintTimer = this._timeout(2800, () => { if (this._hint) this._hint.text = this._baseHint; });
     }
 
-    // ---------------------------------------------------------------- forma (gota)
+
     _paint(area) {
         const cr = area.get_context();
         const [w, h] = area.get_surface_size();
@@ -240,29 +240,29 @@ export default class SideDock extends Extension {
         if (LADO !== 'derecha') { cr.translate(w, 0); cr.scale(-1, 1); }
         cr.newPath();
         cr.moveTo(w, 0);
-        cr.arc(w - F, 0, F, 0, Math.PI / 2);                              // curva superior hacia el borde
+        cr.arc(w - F, 0, F, 0, Math.PI / 2);
         cr.lineTo(R, F);
-        cr.arcNegative(R, F + R, R, -Math.PI / 2, -Math.PI);              // esquina superior interior
+        cr.arcNegative(R, F + R, R, -Math.PI / 2, -Math.PI);
         cr.lineTo(0, F + bh - R);
-        cr.arcNegative(R, F + bh - R, R, Math.PI, Math.PI / 2);           // esquina inferior interior
+        cr.arcNegative(R, F + bh - R, R, Math.PI, Math.PI / 2);
         cr.lineTo(w - F, F + bh);
-        cr.arc(w - F, h, F, -Math.PI / 2, 0);                             // curva inferior hacia el borde
+        cr.arc(w - F, h, F, -Math.PI / 2, 0);
         cr.setSourceRGBA(...COLOR);
-        cr.fillPreserve();                                                // relleno (el trazo abierto no dibuja el borde pegado a la pantalla)
+        cr.fillPreserve();
         cr.setSourceRGBA(1, 1, 1, 0.12);
         cr.setLineWidth(1);
-        cr.stroke();                                                      // borde fino tipo cristal
+        cr.stroke();
         cr.$dispose();
     }
 
-    // ---------------------------------------------------------------- geometría
+
     _syncMonitorClip() {
         const actor = this._root;
         const monitor = Main.layoutManager.primaryMonitor;
         if (!actor || !monitor) return;
-        // El escritorio virtual continúa en el monitor vecino. Ocultar por
-        // traslación no basta: recortamos también el dibujo y la región de clic.
-        // Se recalcula con cada propiedad animada, no con un temporizador.
+
+
+
         const x = actor.x + actor.translation_x;
         const y = actor.y + actor.translation_y;
         const left = Math.max(0, monitor.x - x);
@@ -322,7 +322,7 @@ export default class SideDock extends Extension {
         this._syncMonitorClip();
     }
 
-    // ---------------------------------------------------------------- abrir / cerrar
+
     _setOpen(open) {
         if (!this._root || this._open === open) return;
         this._open = open;
@@ -395,7 +395,7 @@ export default class SideDock extends Extension {
 
     _releaseInteraction() {
         if (this._captureSignal) {
-            try { this._root?.disconnect(this._captureSignal); } catch (e) { /* nada */ }
+            try { this._root?.disconnect(this._captureSignal); } catch (e) {            }
             this._captureSignal = 0;
         }
         if (this._grab) {
@@ -421,20 +421,20 @@ export default class SideDock extends Extension {
             const rw = this._root.width;
             const rh = this._root.height;
             let target = null;
-            try { target = global.stage.get_event_actor(ev); } catch (e) { /* prueba sintética */ }
+            try { target = global.stage.get_event_actor(ev); } catch (e) {                         }
             const insideBounds = x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
             const inside = target ? this._root.contains(target) && insideBounds : insideBounds;
             if (!inside) {
                 this._setOpen(false);
-                // El clic que descarta la isla no debe atravesarla y activar
-                // accidentalmente la ventana que está debajo.
+
+
                 return Clutter.EVENT_STOP;
             }
         }
         return Clutter.EVENT_PROPAGATE;
     }
 
-    // ---------------------------------------------------------------- barra
+
     _rebuildBar() {
         if (!this._bar) return;
         this._bar.destroy_all_children();
@@ -464,7 +464,7 @@ export default class SideDock extends Extension {
         return btn;
     }
 
-    // ---------------------------------------------------------------- panel
+
     _groups(apps) {
         const map = new Map(CATEGORIAS.map(([n]) => [n, []]));
         const otras = [];
@@ -590,7 +590,7 @@ export default class SideDock extends Extension {
         this._baseHint = adding ? 'Hasta 8 coincidencias · Pulsa + para guardar'
             : `Las primeras ${MAX_FAVS} favoritas aparecen en la barra.\n${HINT}`;
         this._hint.text = this._baseHint;
-        // Una actualización de estado no debe dejar el teclado en un actor destruido.
+
         if (restoreFocus) (this._tabs.get(this._view) ?? this._closeButton).grab_key_focus();
     }
 

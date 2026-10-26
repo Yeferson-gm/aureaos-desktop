@@ -12,10 +12,10 @@ export class WindowUtils {
 
     static _isWindowMaximized(metaWin) {
         if (typeof metaWin.is_maximized === "function") {
-            // GNOME 49+
+
             return metaWin.is_maximized();
         } else {
-            // GNOME 48 and older (3 corresponds to Meta.MaximizeFlags.BOTH)
+
             return metaWin.get_maximized() === 3;
         }
     }

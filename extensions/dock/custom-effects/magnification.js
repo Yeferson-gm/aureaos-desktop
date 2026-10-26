@@ -1,10 +1,10 @@
-// Ampliación de iconos estilo macOS para GNOME Shell (v7: lente continua).
-//
-// Cada icono se amplía según su distancia al cursor y se desplaza hacia fuera
-// con la integral de la ampliación (lens-math.js): el dock se ensancha, el
-// icono bajo el cursor permanece bajo el cursor y no hay saltos al pasar de uno
-// a otro. Solo se transforma la imagen (_iconBin): insignias, indicadores y
-// zonas de clic conservan su tamaño. El estante de vidrio crece con el dock.
+
+
+
+
+
+
+
 
 import {Clutter, GLib, Meta, St} from '../dependencies/gi.js';
 import {getCursorTracker} from '../utils.js';
@@ -84,7 +84,7 @@ export class MagnificationController {
         this._startFrames();
     }
 
-    // ── Cursor ────────────────────────────────────────────────────────
+
     _updatePointerPosition() {
         if (!this._enabled()) {
             if (this._pointer !== null) {
@@ -124,7 +124,7 @@ export class MagnificationController {
             sx >= x - before && sx <= x + w + after;
     }
 
-    // ── Bucle de cuadros sincronizado con el compositor ───────────────
+
     _startFrames() {
         if (this._laterId)
             return;
@@ -250,7 +250,7 @@ export class MagnificationController {
         actor.set_pivot_point(pivotX, pivotY);
         actor.scale_x = scale;
         actor.scale_y = scale;
-        // El eje transversal queda libre para el rebote de lanzamiento.
+
         if (this._isHorizontal)
             actor.translation_x = offset;
         else
@@ -260,7 +260,7 @@ export class MagnificationController {
         return !settled;
     }
 
-    // El estante crece lo mismo que el icono de cada extremo se desplaza.
+
     _applyShelf(targetA, targetB, elapsedMs) {
         const s = this._shelf;
         const responseMs = this._responseMs();

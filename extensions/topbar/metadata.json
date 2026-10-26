@@ -1,9 +1,12 @@
 {
   "uuid": "lintel-v2@local",
-  "name": "macOS 27 Top Bar",
-  "description": "Barra superior estilo macOS Tahoe: manzana, app activa, menús dinámicos, estado y Centro de control.",
-  "shell-version": ["50", "51"],
-  "session-modes": ["user"],
-  "version": 11
+  "name": "Aurea 27 · Barra superior",
+  "description": "Barra superior del escritorio Aurea 27.",
+  "shell-version": [
+    "50",
+    "51"
+  ],
+  "session-modes": [
+    "user"
+  ]
 }
-

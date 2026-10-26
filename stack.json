@@ -9,5 +9,10 @@
     "live-wallpaper": "Fondo animado",
     "desktop-icons": "Iconos del escritorio",
     "app-center": "Centro de aplicaciones"
+  },
+  "migrations": {
+    "gnome-wallpaper-engine@gjs.com": "aurea-wallpaper@local",
+    "gtk4-ding@smedius.gitlab.com": "aurea-desktop-icons@local",
+    "vertical-app-grid@lublst.github.io": "aurea-app-center@local"
   }
 }

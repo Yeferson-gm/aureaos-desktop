@@ -24,27 +24,27 @@ import {PinnedWindowManager} from '../dependencies/localFiles.js';
 import {WebWidgetContext} from '../dependencies/localFiles.js';
 import {WebUtils} from '../dependencies/localFiles.js';
 
-/**
- * WidgetManager
- *
- * - Owned by DesktopManager.
- * - Uses DesktopGrid/WidgetGrid for all geometry math.
- * - Positions widgets inside each grid's `widgetContainer` (Gtk.Fixed).
- *
- * Coordinate model:
- *   - We store per-instance:
- *       * monitorIndex
- *       * normX, normY  (0..1, normalized to grid.normalizedWidth/Height)
- *       * pinnedGlobalX, pinnedGlobalY (absolute shell coords for floating
- *         pinned windows; used to survive margin/order changes)
- *       * width, height (absolute pixels, widget-owned)
- *   - On layout changes, we rebuild a map of:
- *       monitorIndex -> { grid, widgetContainer }
- *   - To place an instance:
- *       localX = normX * grid.normalizedWidth
- *       localY = normY * grid.normalizedHeight
- *       widgetContainer.put(actor, localX, localY)
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export {WidgetManager};
 
 function cloneWidgetConfig(config) {
@@ -86,21 +86,21 @@ const WidgetManager = class {
         this._iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
         this._iconTheme.add_resource_path(`${appPath}/icons`);
 
-        // monitorIndex -> { grid, widgetContainer }
+
         this._surfaces = new Map();
 
-        // instanceId -> {
-        //   instanceId,
-        //   widgetId,
-        //   kind,
-        //   monitorIndex,
-        //   normX,
-        //   normY,
-        //   width,
-        //   height,
-        //   actor,
-        //   config,
-        // }
+
+
+
+
+
+
+
+
+
+
+
+
         this._instances = new Map();
         this._chrome = null;
         this._selectedInstanceId = null;
@@ -111,7 +111,7 @@ const WidgetManager = class {
         this._dbusScreenSaverActiveChangedId = 0;
         this._downloadCancellable = new Gio.Cancellable();
 
-        // When true, suppress emitting stateChanged events
+
         this._suppressStateEvents = false;
         this._loadStatePromise = null;
         this._pendingLoadState = null;
@@ -119,8 +119,8 @@ const WidgetManager = class {
         this._connectWakeReloadListener();
         this._addActions();
 
-        // loadState is handled during startup and by Preferences; avoid
-        // overlapping loads during construction.
+
+
     }
 
     get keepPinnedWidgetsBelowApps() {
@@ -186,19 +186,19 @@ const WidgetManager = class {
         await this.applyLayoutChange(desktops, params);
     }
 
-    /**
-     * Called by DesktopManager from applyDesktopLayoutChange().
-     *
-     * @param {Array<object>} desktops - the same array WindowManager uses,
-     *   containing DesktopGrid/WidgetGrid instances for each monitor.
-     *
-     * @param {object} changeInfo - layout change info:
-     *   {
-     *     redisplay: boolean,
-     *     monitorschanged: boolean,
-     *     gridschanged: boolean,
-     *   }
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
     async applyLayoutChange(desktops, changeInfo) {
         if (!changeInfo?.redisplay)
             return;
@@ -278,28 +278,28 @@ const WidgetManager = class {
             );
     }
 
-    // =====================================================================
-    // Public instance API
-    // =====================================================================
 
-    /**
-     * High-level helper: create a new instance for a widget from the registry.
-     *
-     * @param {string} widgetId - ID from WidgetRegistry (usually folder name).
-     * @param {object} opts
-     *   {
-     *     monitorIndex?: number,  // optional, defaults to first available
-     *     x?: number,             // local coords in widgetContainer space
-     *     y?: number,
-     *     width?: number,         // override defaultWidth/defaultHeight
-     *     height?: number,
-     *     initialPinned?: boolean,           // optional initial pinned mode
-     *     inheritConsentFromInstanceId?: string, // optional source instance
-     *     selectAfterCreate?: boolean,           // optional auto-select/focus
-     *   }
-     *
-     * Returns the created instance object or null.
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     async createInstanceForWidget(widgetId, opts = {}) {
         if (!this._preferences.showDesktopWidgets)
             return null;
@@ -314,7 +314,7 @@ const WidgetManager = class {
             return null;
         }
 
-        // 1. Load descriptor (or create a fallback one)
+
         let descriptor = null;
         try {
             descriptor = await this._widgetRegistry.getDescriptor(widgetId);
@@ -332,7 +332,7 @@ const WidgetManager = class {
             kind = descriptor.kind || 'html';
         }
 
-        // 2. Choose monitor index: caller hint or first available surface
+
         let monitorIndex = opts.monitorIndex;
         if (monitorIndex === undefined || monitorIndex === null) {
             const iter = this._surfaces.keys().next();
@@ -349,7 +349,7 @@ const WidgetManager = class {
 
         const {grid} = surface;
 
-        // 3. Size from opts or registry defaults
+
         const width = opts.width ??
             descriptor?.defaultWidth ??
             200;
@@ -358,7 +358,7 @@ const WidgetManager = class {
             descriptor?.defaultHeight ??
             150;
 
-        // 4. Compute placement
+
         let x = opts.x;
         let y = opts.y;
 
@@ -370,7 +370,7 @@ const WidgetManager = class {
             y = Math.max(0, (hNorm - height) / 3);
         }
 
-        // 5. Create the actual instance (generates UUID, attaches actor)
+
         const instance = this._createInstance(
             widgetId,
             monitorIndex,
@@ -414,7 +414,7 @@ const WidgetManager = class {
         if (shouldAutoSelect)
             this.selectInstance(instance.instanceId);
 
-        // Persist creation
+
         this._stateChanged();
 
         return instance;
@@ -432,7 +432,7 @@ const WidgetManager = class {
 
         const toRemove = this._selectedInstanceId;
 
-        // Clear selection first so CSS + chrome are detached.
+
         this.selectInstance(null);
         this.removeInstance(toRemove);
 
@@ -467,9 +467,9 @@ const WidgetManager = class {
             sizeChanged = true;
         }
 
-        // Don't reposition if nothing changed, to avoid unnecessary state
-        // updates that write the json file with new postion triggering UI
-        // to refresh.
+
+
+
         if (!normXChanged && !normYChanged && !sizeChanged)
             return;
 
@@ -555,14 +555,14 @@ const WidgetManager = class {
         this._stateChanged();
     }
 
-    /*
-     * Compute the current absolute frame for an instance based on
-     * stored normX/normY + width/height and the grid's normalized size.
-     *
-     * Returns coordinates in the local coordinate space of the
-     * widgetContainer.
-     *
-     */
+
+
+
+
+
+
+
+
     getInstanceFrame(instanceId) {
         const inst = this._instances.get(instanceId);
         if (!inst)
@@ -588,7 +588,7 @@ const WidgetManager = class {
         const w = inst.width;
         const h = inst.height;
 
-        // Clamp to stay inside the grid's usable area
+
         let clamped = false;
         if (wNorm > 0 && w <= wNorm) {
             if (x + w > wNorm) {
@@ -861,59 +861,59 @@ const WidgetManager = class {
             this._updateAnimation(inst, reducedMotion);
     }
 
-    // =====================================================================
-    // Widget state persistence API
-    // =====================================================================
 
-    /*
-     * Load widget instances from a JSON-compatible object.
-     *
-     * Schema:
-     * {
-     *   version: 2,
-     *   instances: [
-     *     {
-     *      instanceId, widgetId, kind,
-     *      monitorIndex, normX, normY,
-     *      width, height,
-     *      config: { ... }   // author-defined fields
-     *      prefsUri: string|null,
-     *      hasPreferences: boolean,
-     *      pinnable: boolean,
-     *      chrome: {
-     *        showCloseButton: boolean,
-     *        showPrefsButton: boolean,
-     *        showMoveButton: boolean,
-     *        showPinButton: boolean,
-     *      },
-     *      hasBackend: boolean,
-     *      webConsent: boolean|null,
-     *      backendConsent: boolean|null,
-     *     },
-     *     ...
-     *   ]
-     * }
-     *
-     *
-     * @param {object} state - JSON-compatible object as described above.
-     *
-     * @returns {void}
-     *
-     * It is called by Preferences when it reads the saved state from disk.
-     * as well as by DesktopManager when it starts as well from this
-     * constructor.
-     *
-     * It is also called by Preferences when the user changes widget state.
-     *
-     * As the state read from disk is asynchronous, this method may be called
-     * before the widget registry is loaded, with null, so we need to handle
-     * that case gracefully.
-     *
-     * Method is idempotent; it will not remove instances that are not in the
-     * input state, and it will not add instances that are already present.
-     *
-     * It also has to deal with null, undefined, or missing fields gracefully.
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // eslint-disable-next-line consistent-return
     async loadState(state) {
         if (this._loadStatePromise) {
@@ -956,9 +956,9 @@ const WidgetManager = class {
 
         const prevSelection = this._selectedInstanceId;
 
-        // Avoid emitting stateChanged while rebuilding from persisted state.
-        // Only suppress around positioning, so we don't block saves for long
-        // async operations (e.g., consent prompts).
+
+
+
         const previousSuppressionState = this._suppressStateEvents;
 
         try {
@@ -1289,16 +1289,16 @@ const WidgetManager = class {
             ? inst.chrome
             : {};
 
-        // showMoveButton=false means the widget owns pinned move UI. In that
-        // mode the host suppresses overlay drag and expects widget content to
-        // call beginPinnedWindowMove() from its own control or drag surface.
+
+
+
         return chrome.showMoveButton === false;
     }
 
-    /**
-     * Notify Preferences that widget state has changed.
-     * Triggers async write to $XDG_DATA_HOME/<app-id>/widgets.json
-     */
+
+
+
+
     _stateChanged() {
         if (this._suppressStateEvents || !this._preferences)
             return;
@@ -1307,15 +1307,15 @@ const WidgetManager = class {
         this._preferences.widgetState = stateObj;
     }
 
-    /**
-     * Compute a per-instance Z index from the current GTK child order of each
-     * widgetContainer. Lower index = deeper, higher index = closer to front.
-     *
-     * This does not mutate any internal state; it only observes the widget
-     * hierarchy. Add buttons and non-widget actors are skipped.
-     *
-     * @returns {Map<string, number>} instanceId -> zIndex
-     */
+
+
+
+
+
+
+
+
+
     _computeZIndexByInstanceId() {
         const zIndexByInstanceId = new Map();
 
@@ -1349,16 +1349,16 @@ const WidgetManager = class {
         return zIndexByInstanceId;
     }
 
-    /**
-     * Return a list of content widget instances sorted for export:
-     *   1) By monitorIndex (to keep per-monitor grouping stable).
-     *   2) By stacking index within that monitor, derived from GTK.
-     *
-     * This does not change the instances or maps; it only sorts a local array.
-     *
-     * @param {Map<string, number>} zIndexByInstanceId
-     * @returns {Array<object>} sorted instance objects
-     */
+
+
+
+
+
+
+
+
+
+
     _sortedInstancesForExport(zIndexByInstanceId) {
         const instances = [];
 
@@ -1370,14 +1370,14 @@ const WidgetManager = class {
         }
 
         instances.sort((a, b) => {
-            // First group by monitorIndex
+
             const ma = a.monitorIndex ?? 0;
             const mb = b.monitorIndex ?? 0;
 
             if (ma !== mb)
                 return ma - mb;
 
-            // Then by z-index within that monitor, derived from GTK
+
             const za = zIndexByInstanceId.has(a.instanceId)
                 ? zIndexByInstanceId.get(a.instanceId)
                 : -1;
@@ -1391,19 +1391,19 @@ const WidgetManager = class {
         return instances;
     }
 
-    /**
-     * Export the full current widget state as a JSON-compatible object.
-     *
-     * The saved schema is identical to loadState():
-     * {
-     *   version: 4,
-     *   instances: [
-     *     { instanceId, widgetId, kind, monitorIndex,
-     *       normX, normY, width, height,
-     *       pinnedGlobalX, pinnedGlobalY, config }
-     *   ]
-     * }
-     * */
+
+
+
+
+
+
+
+
+
+
+
+
+
     exportState() {
         const zIndexByInstanceId = this._computeZIndexByInstanceId();
         const sortedInstances =
@@ -1458,10 +1458,10 @@ const WidgetManager = class {
         let migrated = false;
 
         if (schemaVersion < 2) {
-        // v1 -> v2: instances gain hasBackend.
-        // Compute it once from the widget manifest (descriptor) and persist.
-        // Schema v2+: backend capability is stored per instance (hasBackend)
-        // and is resolved once at creation or migration time.
+
+
+
+
 
             for (const instData of state.instances) {
                 if (!instData || typeof instData !== 'object')
@@ -1477,7 +1477,7 @@ const WidgetManager = class {
 
                     hasBackend = !!desc?.hasBackend;
                 } catch (e) {
-                // If registry lookup fails, default false (safe).
+
                     hasBackend = false;
                 }
 
@@ -1521,7 +1521,7 @@ const WidgetManager = class {
         }
 
         if (migrated && this._preferences) {
-        // Persist the migrated file state as-is (do NOT call exportState() here).
+
             this._preferences.widgetState = state;
         }
 
@@ -1529,9 +1529,9 @@ const WidgetManager = class {
     }
 
 
-    // =====================================================================
-    // Internal helpers
-    // =====================================================================
+
+
+
     _createInstance(widgetId, monitorIndex, x, y, width, height,
         config = {}, kind, descriptor = null) {
         const surface = this._surfaces.get(monitorIndex);
@@ -1545,8 +1545,8 @@ const WidgetManager = class {
 
         const {grid} = surface;
 
-        // Convert local coords to normalized using existing grid plumbing.
-        // This uses normalizedWidth/Height internally.
+
+
         const [normX, normY] = grid.getNormalizedCoordinates(x, y);
 
         const instanceId = GLib.uuid_string_random();
@@ -1975,8 +1975,8 @@ const WidgetManager = class {
             else
                 this._attachInstanceToCorrectLayer(inst);
 
-            // Use optional chaining because requestRender()
-            // currently exists only on HTML hosts.
+
+
             inst.host?.requestRender?.().catch(e => logError(e));
         }
     }
@@ -2053,7 +2053,7 @@ const WidgetManager = class {
         if (!frame)
             return false;
 
-        // this can be re-entrant for html widgets due to consent checks
+
         if (inst.actor)
             return true;
 
@@ -2065,7 +2065,7 @@ const WidgetManager = class {
             if (!proceed)
                 return false;
 
-            // this can be re-entrant for html widgets due to consent checks
+
             if (inst.actor)
                 return true;
 
@@ -2142,8 +2142,8 @@ const WidgetManager = class {
             if (removeInstance)
                 this._removeActor(inst.instanceId);
 
-            // IMPORTANT: during loadState writes are suppressed, so if we changed
-            // consent OR removed an instance, force a state write once.
+
+
             const stateDirty = updateState || removeInstance;
 
             if (stateDirty) {
@@ -2239,8 +2239,8 @@ const WidgetManager = class {
         if (!inst?.actor)
             return;
 
-        // If the instance is selected and we're suppressing selection chrome,
-        // don't do reattachment at all, the widget is being dragged.
+
+
         if (this._selectionChromeSuppressed &&
             inst.instanceId === this._selectedInstanceId)
             return;
@@ -2291,7 +2291,7 @@ const WidgetManager = class {
         if (!this._chrome)
             return;
 
-        // Never attach to an instance that's being dragged.
+
         if (this._selectionChromeSuppressed &&
             inst?.instanceId === this._selectedInstanceId) {
             this._hideAllChromeButtons();
@@ -2416,10 +2416,10 @@ const WidgetManager = class {
     }
 
     _getChromeButtonSpecs() {
-        // Keep host chrome button names in the ding-widget-*-button form.
-        // If a new host chrome button is added here, update
-        // DesktopGrid._isWidgetChromeActor() so input handling continues to
-        // distinguish host chrome from draggable widget actors.
+
+
+
+
         return [
             {
                 id: 'prefs',
@@ -2568,7 +2568,7 @@ const WidgetManager = class {
             return;
         }
 
-        // Delegate everything to WebWidgetContext
+
         const webCtx = this._ensureWebWidgetContext();
         webCtx.openPreferencesForInstance(selectedId, inst.prefsUri);
     }
@@ -2604,8 +2604,8 @@ const WidgetManager = class {
     }
 
     _getWidgetKind(_widgetId) {
-        // Stub for future GTK widgets. For now, everything is HTML.
-        //
+
+
         return 'html';
     }
 
@@ -2620,7 +2620,7 @@ const WidgetManager = class {
     }
 
     _sendLayerStateToInstance(inst, onTop) {
-        // ToDo: GTK Widget layer change;
+
         if (inst.kind === 'html' && inst.host)
             this._webWidgetContext.updateHtmlWidgetLayer(inst, onTop);
     }
@@ -2628,7 +2628,7 @@ const WidgetManager = class {
     _updateWidgetsSelectionState() {
         for (const inst of this._instances.values()) {
             const selected = inst.instanceId === this._selectedInstanceId;
-            // To Do: GTK Widget seleted state
+
             if (inst.kind === 'html' && inst.actor && inst.host) {
                 inst.host.setKeyboardFocusable(selected);
                 this._webWidgetContext.updateHtmlWidgetSelected(inst, selected);
@@ -2739,13 +2739,13 @@ const WidgetManager = class {
     }
 
     _updateTheme(inst, theme) {
-        // To Do: GTK Widget layer change
+
         if (inst.kind === 'html' && inst.actor && inst.host)
             this._webWidgetContext.updateHtmlWidgetTheme(inst, theme);
     }
 
     _updateAnimation(inst, reducedMotion) {
-        // To Do : Gtk Widget layer change
+
         if (inst.kind === 'html' && inst.actor && inst.host)
             this._webWidgetContext.updateHtmlWidgetAnimation(inst, reducedMotion);
     }
@@ -2756,7 +2756,7 @@ const WidgetManager = class {
             if (langs && langs.length)
                 return langs[0];
         } catch (e) {
-            // ignore
+
         }
 
         return 'en_US';
@@ -2772,7 +2772,7 @@ const WidgetManager = class {
                     direction = 'rtl';
             }
         } catch (e) {
-            // ignore
+
         }
 
         return direction;
@@ -2823,14 +2823,14 @@ const WidgetManager = class {
             this._webWidgetContext.updateHtmlWidgetHostChromeVisible(inst, nextVisible);
     }
 
-    /* ====================================================================
-     * --- IGNORE ---
-     * GTK widget support stub (future)
-     * --- IGNORE ---
-     * ===================================================================== */
+
+
+
+
+
 
     _createGtkActorForInstance(inst, _frame) {
-        // GTK stub for later: we could create a native Gtk.Widget here, e.g.:
+
         console.warn(
             `WidgetManager: GTK widget kind requested for ${inst.widgetId}, ` +
             'but GTK widget support is not implemented yet'
@@ -2838,9 +2838,9 @@ const WidgetManager = class {
         return null;
     }
 
-    /* ====================================================================
-     * WebKit WebContext HTML widget support
-     * ===================================================================== */
+
+
+
     _ensureWebWidgetContext() {
         if (!this._webWidgetContext) {
             this._webWidgetContext =
@@ -2855,8 +2855,8 @@ const WidgetManager = class {
         if (!this._webWidgetContext)
             return;
 
-        // We prune aggressively, there may be no host, add button has
-        // no isAlive(). Look only for html hosts
+
+
         const hasHtmlWidget =
             Array.from(this._instances.values())
                 .some(inst => inst.host?.isAlive?.());
@@ -2868,9 +2868,9 @@ const WidgetManager = class {
         this._webWidgetContext = null;
     }
 
-    /* =====================================================================
-     * Widget Picker UI
-     * ===================================================================== */
+
+
+
 
     async openAddWidgetDialog(parentWindow = null, monitorIndex = null) {
         if (!this._widgetRegistry) {
@@ -2888,7 +2888,7 @@ const WidgetManager = class {
             return null;
         }
 
-        // Sort by display name
+
         widgets.sort((a, b) => {
             const nameA = (a.name || a.id || '').toLowerCase();
             const nameB = (b.name || b.id || '').toLowerCase();
@@ -2959,12 +2959,12 @@ const WidgetManager = class {
                 resolve(created);
             });
 
-            // Double-clicking a row also activates "Add"
+
             list.connect('row-activated', () => {
                 addButton.activate();
             });
 
-            // If user closes via window close button / Esc
+
             window.connect('close-request', () => {
                 cancellable.cancel();
 
@@ -2978,7 +2978,7 @@ const WidgetManager = class {
                     this.restoreWidgetLayerFocus(monitorIndex);
                     return GLib.SOURCE_REMOVE;
                 });
-                return false; // allow close
+                return false;
             });
 
             const shortcutController = new Gtk.ShortcutController({
@@ -3005,27 +3005,27 @@ const WidgetManager = class {
             Gtk.Builder
             .new_from_resource('/com/desktop/ding/ui/ding-widget-chooser.ui');
 
-        /** @type {Adw.Window} */
+
         const window = builder.get_object('widget_picker_window');
-        /** @type {Gtk.ListBox} */
+
         const list = builder.get_object('widget_list');
-        /** @type {Gtk.Button} */
+
         const addButton = builder.get_object('add_button');
-        /** @type {Gtk.Button} */
+
         const cancelButton = builder.get_object('cancel_button');
-        /** @type {Gtk.Button} */
+
         const downloadButton = builder.get_object('download_button');
 
         if (parentWindow)
             window.set_transient_for(parentWindow);
 
-        // Populate rows from registry
+
         for (const [index, desc] of widgets.entries()) {
             const row = this._createWidgetRow(desc, index);
             list.append(row);
         }
 
-        // Select first by default
+
         const firstRow = list.get_row_at_index(0);
         if (firstRow)
             list.select_row(firstRow);
@@ -3195,7 +3195,7 @@ const WidgetManager = class {
                 }
                 throw moveError;
             } finally {
-                // `widgets.backup` is temporary rollback state and should never linger.
+
                 if (await FileUtils.queryExists(backupDir))
                     await FileUtils.recursivelyDeleteDir(backupDir, true);
             }
@@ -3220,7 +3220,7 @@ const WidgetManager = class {
                 if (await FileUtils.queryExists(tempRootDir))
                     await FileUtils.recursivelyDeleteDir(tempRootDir, true);
             } catch (e) {
-                // ignore cleanup failures
+
             }
         }
     }
@@ -3245,7 +3245,7 @@ const WidgetManager = class {
 
             const monitorIndex = this.getMonitorIndexForWindow(parentWindow);
 
-            // Ensure widget layers are visible before adding a widget.
+
             this._desktopManager.windowManager?.raiseWidgetLayers();
 
             this.openAddWidgetDialog(parentWindow, monitorIndex)
@@ -3277,7 +3277,7 @@ const WidgetManager = class {
 
             this.clearSelectedInstance();
 
-            // Ensure widget layers are visible before showingt widget grid.
+
             this._desktopManager.windowManager?.raiseWidgetLayers();
             gridToggleButton.activate();
         });
@@ -3301,9 +3301,9 @@ const WidgetManager = class {
         this._desktopManager.mainApp.add_action(updatePinnedWindowPosition);
     }
 
-    /* =====================================================================
-     * Widget Consent UI
-     * ===================================================================== */
+
+
+
 
     _asyncAskYesNo(
         heading,
@@ -3473,7 +3473,7 @@ const WidgetManager = class {
                 ).join(' ');
             }
         } catch (e) {
-            // If we can’t resolve spec, keep message generic.
+
             argvStr = '';
         }
 

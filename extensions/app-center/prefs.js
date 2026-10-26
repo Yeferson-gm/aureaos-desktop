@@ -8,11 +8,11 @@ export default class EssentialTweaksPreferences extends ExtensionPreferences {
     const settings = this.getSettings();
     const builder = new Gtk.Builder();
 
-    // Load the UI file
+
     builder.add_from_file(`${this.path}/prefs.ui`);
     window.add(builder.get_object('preferences-page'));
 
-    // Bind the UI to the settings
+
     const properties = [
       ['animate-scroll', 'active'],
       ['columns', 'value'],

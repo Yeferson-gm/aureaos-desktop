@@ -4,7 +4,6 @@ import test from 'node:test';
 
 const paths = [
     new URL('../stylesheet.css', import.meta.url),
-    new URL('file://' + process.env.HOME + '/.local/share/gnome-shell/extensions/lintel-v2@local/stylesheet.css'),
 ];
 
 for (const path of paths) {

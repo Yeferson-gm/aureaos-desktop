@@ -20,10 +20,10 @@ import {_} from '../dependencies/gettext.js';
 
 export {DesktopDropOperations};
 
-/**
- * Performs the desktop and filesystem effects selected for an accepted drop.
- * DropSession owns negotiation; DragManager owns active local-drag movement.
- */
+
+
+
+
 const DesktopDropOperations = class {
     constructor(desktopManager) {
         this._desktopManager = desktopManager;
@@ -36,7 +36,7 @@ const DesktopDropOperations = class {
         this._resetPendingFilePositions();
     }
 
-    // Public methods
+
 
     destroy() {
         this.dialogCancellable?.cancel();
@@ -96,7 +96,7 @@ const DesktopDropOperations = class {
         }
     }
 
-    // Normalize the representations accepted by file drop routes.
+
     fileURIsFromReferences(fileReferences, referenceFormat) {
         if (!fileReferences)
             return null;
@@ -394,10 +394,10 @@ const DesktopDropOperations = class {
         }
     }
 
-    // Private methods
+
 
     _resetPendingFilePositions() {
-        // A null prototype keeps every valid basename safe as a lookup key.
+
         this._positionsForNewFiles = Object.create(null);
         this._positionsForExistingFiles = Object.create(null);
     }
@@ -428,8 +428,8 @@ const DesktopDropOperations = class {
         this._resetPendingFilePositions();
         this._preserveExistingFilePositions();
 
-        // Register each candidate before creation so the folder monitor can
-        // place it. A failed attempt removes only the entry that it registered.
+
+
         return {
             beforeCreate: this._registerNewFilePosition.bind(
                 this,
@@ -472,9 +472,9 @@ const DesktopDropOperations = class {
     }
 
     _findNewFilePositionKey(basename) {
-        // DING registers placement before starting copy, move, or link work.
-        // Exact names cover known destinations; COPYEXPECTED covers collision
-        // names that Nautilus chooses while copying.
+
+
+
         if (Object.hasOwn(this._positionsForNewFiles, basename))
             return basename;
 
@@ -540,7 +540,7 @@ const DesktopDropOperations = class {
         return this._getFsId(this._desktopDir);
     }
 
-    // Getters
+
 
     get positionsForNewFiles() {
         return this._positionsForNewFiles;

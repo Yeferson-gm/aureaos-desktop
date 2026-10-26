@@ -220,7 +220,7 @@ const HtmlWidgetHostWithBackend = class extends HtmlWidgetHost {
 
             this._backendReading = true;
 
-            // Read stdout (protocol messages)
+
             this._readBackendStream(
                 inst,
                 this._backendOut,
@@ -230,7 +230,7 @@ const HtmlWidgetHostWithBackend = class extends HtmlWidgetHost {
                 console.error('BACKEND stdout loop error:', e?.message ?? e);
             });
 
-            // Read stderr (debug/logs)
+
             this._readBackendStream(
                 inst,
                 this._backendErr,
@@ -279,9 +279,9 @@ const HtmlWidgetHostWithBackend = class extends HtmlWidgetHost {
         }
     }
 
-    // Backend expects newline-delimited JSON objects. Known outbound shapes:
-    //  - hello:  {type, instanceId, widgetId, mode, config}
-    //  - request {type, id, method, params}
+
+
+
     _sendBackend(obj) {
         if (!this._backendIn)
             return;
@@ -331,7 +331,7 @@ const HtmlWidgetHostWithBackend = class extends HtmlWidgetHost {
                 }
                 onLine?.(payload);
             } catch (_e) {
-                // Ignore per-line handler errors
+
             }
         }
 
@@ -458,11 +458,11 @@ const HtmlWidgetHostWithBackend = class extends HtmlWidgetHost {
         });
     }
 
-    // Inbound JSON objects are expected to be of type response, event or log.
-    //  - response: {type, id, ok, result, error}
-    //  - event:    {type, name, payload}
-    //  - log:      {type, level, message}
-    // with author-defined 'name' and custom JSON 'payload'
+
+
+
+
+
 
     _handleBackendMessage(inst, msg) {
         if (!msg || typeof msg !== 'object')

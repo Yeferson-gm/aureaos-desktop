@@ -16,40 +16,40 @@ import {getRfkillManager} from 'resource:///org/gnome/shell/ui/status/rfkill.js'
 import {Slider} from 'resource:///org/gnome/shell/ui/slider.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-// ═══════════════════════ AJUSTES ═══════════════════════
-// Valores por defecto. Los colores y el tema también se pueden cambiar sin tocar
-// este archivo: ~/.config/lintel-v2/config.json o `bash instalar… --config …`.
+
+
+
 const AJUSTES = {
-    // Muestra los atajos con símbolos de Mac (⌘ ⇧ ⌥). En GNOME se envía Ctrl/Shift/Alt.
+
     ATAJOS_ESTILO_MAC: true,
-    // Color del texto de la barra: 'auto' (sigue el modo claro/oscuro), 'claro' o 'oscuro'.
+
     TEXTO: 'auto',
-    // Colores personalizados (CSS: '#ffffff', 'rgb(255 255 255)'…). null = usar TEXTO.
+
     COLOR_TEXTO: null,
     COLOR_ICONOS: null,
-    // Tema de los menús desplegables: 'auto' (sigue color-scheme), 'claro' u 'oscuro'.
+
     TEMA_MENUS: 'auto',
-    // Duración del fundido al abrir un menú, en ms. 0 = aparece al instante.
+
     ANIMACION_MENU_MS: 70,
-    // Puntos de micrófono / cámara / grabación de pantalla en la barra.
+
     INDICADORES_PRIVACIDAD: true,
-    // Indicador de distribución de teclado (solo aparece con 2 o más).
+
     INDICADOR_TECLADO: true,
     SEMANA_INICIA_LUNES: true,
 };
-// ═══════════════════════════════════════════════════════
+
 
 const CENTER = Clutter.ActorAlign.CENTER;
 const START = Clutter.ActorAlign.START;
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
-// Estado visual compartido (lo rellena Extension._applyTheme).
+
 const theme = {textColor: null, iconColor: null, menuDark: false, animMs: 70};
 
 let ICON_DIR = '';
 const fileIcon = name => Gio.icon_new_for_string(`${ICON_DIR}/${name}.svg`);
-// Los iconos propios empiezan por "lintel-"; el resto son iconos del tema.
+
 const iconProps = name => name.startsWith('lintel-')
     ? {gicon: fileIcon(name)}
     : {icon_name: name};
@@ -91,7 +91,7 @@ function settingsForExtension(id, uuid) {
     return schema ? new Gio.Settings({settings_schema: schema}) : null;
 }
 
-// ── Iconos de los menús: se eligen según el texto, como en macOS ─────────
+
 const ICON_RULES = [
     [/^Acerca de/, 'help-about-symbolic'],
     [/Tienda de aplicaciones/, 'system-software-install-symbolic'],
@@ -162,7 +162,7 @@ function iconFor(label) {
     return null;
 }
 
-// ── Atajos: se muestran estilo Mac y se envían como teclas reales ─────────
+
 const MODS = {
     ctrl: ['⌘', Clutter.KEY_Control_L],
     shift: ['⇧', Clutter.KEY_Shift_L],
@@ -192,7 +192,7 @@ function hintOf(combo) {
     return [...mods.map(cap), k].join('+');
 }
 
-// ── Contexto compartido ───────────────────────────────────────────────────
+
 class Context {
     constructor(ext) {
         this.path = ext.path;
@@ -260,7 +260,7 @@ class Context {
     }
 }
 
-// ── Modelos pequeños con notificación de cambios ──────────────────────────
+
 class Model {
     onChange(fn) {
         this._cb ??= new Set();
@@ -273,11 +273,11 @@ class Model {
     }
 }
 
-// ── Configuración del usuario (colores, tema, animación) ──────────────────
-// Archivo: ~/.config/lintel-v2/config.json. Se recarga en vivo al guardarlo.
+
+
 const CONFIG_DIR = GLib.build_filenamev([GLib.get_user_config_dir(), 'lintel-v2']);
 const CONFIG_FILE = GLib.build_filenamev([CONFIG_DIR, 'config.json']);
-// Solo se aceptan colores CSS simples: el valor acaba en un atributo de estilo.
+
 const COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\([0-9., %]+\))$/;
 const oneOf = (v, list, fallback) => list.includes(v) ? v : fallback;
 const asColor = v => typeof v === 'string' && COLOR_RE.test(v.trim()) ? v.trim() : null;
@@ -428,7 +428,7 @@ class Sound extends Model {
         return 'audio-volume-high-symbolic';
     }
 
-    // Mismo criterio que iconName, pero con el set propio.
+
     get iconFile() {
         const l = this.level;
         if (this.muted)
@@ -456,7 +456,7 @@ class Sound extends Model {
         return !this.source || this.source.is_muted || this.source.volume === 0;
     }
 
-    // ¿Alguna aplicación está grabando audio ahora mismo?
+
     get micInUse() {
         try {
             return (this.mixer?.get_source_outputs?.() ?? []).some(stream => {
@@ -720,7 +720,7 @@ class AirplaneMode extends Model {
     }
 }
 
-// ── Bluetooth: adaptador y dispositivos vía BlueZ (D-Bus del sistema) ─────
+
 const BLUEZ = 'org.bluez';
 
 const BT_ICONS = {
@@ -810,7 +810,7 @@ class Bluetooth extends Model {
             const d = ifaces['org.bluez.Device1'];
             if (!d || d.Adapter !== adapterPath)
                 continue;
-            // Los dispositivos sin nombre (solo dirección) no aportan nada en la lista.
+
             if (!d.Paired && !d.Name)
                 continue;
             devices.push({
@@ -901,7 +901,7 @@ class Bluetooth extends Model {
             });
     }
 
-    // Conecta, desconecta o empareja según el estado del dispositivo.
+
     toggleDevice(device) {
         if (this._busy.has(device.path))
             return;
@@ -915,7 +915,7 @@ class Bluetooth extends Model {
                 this.refresh();
                 this._emit();
             }
-            // Si el emparejamiento directo falla, GNOME Ajustes sabe pedir PIN/confirmación.
+
             if (error && !device.paired)
                 run('gnome-control-center bluetooth');
         };
@@ -949,10 +949,10 @@ class Bluetooth extends Model {
     }
 }
 
-// ── Privacidad: micrófono, cámara y grabación de pantalla ─────────────────
-//   · micrófono: flujos de captura de PulseAudio/PipeWire (Gvc).
-//   · cámara: algún proceso tiene abierto /dev/video* (sondeo cada 4 s).
-//   · pantalla: handles de RemoteAccess (portal de screencast) y grabador de GNOME.
+
+
+
+
 class Privacy extends Model {
     constructor(ctx) {
         super();
@@ -1057,8 +1057,8 @@ class Privacy extends Model {
     }
 }
 
-// ── Elementos de menú con aspecto macOS: icono · texto · atajo ────────────
-// keepOpen: el clic ejecuta la acción pero NO cierra el menú (Wi-Fi, Bluetooth…).
+
+
 const LintelItem = GObject.registerClass(
 class LintelItem extends PopupMenu.PopupBaseMenuItem {
     _init({
@@ -1074,7 +1074,7 @@ class LintelItem extends PopupMenu.PopupBaseMenuItem {
         if (heading)
             this.add_style_class_name('lintel-item-heading');
         if (!info) {
-            // Siempre se reserva la columna del icono para que todo quede alineado.
+
             if (gicon || checked || icon) {
                 this._icon = new St.Icon({
                     style_class: 'popup-menu-icon lintel-item-icon',
@@ -1117,7 +1117,7 @@ class LintelItem extends PopupMenu.PopupBaseMenuItem {
     }
 });
 
-// Fila con interruptor que NO cierra el menú al pulsarla (el de GNOME sí lo hace).
+
 const LintelToggleItem = GObject.registerClass({
     Signals: {'toggled': {param_types: [GObject.TYPE_BOOLEAN]}},
 }, class LintelToggleItem extends PopupMenu.PopupBaseMenuItem {
@@ -1146,7 +1146,7 @@ const LintelToggleItem = GObject.registerClass({
         return this._switch.state;
     }
 
-    // Actualiza el interruptor sin emitir 'toggled' (cambios que vienen del sistema).
+
     setState(value) {
         this._syncingState = true;
         try { this._switch.state = value; }
@@ -1175,8 +1175,8 @@ function addItem(menu, opts, cb) {
 const addSep = menu => menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 const addHeading = (menu, label) => addItem(menu, {label, info: true, heading: true});
 
-// ── Botones base ──────────────────────────────────────────────────────────
-// Registro de botones vivos: permite repintar colores y tema sin reiniciar la sesión.
+
+
 const buttons = new Set();
 
 function refreshTheme() {
@@ -1190,7 +1190,7 @@ class LintelButton extends PanelMenu.Button {
         this.add_style_class_name('lintel-button');
         this._before = null;
         this._hasMenu = !noMenu;
-        // Los indicadores con color propio (privacidad) no se tiñen con COLOR_ICONOS.
+
         this._noTint = false;
         buttons.add(this);
         this.connect('destroy', () => buttons.delete(this));
@@ -1202,7 +1202,7 @@ class LintelButton extends PanelMenu.Button {
         this.applyTheme();
     }
 
-    // Apertura/cierre casi instantáneos: sin deslizamiento de GNOME y con un fundido corto.
+
     _wrapMenu() {
         const menu = this.menu;
         const open = menu.open.bind(menu);
@@ -1229,7 +1229,7 @@ class LintelButton extends PanelMenu.Button {
         menu.connect('open-state-changed', (m, isOpen) => this.retint(isOpen));
     }
 
-    // Reconstruye el contenido justo antes de abrir, para que el tamaño sea correcto.
+
     beforeOpen(fn) {
         this._before = fn;
     }
@@ -1244,8 +1244,8 @@ class LintelButton extends PanelMenu.Button {
         this.retint(this._hasMenu && this.menu.isOpen);
     }
 
-    // Colores personalizados de texto e iconos. Con el menú abierto el botón es una
-    // píldora azul, así que se quita el color propio para que el texto siga legible.
+
+
     retint(open = false) {
         if (this._noTint)
             return;
@@ -1273,7 +1273,7 @@ class TextButton extends LintelButton {
     }
 });
 
-// ── Acciones de ventana ───────────────────────────────────────────────────
+
 const winOps = {
     close: ctx => ctx.win?.delete(global.get_current_time()),
     minimize: ctx => ctx.win?.minimize(),
@@ -1305,7 +1305,7 @@ const winOps = {
     },
 };
 
-// ── Menús dinámicos según el tipo de aplicación ───────────────────────────
+
 const E = {
     undo: {label: 'Deshacer', keys: 'ctrl+z'},
     redo: {label: 'Rehacer', keys: 'ctrl+shift+z'},
@@ -1523,7 +1523,7 @@ class MenuBarButton extends TextButton {
     }
 });
 
-// ── Menú de la manzana ────────────────────────────────────────────────────
+
 function sessionCall(method, params = null) {
     busCall(Gio.DBus.session, 'org.gnome.SessionManager', '/org/gnome/SessionManager',
         'org.gnome.SessionManager', method, params);
@@ -1580,7 +1580,7 @@ class AppleButton extends LintelButton {
     }
 });
 
-// ── Nombre de la app activa ───────────────────────────────────────────────
+
 const AppNameButton = GObject.registerClass(
 class AppNameButton extends TextButton {
     _init(ctx) {
@@ -1641,7 +1641,7 @@ class AppNameButton extends TextButton {
     }
 });
 
-// ── Estado: batería ───────────────────────────────────────────────────────
+
 const UPowerProxy = Gio.DBusProxy.makeProxyWrapper(`
 <node><interface name="org.freedesktop.UPower.Device">
   <property name="State" type="u" access="read"/>
@@ -1654,7 +1654,7 @@ const UPowerProxy = Gio.DBusProxy.makeProxyWrapper(`
 
 const fmtHM = s => `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`;
 
-// Icono propio de batería: relleno en pasos del 5 % y rayo si está conectada a la corriente.
+
 const batteryIcon = p => {
     const pct = Math.round(clamp(p.Percentage / 100) * 20) * 5;
     const plugged = [1, 4, 5].includes(p.State);
@@ -1724,7 +1724,7 @@ class BatteryButton extends LintelButton {
     }
 });
 
-// ── Estado: Bluetooth ─────────────────────────────────────────────────────
+
 const BluetoothButton = GObject.registerClass(
 class BluetoothButton extends LintelButton {
     _init(ctx) {
@@ -1784,7 +1784,7 @@ class BluetoothButton extends LintelButton {
         }
     }
 
-    // Reagrupa varios cambios seguidos en una sola actualización de la lista.
+
     _soon() {
         if (this._rebuildId)
             return;
@@ -1852,9 +1852,9 @@ class BluetoothButton extends LintelButton {
     }
 });
 
-// ── Estado: Wi-Fi ─────────────────────────────────────────────────────────
+
 const wifiLevel = s => s > 80 ? 'excellent' : s > 55 ? 'good' : s > 30 ? 'ok' : s > 5 ? 'weak' : 'none';
-// Tramos encendidos (0 a 3) del icono propio de Wi-Fi.
+
 const wifiBars = s => s > 55 ? 3 : s > 30 ? 2 : s > 5 ? 1 : 0;
 const ssidOf = ap => {
     const raw = ap.get_ssid();
@@ -2007,7 +2007,7 @@ class WifiButton extends LintelButton {
         try {
             this.device?.request_scan_async(null, () => {});
         } catch (e) {
-            // Escaneo reciente: se ignora.
+
         }
     }
 
@@ -2017,7 +2017,7 @@ class WifiButton extends LintelButton {
         if (!open)
             return;
         this._scan();
-        // Mientras el menú está abierto se reescanea cada 8 s para que las redes no se queden viejas.
+
         const tick = () => {
             if (!this.menu.isOpen)
                 return;
@@ -2027,7 +2027,7 @@ class WifiButton extends LintelButton {
         this._scanId = this._ctx.later(8000, tick);
     }
 
-    // Reagrupa varios eventos de NetworkManager en una sola actualización de la lista.
+
     _soon() {
         if (!this.menu.isOpen || this._rebuildId)
             return;
@@ -2169,7 +2169,7 @@ class WifiButton extends LintelButton {
             this._client.activate_connection_async(known, dev, row.ap.get_path(), null,
                 (c, r) => finish(c, r, false));
         } else {
-            // Sin perfil guardado: NetworkManager crea uno y GNOME Shell pide la contraseña.
+
             this._client.add_and_activate_connection_async(null, dev, row.ap.get_path(), null,
                 (c, r) => finish(c, r, true));
         }
@@ -2188,7 +2188,7 @@ class WifiButton extends LintelButton {
     }
 });
 
-// ── Controles deslizantes ─────────────────────────────────────────────────
+
 function makeSlider(value, onChange, styleClass = 'lintel-slider') {
     const slider = new Slider(value);
     slider.add_style_class_name(styleClass);
@@ -2207,7 +2207,7 @@ function makeSlider(value, onChange, styleClass = 'lintel-slider') {
     return slider;
 }
 
-// ── Estado: sonido ────────────────────────────────────────────────────────
+
 const SoundButton = GObject.registerClass(
 class SoundButton extends LintelButton {
     _init(ctx) {
@@ -2260,7 +2260,7 @@ class SoundButton extends LintelButton {
     }
 });
 
-// ── Buscar ────────────────────────────────────────────────────────────────
+
 const SearchButton = GObject.registerClass(
 class SearchButton extends LintelButton {
     _init() {
@@ -2276,7 +2276,7 @@ class SearchButton extends LintelButton {
     }
 });
 
-// ── Privacidad: puntos de micrófono / cámara / grabación ──────────────────
+
 const PrivacyButton = GObject.registerClass(
 class PrivacyButton extends LintelButton {
     _init(ctx) {
@@ -2309,7 +2309,7 @@ class PrivacyButton extends LintelButton {
     }
 });
 
-// ── Teclado: distribución activa y selector ───────────────────────────────
+
 const KeyboardButton = GObject.registerClass(
 class KeyboardButton extends LintelButton {
     _init(ctx) {
@@ -2362,12 +2362,12 @@ class KeyboardButton extends LintelButton {
     }
 });
 
-// ── Centro de control ─────────────────────────────────────────────────────
-// Rejilla fija de 280 px de contenido:
-//   [ tarjeta de conexiones 170 ] [ 2 mosaicos verticales 102 ]   (hueco 8)
-//   [ mosaico ancho 136 ] [ mosaico ancho 136 ]                    (hueco 8)
-//   [ tarjeta de brillo 280 ]
-//   [ tarjeta de sonido 280 ]
+
+
+
+
+
+
 const TILE_BOX = {row: 142, vertical: 84, wide: 118};
 
 const ControlCenterButton = GObject.registerClass(
@@ -2403,7 +2403,7 @@ class ControlCenterButton extends LintelButton {
         const featureTiles = [];
         const utilityTiles = [];
 
-        // ── Conexiones ──
+
         const wifiTile = this._tile('lintel-wifi-3-symbolic', 'Wi-Fi',
             () => ctx.wifi.setEnabled(!ctx.wifi.enabled), {variant: 'row'});
         wifiTile.update = () => wifiTile.set(ctx.wifi.enabled,
@@ -2443,7 +2443,7 @@ class ControlCenterButton extends LintelButton {
         this._offs.push(ctx.wifi.onChange(vpnTile.update));
         connectivityTiles.push(vpnTile);
 
-        // ── Mosaicos verticales (columna derecha) ──
+
         if (interfaceS) {
             const dark = this._tile('weather-clear-night-symbolic', 'Aspecto', () => {
                 const isDark = interfaceS.get_string('color-scheme') === 'prefer-dark';
@@ -2468,7 +2468,7 @@ class ControlCenterButton extends LintelButton {
             featureTiles.push(dnd);
         }
 
-        // ── Mosaicos anchos (2 × 2) ──
+
         if (colorS) {
             const night = this._tile('night-light-symbolic', 'Luz nocturna',
                 () => colorS.set_boolean('night-light-enabled', !colorS.get_boolean('night-light-enabled')),
@@ -2505,7 +2505,7 @@ class ControlCenterButton extends LintelButton {
         screenshot.update = () => screenshot.set(false, 'Pantalla o área');
         utilityTiles.push(screenshot);
 
-        // Reutiliza el estado real de la extensión Caffeine instalada.
+
         if (caffeineS) {
             const caffeine = this._tile('alarm-symbolic', 'Caffeine', () => {
                 caffeineS.set_boolean('cli-toggle', !caffeineS.get_boolean('cli-toggle'));
@@ -2518,7 +2518,7 @@ class ControlCenterButton extends LintelButton {
             utilityTiles.push(caffeine);
         }
 
-        // Resume y controla los tres permisos ofrecidos por Privacy Menu.
+
         if (privacyS && locationS) {
             const privacy = this._tile('lintel-privacy-symbolic', 'Privacidad', () => {
                 const anyAllowed = locationS.get_boolean('enabled') ||
@@ -2559,7 +2559,7 @@ class ControlCenterButton extends LintelButton {
         this._offs.push(ctx.airplaneMode.onChange(airplane.update));
         utilityTiles.push(airplane);
 
-        // ── Montaje ──
+
         const primary = new St.BoxLayout({style_class: 'lintel-cc-primary'});
         const connectivity = new St.BoxLayout({vertical: true, style_class: 'lintel-cc-group'});
         for (const tile of connectivityTiles)
@@ -2583,7 +2583,7 @@ class ControlCenterButton extends LintelButton {
 
         [...connectivityTiles, ...featureTiles, ...utilityTiles].forEach(tile => tile.update());
 
-        // ── Pantalla ──
+
         this._brightRow = this._sliderCard('Brillo', 'display-brightness-symbolic',
             v => ctx.brightness.setLevel(v));
         col.add_child(this._brightRow.box);
@@ -2594,7 +2594,7 @@ class ControlCenterButton extends LintelButton {
         this._offs.push(ctx.brightness.onChange(syncBright));
         syncBright();
 
-        // ── Sonido ──
+
         this._soundRow = this._sliderCard('Sonido', 'lintel-sound-medium-symbolic',
             v => ctx.sound.setLevel(v));
         col.add_child(this._soundRow.box);
@@ -2606,7 +2606,7 @@ class ControlCenterButton extends LintelButton {
         this._offs.push(ctx.sound.onChange(syncSound));
         syncSound();
 
-        // ── Micrófono ──
+
         this._micRow = this._sliderCard('Micrófono', 'audio-input-microphone-symbolic',
             v => ctx.sound.setMicLevel(v));
         col.add_child(this._micRow.box);
@@ -2632,8 +2632,8 @@ class ControlCenterButton extends LintelButton {
         });
     }
 
-    // variant: 'row' (dentro de la tarjeta), 'vertical' (icono arriba) o 'wide' (icono a la izquierda).
-    // accent: color del círculo cuando la función está activa.
+
+
     _tile(iconName, title, onClick, {variant = 'wide', accent = 'blue'} = {}) {
         const vertical = variant === 'vertical';
         const styleVariant = variant === 'row' ? 'lintel-cc-row' : vertical ? 'lintel-cc-vtile' : 'lintel-cc-wtile';
@@ -2687,7 +2687,7 @@ class ControlCenterButton extends LintelButton {
         };
     }
 
-    // Tarjeta con título y un deslizador grueso con el icono dentro, como macOS.
+
     _sliderCard(title, iconName, onChange) {
         const box = new St.BoxLayout({vertical: true, style_class: 'lintel-cc-slider'});
         box.add_child(new St.Label({text: title, style_class: 'lintel-cc-slider-title'}));
@@ -2712,7 +2712,7 @@ class ControlCenterButton extends LintelButton {
     }
 });
 
-// ── Fecha, hora y calendario ──────────────────────────────────────────────
+
 const ClockButton = GObject.registerClass(
 class ClockButton extends LintelButton {
     _init(ctx) {
@@ -2781,7 +2781,7 @@ class ClockButton extends LintelButton {
         this._cal.destroy_all_children();
         const first = GLib.DateTime.new_local(this._y, this._m, 1, 0, 0, 0);
         const days = first.add_months(1).add_days(-1).get_day_of_month();
-        const dow = first.get_day_of_week();           // lunes = 1 … domingo = 7
+        const dow = first.get_day_of_week();
         const offset = AJUSTES.SEMANA_INICIA_LUNES ? dow - 1 : dow % 7;
         const now = GLib.DateTime.new_now_local();
 
@@ -2797,7 +2797,7 @@ class ClockButton extends LintelButton {
         this._cal.add_child(head);
 
         const weekdays = new St.BoxLayout();
-        const base = AJUSTES.SEMANA_INICIA_LUNES ? 1 : 7;   // 1 ene 2024 fue lunes
+        const base = AJUSTES.SEMANA_INICIA_LUNES ? 1 : 7;
         for (let i = 0; i < 7; i++) {
             const d = GLib.DateTime.new_local(2024, 1, base + i, 0, 0, 0);
             const weekend = d.get_day_of_week() >= 6;
@@ -2830,7 +2830,7 @@ class ClockButton extends LintelButton {
     }
 });
 
-// ═════════════════════════════ Extensión ═════════════════════════════════
+
 export default class LintelV2 extends Extension {
     enable() {
         this._ctx = new Context(this);
@@ -2860,8 +2860,8 @@ export default class LintelV2 extends Extension {
         panel.addToStatusArea('lintel-apple', this._apple, 0, 'left');
         panel.addToStatusArea('lintel-app', this._name, 1, 'left');
 
-        // Derecha, de izquierda a derecha: privacidad, teclado, batería, Wi-Fi, Bluetooth,
-        // sonido, buscar, controles y hora.
+
+
         ctx.wifi = new WifiButton(ctx);
         this._right = [];
         if (AJUSTES.INDICADORES_PRIVACIDAD)
@@ -2878,7 +2878,7 @@ export default class LintelV2 extends Extension {
             ['lintel-clock', new ClockButton(ctx)],
         );
         for (const [role, button] of this._right) {
-            // Los iconos de estado van pegados, como en macOS; la hora lleva un poco más de aire.
+
             button.add_style_class_name(role === 'lintel-clock' ? 'lintel-right-text' : 'lintel-right');
             panel.addToStatusArea(role, button, panel._rightBox.get_n_children(), 'right');
         }
@@ -2932,7 +2932,7 @@ export default class LintelV2 extends Extension {
             this._native.push([c, c.visible]);
             c.hide();
             if (key === 'keyboard') {
-                // El indicador nativo vuelve a mostrarse al cambiar la distribución.
+
                 this._signals.push([c, c.connect('notify::visible', () => {
                     if (c.visible) c.hide();
                 })]);
@@ -2949,7 +2949,7 @@ export default class LintelV2 extends Extension {
         this._applyTheme();
     }
 
-    // Une color-scheme de GNOME con la configuración del usuario y repinta todo.
+
     _applyTheme() {
         const c = this._cfg.values;
         const dark = this._ifaceSettings?.get_string('color-scheme') === 'prefer-dark';
@@ -2976,7 +2976,7 @@ export default class LintelV2 extends Extension {
             .forEach(c => Main.panel.remove_style_class_name(c));
     }
 
-    // Evita parpadeos: GNOME deja focus-app en null un instante al hacer clic en el panel.
+
     _queueApp(now = false) {
         this._ctx.cancel(this._appTimer);
         this._appTimer = this._ctx.later(now ? 0 : 60, () => {

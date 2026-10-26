@@ -35,24 +35,24 @@ const StackItem = class extends DesktopIconItem.DesktopIconItem {
         this._modifiedTime = null;
         this._attributeContentType = attributeContentType;
         const stackName = this._file;
-        /** TRANSLATORS: when using a screen reader,
-         * this is the text read when a stack is
-         * selected. Example: if a stack named "pictures"
-         *  is selected, it will say "Stack pictures" */
+
+
+
+
         this._setLabelName(stackName);
         this._savedCoordinates = null;
     }
 
     _createStackedAttributeContentTypeIcon()  {
         const stackIcon = Gtk.Snapshot.new();
-        /* A shadow for the pile of icons gives a sense of floating. */
+
         const stackShadow = {
             color: {red: 0, green: 0, blue: 0, alpha: 0.15},
             dx: 2,
             dy: 0,
             radius: 1,
         };
-        /* A slight shadow swhich makes each icon in the stack look separate. */
+
         const iconShadow = {
             color: {red: 0, green: 0, blue: 0, alpha: 0.30},
             dx: 1,
@@ -93,17 +93,17 @@ const StackItem = class extends DesktopIconItem.DesktopIconItem {
         stackIcon.push_shadow([new Gsk.Shadow(stackShadow)]);
 
         stackIconArray.forEach(paintableWidget => {
-            // Position each widget from right to left
+
             X =  -xOffset;
             stackIcon.translate(new Graphene.Point({x: X, y: Y}));
             stackIcon.push_shadow([new Gsk.Shadow(iconShadow)]);
 
-            // Render the paintable widget
+
             paintableWidget.snapshot(stackIcon, w, h);
 
-            stackIcon.pop(); // Remove shadow effect for the next widget
+            stackIcon.pop();
         });
-        // Remove the initial transformation & shadow
+
         stackIcon.pop();
 
         return stackIcon.to_paintable(null);
@@ -169,9 +169,9 @@ const StackItem = class extends DesktopIconItem.DesktopIconItem {
         return this._addEmblem(iconPaintable, emblem);
     }
 
-    /** *********************
-     * Getters and setters *
-     ***********************/
+
+
+
 
     get attributeContentType() {
         return this._attributeContentType;

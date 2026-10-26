@@ -53,10 +53,10 @@ const GnomeShellDrag = class {
     }
 
     _startMonitoringDockUriNavigation() {
-        // Careful, we have to and are calling an async function
-        // in the timer, which will always return true,
-        // therefore the function has to kill itself if
-        // not killed by drag end...
+
+
+
+
         this._dockUriSpringTimerID = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
             this._Enums.DND_SHELL_HOVER_POLL,
@@ -75,9 +75,9 @@ const GnomeShellDrag = class {
         const leftEdge = [...shellDropCoordinates];
         let shellDropTarget = null;
 
-        // look upto 50 pixels away for a drop target,
-        // off the drag cursor to the left, increment 10
-        // 5 iterations
+
+
+
         for (let i = 0; i <= 50; i += 10) {
             leftEdge[0] -= i;
 
@@ -108,8 +108,8 @@ const GnomeShellDrag = class {
         if (this._destroyed)
             return GLib.SOURCE_REMOVE;
 
-        // Failsafe kill the function - remove the timer if going on for
-        // too long, default 30 seconds
+
+
         if (!this._dragItem ||
             (GLib.get_monotonic_time() - this._dockSpringOpenTime) >
             this._Enums.DND_SHELL_HOVER_POLL * 150000
@@ -144,14 +144,14 @@ const GnomeShellDrag = class {
             return GLib.SOURCE_CONTINUE;
 
 
-        // On a URI, start hover timing and reset timer
+
         if (!this._dockSpringOpenFile) {
             this._dockSpringOpenFile = this._currentDesktopFileAppPath;
             this._dockSpringOpenTime = GLib.get_monotonic_time();
             return GLib.SOURCE_CONTINUE;
         }
 
-        // Open the URI, got here after hover timing started
+
         if (this._dockSpringOpenFile === this._currentDesktopFileAppPath &&
             !this._dockSpringOpenComplete &&
             ((GLib.get_monotonic_time() - this._dockSpringOpenTime) >
@@ -179,13 +179,13 @@ const GnomeShellDrag = class {
             return GLib.SOURCE_CONTINUE;
         }
 
-        // URI is the same, window is opened, do nothing
+
         if (this._dockSpringOpenFile === this._currentDesktopFileAppPath &&
             this._dockSpringOpenComplete
         )
             return GLib.SOURCE_CONTINUE;
 
-        // If still alive, window is opened and uri is changed, reset
+
         if (this._dockSpringOpenFile !== this._currentDesktopFileAppPath &&
             this._dockSpringOpenComplete
         ) {
@@ -404,7 +404,7 @@ const GnomeShellDrag = class {
     }
 
     _showAppCannotOpenError(Appname) {
-        const timeout = 3000; // In ms
+        const timeout = 3000;
 
         this._desktopManager.showError(
             _('Could not open File'),

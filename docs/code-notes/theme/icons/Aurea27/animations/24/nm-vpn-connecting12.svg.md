@@ -1,0 +1,9 @@
+# Notas de theme/icons/Aurea27/animations/24/nm-vpn-connecting12.svg
+
+Comentarios trasladados durante la consolidación. Los números corresponden al archivo antes del traslado.
+
+## Línea 2
+
+````text
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+````

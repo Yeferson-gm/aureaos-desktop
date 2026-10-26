@@ -17,8 +17,8 @@
  */
 
 
-// widget-js-api.js
-// Exports the script that gets injected into each WebView.
+
+
 
 const transparencyCSS = `
 /* Keep the page transparent without nuking widget element backgrounds */

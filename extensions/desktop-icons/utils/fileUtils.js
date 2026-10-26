@@ -26,13 +26,13 @@ const DEFAULT_QUERY_ATTRIBUTES = [
     Gio.FILE_ATTRIBUTE_STANDARD_TYPE,
 ].join(',');
 
-/**
- *
- * @param dir
- * @param cancellable
- * @param priority
- * @param queryAttributes
- */
+
+
+
+
+
+
+
 export async function enumerateDir(dir, cancellable = null, priority = GLib.PRIORITY_DEFAULT,
     queryAttributes = DEFAULT_QUERY_ATTRIBUTES) {
     let childrenEnumerator;
@@ -42,9 +42,9 @@ export async function enumerateDir(dir, cancellable = null, priority = GLib.PRIO
 
         const children = [];
         while (true) {
-            // The enumerator doesn't support multiple async calls, nor
-            // we can predict how many they will be, so using Promise.all
-            // isn't an option here, thus we just need to await each batch
+
+
+
             // eslint-disable-next-line no-await-in-loop
             const batch = await childrenEnumerator.next_files_async(
                 DEFAULT_ENUMERATE_BATCH_SIZE, priority, cancellable);
@@ -60,14 +60,14 @@ export async function enumerateDir(dir, cancellable = null, priority = GLib.PRIO
     }
 }
 
-/**
- * Enumerate a directory, treating a missing directory as empty.
- *
- * @param dir
- * @param cancellable
- * @param priority
- * @param queryAttributes
- */
+
+
+
+
+
+
+
+
 export async function enumerateDirOrEmpty(
     dir,
     cancellable = null,
@@ -86,13 +86,13 @@ export async function enumerateDirOrEmpty(
     }
 }
 
-/**
- *
- * @param dir
- * @param deleteParent
- * @param cancellable
- * @param priority
- */
+
+
+
+
+
+
+
 export async function recursivelyDeleteDir(dir, deleteParent, cancellable = null,
     priority = GLib.PRIORITY_DEFAULT) {
     const children = await enumerateDir(dir, cancellable, priority);
@@ -105,13 +105,13 @@ export async function recursivelyDeleteDir(dir, deleteParent, cancellable = null
         await dir.delete_async(priority, cancellable);
 }
 
-/**
- *
- * @param file
- * @param info
- * @param cancellable
- * @param priority
- */
+
+
+
+
+
+
+
 export async function deleteFile(file, info = null, cancellable = null,
     priority = GLib.PRIORITY_DEFAULT) {
     if (!info) {
@@ -132,12 +132,12 @@ export async function deleteFile(file, info = null, cancellable = null,
     }
 }
 
-/**
- *
- * @param file
- * @param cancellable
- * @param priority
- */
+
+
+
+
+
+
 export async function queryExists(file, cancellable = null,
     priority = GLib.PRIORITY_DEFAULT) {
     try {
@@ -153,14 +153,14 @@ export async function queryExists(file, cancellable = null,
     }
 }
 
-/**
- * Create missing parents before the requested directory. An already-existing
- * target still raises EXISTS, preserving the contract used by existing callers.
- *
- * @param dir
- * @param cancellable
- * @param priority
- */
+
+
+
+
+
+
+
+
 export async function recursivelyMakeDir(dir, cancellable = null,
     priority = GLib.PRIORITY_DEFAULT) {
     try {
@@ -183,18 +183,18 @@ export async function recursivelyMakeDir(dir, cancellable = null,
     try {
         await dir.make_directory_async(priority, cancellable);
     } catch (e) {
-        // Another creator may have completed this directory while we awaited its parent.
+
         if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS))
             throw e;
     }
 }
 
-/**
- * Split a filename, preserving the project's compound archive extensions.
- *
- * @param filename
- * @param opts
- */
+
+
+
+
+
+
 export function getFileExtensionOffset(filename, opts = {isDirectory: false}) {
     let offset = filename.length;
     let extension = '';
@@ -217,12 +217,12 @@ export function getFileExtensionOffset(filename, opts = {isDirectory: false}) {
     return {offset, basename: filename, extension};
 }
 
-/**
- * Generate a collision candidate using the desktop's existing numbered suffix.
- *
- * @param filename
- * @param index
- */
+
+
+
+
+
+
 export function collisionName(filename, index) {
     if (!index)
         return filename;
@@ -230,13 +230,13 @@ export function collisionName(filename, index) {
     return `${basename} ${index}${extension}`;
 }
 
-/**
- * Create without overwriting; keep owned GBytes alive through partial writes.
- *
- * @param file
- * @param bytes
- * @param cancellable
- */
+
+
+
+
+
+
+
 export async function writeExclusive(file, bytes, cancellable = null) {
     const stream = await file.create_async(Gio.FileCreateFlags.PRIVATE, GLib.PRIORITY_DEFAULT, cancellable);
     try {
@@ -252,31 +252,31 @@ export async function writeExclusive(file, bytes, cancellable = null) {
         }
         await stream.close_async(GLib.PRIORITY_DEFAULT, cancellable);
     } catch (e) {
-        // Cleanup must still run if the operation was cancelled.
+
         try {
             await stream.close_async(GLib.PRIORITY_DEFAULT, null);
         } catch (_closeError) {
-            // Preserve the original write/close error.
+
         }
         await file.delete_async(GLib.PRIORITY_DEFAULT, null).catch(error => console.error(error));
         throw e;
     }
 }
 
-/**
- * Create a file with a safe single-component name, retrying atomic collisions.
- * The caller remains responsible for sanitizing untrusted display names.
- *
- * @param directory
- * @param filename
- * @param bytes
- * @param cancellable
- * @param creationObserver optional callbacks for collision candidates.
- * `beforeCreate(file)` runs before exclusive creation and returns an ownership
- * marker. If that candidate fails, `creationFailed(file, marker)` receives the
- * same marker so the caller can undo only that attempt's registration.
- * @returns {Promise<Gio.File>} created file
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export async function createUniqueFile(
     directory,
     filename,
@@ -300,8 +300,8 @@ export async function createUniqueFile(
             await writeExclusive(file, bytes, cancellable);
             return file;
         } catch (e) {
-            // A collision may be a basename already registered by an earlier
-            // file in this batch. Only undo what this attempt registered.
+
+
             creationObserver?.creationFailed(file, creationRegistration);
             if (!e.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS))
                 throw e;
@@ -309,15 +309,15 @@ export async function createUniqueFile(
     }
 }
 
-/**
- * Create a symbolic link without overwriting, retrying atomic collisions.
- *
- * @param directory destination directory
- * @param source source Gio.File
- * @param cancellable
- * @param creationObserver optional callbacks matching createUniqueFile()
- * @returns {Gio.File} created symbolic link
- */
+
+
+
+
+
+
+
+
+
 export function createUniqueSymbolicLink(
     directory,
     source,
@@ -343,16 +343,16 @@ export function createUniqueSymbolicLink(
     }
 }
 
-/**
- * Write a string attribute and verify its per-attribute result.
- *
- * @param file
- * @param attribute
- * @param value
- * @param cancellable
- * @param priority
- * @param queryFlags
- */
+
+
+
+
+
+
+
+
+
+
 export async function setStringAttribute(file, attribute, value, cancellable = null,
     priority = GLib.PRIORITY_DEFAULT,
     queryFlags = Gio.FileQueryInfoFlags.NONE) {
@@ -363,14 +363,14 @@ export async function setStringAttribute(file, attribute, value, cancellable = n
         throw new Error(`Could not set ${attribute}`);
 }
 
-/**
- * Store the initial drop position for a newly created file; null leaves it unset.
- *
- * @param file
- * @param coordinates
- * @param cancellable
- * @param priority
- */
+
+
+
+
+
+
+
+
 export async function setDropPosition(file, coordinates, cancellable = null,
     priority = GLib.PRIORITY_DEFAULT) {
     if (!coordinates)
@@ -378,12 +378,12 @@ export async function setDropPosition(file, coordinates, cancellable = null,
     await setStringAttribute(file, 'metadata::nautilus-drop-position', coordinates.join(','), cancellable, priority);
 }
 
-/**
- *
- * @param source
- * @param destination
- * @param cancellable
- */
+
+
+
+
+
+
 export async function copyFile(source, destination, cancellable = null) {
     await new Promise((resolve, reject) => {
         try {
@@ -408,12 +408,12 @@ export async function copyFile(source, destination, cancellable = null) {
     });
 }
 
-/**
- *
- * @param source
- * @param destination
- * @param cancellable
- */
+
+
+
+
+
+
 export async function moveFile(source, destination, cancellable = null) {
     await new Promise((resolve, reject) => {
         try {
@@ -437,12 +437,12 @@ export async function moveFile(source, destination, cancellable = null) {
     });
 }
 
-/**
- *
- * @param sourceDir
- * @param destinationDir
- * @param cancellable
- */
+
+
+
+
+
+
 export async function copyTree(sourceDir, destinationDir, cancellable = null) {
     await recursivelyMakeDir(destinationDir, cancellable);
 
@@ -462,13 +462,13 @@ export async function copyTree(sourceDir, destinationDir, cancellable = null) {
     }
 }
 
-/**
- *
- * @param rootDir
- * @param targetName
- * @param cancellable
- * @returns {Promise<Gio.File|null>}
- */
+
+
+
+
+
+
+
 export async function findChildDirRecursive(
     rootDir,
     targetName,
@@ -496,12 +496,12 @@ export async function findChildDirRecursive(
     return null;
 }
 
-/**
- * Sanitize an untrusted filename with space for collision suffixes.
- *
- * @param value
- * @param fallback
- */
+
+
+
+
+
+
 export function sanitizeFilename(value, fallback = 'File') {
     const clean = text => text.normalize('NFC')
         .replace(/[\u0000-\u001f\u007f/\\:*?"<>|]/gu, ' ')
@@ -511,7 +511,7 @@ export function sanitizeFilename(value, fallback = 'File') {
         name = clean(fallback);
     if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name))
         name = `_${name}`;
-    // Leave room below NAME_MAX for the extension and collision suffix in UTF-8.
+
     let result = '';
     let length = 0;
     const encoder = new TextEncoder();

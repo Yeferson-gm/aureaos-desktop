@@ -26,7 +26,7 @@ const DesktopFolderUtils = class {
         this._activeWindow = window;
         this.Enums = Enums;
         this._desktopDir = this.getDesktopDir();
-        // Bind xdg-user-dirs translation domain
+
         gettext.bindtextdomain('xdg-user-dirs', '/usr/share/locale');
     }
 

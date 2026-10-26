@@ -25,20 +25,20 @@ const Signals = imports.signals;
 
 export {DBusUtils};
 class ProxyManager {
-    /*
-    This class manages a DBus object through a DBusProxy. Any access to the
-    proxy when the object isn't available results in a notification specifying
-    that an specific program is needed to run that option.
 
-    The proxy itself is accessed through the 'proxy' property (read-only).
-    Any access to it will check the availability and show the notification if
-    it isn't available. To get access to it without triggering this, it is
-    possible to use the 'proxyNoCheck' property.
 
-    Whether the object is or not available can be checked with the
-    'isAvailable' property. Also, every time the availability changes,
-    the signal 'changed-status' is emitted.
-    */
+
+
+
+
+
+
+
+
+
+
+
+
     constructor(
         dbusManager,
         serviceName,
@@ -61,8 +61,8 @@ class ProxyManager {
         this._connectSignalsIDs = {};
 
         if (typeof programNeeded === 'string') {
-            // if 'programNeeded' is a string, create a generic message
-            // for the notification.
+
+
             this._programNeeded = [
                 _('"${programName}" is not available')
                 .replace('${programName}', programNeeded),
@@ -73,9 +73,9 @@ class ProxyManager {
                 .replace('${programName}', programNeeded),
             ];
         } else {
-            // instead, if it's not, it is presumed to be an array with two
-            // sentences, one for the notification title and another for
-            // the main text.
+
+
+
             this._programNeeded = programNeeded;
         }
 
@@ -332,21 +332,21 @@ Signals.addSignalMethods(ProxyManager.prototype);
 
 
 class DBusManager {
-    /*
-    This class manages all the DBus operations. A ProxyManager() class can
-    subscribe to this to be notified whenever a change in the bus has occurred
-    (like a server has been added or removed). It also can ask
-    for a DBus interface, either getting it from the dbusInterfaces.js file
-    or using DBus Introspection (which allows to get the currently available
-    interface and, that way, know if an object implements an specific
-    method, property or signal).
 
-    ProxyManager() classes subscribe to the 'changed-availability-system'
-    or 'changed-availability-local' signals, which are emitted every time a
-    change in the bus or in the configuration files happen. Then, it can use
-    checkIsAvailable() to determine if the desired service is available
-    in the system or not.
-    */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     constructor(mainApp) {
         this._mainApp = mainApp;
         this._availableInSystemBus = [];
@@ -360,9 +360,9 @@ class DBusManager {
                 'org.freedesktop.DBus',
                 '/org/freedesktop/DBus',
                 'org.freedesktop.DBus',
-                true, // system bus
+                true,
                 true
-            ); // use DBus Introspection
+            );
 
         const dbusSystemProxy = Gio.DBusProxy.makeProxyWrapper(interfaceXML);
 
@@ -377,14 +377,14 @@ class DBusManager {
         let ASCinSystemBus =
             interfaceXML.includes('ActivatableServicesChanged');
 
-        // Don't presume that both system and local have the same
-        // interface (just in case)
+
+
         const localInterfaceXML = this.getInterface(
             'org.freedesktop.DBus',
             '/org/freedesktop/DBus',
             'org.freedesktop.DBus',
-            false, // local bus
-            true); // use DBus Introspection
+            false,
+            true);
 
         const dbusLocalProxy = Gio.DBusProxy.makeProxyWrapper(localInterfaceXML);
 
@@ -428,8 +428,8 @@ class DBusManager {
             'org.freedesktop.Notifications',
             '/org/freedesktop/Notifications',
             'org.freedesktop.Notifications',
-            false, // local bus
-            false); // get interface from local code
+            false,
+            false);
 
         const notifyProxy = Gio.DBusProxy.makeProxyWrapper(notifyInterfaceXML);
         this._notifyProxy =
@@ -488,10 +488,10 @@ class DBusManager {
     }
 
     _updateAvailability(proxy) {
-        // We read both the well-known names actually running and those
-        // available as activatables, and generate a single list with both.
-        // Thus a service will be "enabled" if it is running
-        // or if it is activatable.
+
+
+
+
         let availableNames = [];
         let names = proxy.ListNamesSync();
 
@@ -533,12 +533,12 @@ class DBusManager {
         return this._xmlData.substring(pos + 1, pos2).trim();
     }
 
-    /*
-    Extracts the XML definition for an interface from the raw data
-    returned by DBus Introspection. This is needed because DBus Introspection
-    returns a single XML file with all the interfaces supported by an object,
-    while DBusProxyWrapper requires an XML with only the desired interface.
-     */
+
+
+
+
+
+
     _parseXML(data, interfaceName) {
         this._xmlIndex = -1;
         this._xmlData = data;
@@ -637,17 +637,17 @@ class DBusManager {
             return null;
 
         if (!data.includes('interface'))
-            return null; // if it doesn't exist, return null
+            return null;
 
         return data;
     }
 
     doNotify(header, text) {
-        /*
-            The freedesktop specificaton specifies these common icons by name
-            be available in compatible themes, including displayImange and
-            appIcon
-        */
+
+
+
+
+
         const displayImage =
             'file:///usr/share/icons/Adwaita/scalable/devices/computer.svg';
 
@@ -660,11 +660,11 @@ class DBusManager {
 
         const appName = 'Desktop Icons';
         const notifictionID = 0;
-        // from freeDesktop icon theme specification which should be available
-        // for this interface
+
+
         const appIcon = 'computer';
         const actions = [];
-        const displayTime = 1000; // 1 second
+        const displayTime = 1000;
 
         this._notifyProxy.NotifyRemote(
             appName,
@@ -701,7 +701,7 @@ class DbusOperationsManager {
                 'changed-status',
                 (_actor, available) => {
                     if (available) {
-                        // wait a second to ensure that everything has settled
+
                         GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
                             try {
                                 this._getExtractionSupportedTypes();
@@ -775,7 +775,7 @@ class DbusOperationsManager {
         );
     }
 
-    // Currently unused; retained for FileManager1 interface completeness.
+
     ShowFolderRemote(folderToShow, timestamp, callback = null) {
         if (!this.freeDesktopFileManager.proxy) {
             this._sendNoProxyError(callback);
@@ -886,8 +886,8 @@ class DbusOperationsManager {
 }
 
 
-// All users of a surface share one export, including while export is pending.
-// This also supports GTK before 4.12, which can only track one export per surface.
+
+
 class PlatformDataManager {
     constructor() {
         this._surfaces = new WeakMap();
@@ -1048,8 +1048,8 @@ class RemoteFileOperationsManager extends DbusOperationsManager {
         this._previewData = platformData;
         this._previewOwner = proxy.g_name_owner;
         this._previewPending = true;
-        // Sushi queues PropertiesChanged; it can arrive after the method reply.
-        // Until it arrives, the cached properties describe the previous preview.
+
+
         this._previewPropertiesReceived = false;
         this.previewParentHandle = platformData.parentHandle;
         try {

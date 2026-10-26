@@ -37,7 +37,7 @@
       #dashtodockContainer.bottom #dash #dashtodockDashContainer > #dashtodockDashScrollview:ltr:last-child, #dashtodockContainer.bottom #dash #dashtodockDashContainer > #dashtodockDashScrollview:rtl:first-child {
         margin-right: 0; }
   #dashtodockContainer.bottom #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.bottom #dash .dash-item-container > * {
       margin: 0; }
@@ -120,7 +120,7 @@
       #dashtodockContainer.bottom.shrink #dash #dashtodockDashContainer > #dashtodockDashScrollview:ltr:last-child, #dashtodockContainer.bottom.shrink #dash #dashtodockDashContainer > #dashtodockDashScrollview:rtl:first-child {
         margin-right: 0; }
   #dashtodockContainer.bottom.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.bottom.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -211,7 +211,7 @@
     #dashtodockContainer.bottom.extended #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-right: 8px; }
   #dashtodockContainer.bottom.extended #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.bottom.extended #dash .dash-item-container > * {
       margin: 0; }
@@ -302,7 +302,7 @@
     #dashtodockContainer.bottom.extended.shrink #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-right: 6px; }
   #dashtodockContainer.bottom.extended.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.bottom.extended.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -392,7 +392,7 @@
       #dashtodockContainer.top #dash #dashtodockDashContainer > #dashtodockDashScrollview:ltr:last-child, #dashtodockContainer.top #dash #dashtodockDashContainer > #dashtodockDashScrollview:rtl:first-child {
         margin-right: 0; }
   #dashtodockContainer.top #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.top #dash .dash-item-container > * {
       margin: 0; }
@@ -475,7 +475,7 @@
       #dashtodockContainer.top.shrink #dash #dashtodockDashContainer > #dashtodockDashScrollview:ltr:last-child, #dashtodockContainer.top.shrink #dash #dashtodockDashContainer > #dashtodockDashScrollview:rtl:first-child {
         margin-right: 0; }
   #dashtodockContainer.top.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.top.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -566,7 +566,7 @@
     #dashtodockContainer.top.extended #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-right: 8px; }
   #dashtodockContainer.top.extended #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.top.extended #dash .dash-item-container > * {
       margin: 0; }
@@ -657,7 +657,7 @@
     #dashtodockContainer.top.extended.shrink #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-right: 6px; }
   #dashtodockContainer.top.extended.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 0 2px; }
     #dashtodockContainer.top.extended.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -747,7 +747,7 @@
       #dashtodockContainer.left #dash #dashtodockDashContainer > #dashtodockDashScrollview:last-child {
         margin-bottom: 0; }
   #dashtodockContainer.left #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.left #dash .dash-item-container > * {
       margin: 0; }
@@ -826,7 +826,7 @@
       #dashtodockContainer.left.shrink #dash #dashtodockDashContainer > #dashtodockDashScrollview:last-child {
         margin-bottom: 0; }
   #dashtodockContainer.left.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.left.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -913,7 +913,7 @@
     #dashtodockContainer.left.extended #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-bottom: 8px; }
   #dashtodockContainer.left.extended #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.left.extended #dash .dash-item-container > * {
       margin: 0; }
@@ -1000,7 +1000,7 @@
     #dashtodockContainer.left.extended.shrink #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-bottom: 6px; }
   #dashtodockContainer.left.extended.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.left.extended.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -1086,7 +1086,7 @@
       #dashtodockContainer.right #dash #dashtodockDashContainer > #dashtodockDashScrollview:last-child {
         margin-bottom: 0; }
   #dashtodockContainer.right #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.right #dash .dash-item-container > * {
       margin: 0; }
@@ -1165,7 +1165,7 @@
       #dashtodockContainer.right.shrink #dash #dashtodockDashContainer > #dashtodockDashScrollview:last-child {
         margin-bottom: 0; }
   #dashtodockContainer.right.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.right.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -1252,7 +1252,7 @@
     #dashtodockContainer.right.extended #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-bottom: 8px; }
   #dashtodockContainer.right.extended #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.right.extended #dash .dash-item-container > * {
       margin: 0; }
@@ -1339,7 +1339,7 @@
     #dashtodockContainer.right.extended.shrink #dash #dashtodockDashContainer #dashtodockDashScrollview:last-child {
       padding-bottom: 6px; }
   #dashtodockContainer.right.extended.shrink #dash .dash-item-container {
-    /* Disable all margins defined upstream, we handle them here */
+
     margin: 2px 0; }
     #dashtodockContainer.right.extended.shrink #dash .dash-item-container > * {
       margin: 0; }
@@ -1407,7 +1407,7 @@
 #dashtodockContainer.shrink.straight-corner #dash .dash-background {
   border-radius: 0px; }
 
-/* Scrollview style */
+
 .bottom #dashtodockDashScrollview,
 .top #dashtodockDashScrollview {
   -st-hfade-offset: 24px; }
@@ -1422,8 +1422,8 @@
   border-radius: 18px;
   box-shadow: none; }
 
-/* macOS 27 profile: icons float directly on the desktop.  These rules live
- * after the upstream theme so no Dash-to-Dock variant can restore its shelf. */
+
+
 #dashtodockContainer,
 #dashtodockContainer #dash,
 #dashtodockContainer #dash .dash-background {
@@ -1438,56 +1438,56 @@
 #dashtodockContainer.dashtodock .progress-bar,
 .overview-tile .progress-bar,
 .icon-grid .progress-bar {
-  /* Customization of the progress bar style. The possible elements
-     * are:
-     *
-     * -XXXXXX-YYYYYY: plain color
-     * -XXXXXX-YYYYYY-color-start: start color for gradient
-     * -XXXXXX-YYYYYY-color-end: end color for gradient
-     * -XXXXXX-YYYYYY-offset-start: offset for start color in gradient (0-1)
-     * -XXXXXX-YYYYYY-offset-end: offset for end color in gradient (0-1)
-     * -XXXXXX-line-width: width value for the line used for the border
-     *
-     * XXXXXX can be either
-     *
-     *    progress-bar-track: the "track" over which the progress bar is shown
-     *    progress-bar: the progress bar itself
-     *
-     * YYYYYY can be either
-     *
-     *    background: for the background color
-     *    border: for the border color
-     *
-     * plain color entries have priority over gradients, so if both are set for
-     * an element, the plain color will be used.
-     *
-     * Examples:
-     *
-     *  -progress-bar-track-background: rgba(128, 128, 0, 0.75);
-     *  -progress-bar-track-border: rgba(0, 0, 255, 0.25);
-     *
-     *  -progress-bar-background: rgba(0, 204, 204, 1);
-     *  -progress-bar-border: rgba(230, 230, 230, 1);
-     *
-     * Default values when these entries aren't set are equivalent to:
-     *   -progress-bar-track-background-color-start: 64, 64, 64, 1.0
-     *   -progress-bar-track-background-color-end: 89, 89, 89, 1.0
-     *   -progress-bar-track-background-start-offset: 0.4
-     *   -progress-bar-track-background-end-offset: 0.9
-     *   -progress-bar-track-border-color-start: 128, 128, 128, 0.1
-     *   -progress-bar-track-border-color-end: 89, 89, 89, 0.4
-     *   -progress-bar-track-border-start-offset: 0.5
-     *   -progress-bar-track-border-end-offset: 0.9
-     *   -progress-bar-track-line-width: 1
-     *   -progress-bar-background: 204, 204, 204, 1.0
-     *   -progress-bar-border: 230, 230, 230, 1.0
-     *   -progress-bar-height-factor: (0.20) 20% of the icon size
-     *   -progress-bar-line-width: 1
-     *   -progress-bar-top-offset: undefined
-     *   -progress-bar-valign: 1.0
-     *   -progress-bar-horizontal-padding: 0.05 (5% of icon size)
-     *   -progress-bar-vertical-padding: 0.05 (5% of icon size)
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   -progress-bar-track-background: rgba(0, 0, 0, 0.45);
   -progress-bar-track-border: rgba(0, 0, 0, 0.7);
   -progress-bar-background: white;
@@ -1508,19 +1508,19 @@
   width: 32px;
   height: 1px; }
 
-/*
- * This is applied to a dummy actor. Only the alpha value for the background and border color
- * and the transition-duration are used
- */
+
+
+
+
 #dashtodockContainer.dummy-opaque {
   background-color: rgba(0, 0, 0, 0.8);
   border-color: rgba(0, 0, 0, 0.4);
   transition-duration: 300ms; }
 
-/*
- * This is applied to a dummy actor. Only the alpha value for the background and border color
- * and the transition-duration are used
- */
+
+
+
+
 #dashtodockContainer.dummy-transparent {
   background-color: rgba(0, 0, 0, 0.2);
   border-color: rgba(0, 0, 0, 0.1);
@@ -1589,10 +1589,10 @@
   background-position: 0px 0px;
   background-size: contain; }
 
-/* ═══ macos27-v7:css ═══ estante de vidrio, etiquetas y menús estilo macOS ═══ */
 
-/* Estante de vidrio. La clase se repite para ganar a cualquier variante
-   del tema (bottom/extended/shrink) sin tocarlas. */
+
+
+
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-background {
   background-color: rgba(255, 255, 255, 0.16);
   background-gradient-direction: vertical;
@@ -1608,13 +1608,13 @@
   padding-right: 10px;
 }
 
-/* Sin degradado de desplazamiento: recortaría los iconos ampliados. */
+
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf #dashtodockDashScrollview {
   -st-hfade-offset: 0px;
   -st-vfade-offset: 0px;
 }
 
-/* macOS no resalta el icono al pasar el cursor ni al estar enfocado. */
+
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .overview-tile:hover .overview-icon,
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .overview-tile.focused .overview-icon,
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .app-well-app:hover .overview-icon,
@@ -1623,14 +1623,14 @@
   background-color: rgba(255, 255, 255, 0);
 }
 
-/* El icono se atenúa mientras se pulsa. */
+
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .overview-tile:active,
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .app-well-app:active,
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .show-apps:active {
   opacity: 190;
 }
 
-/* Separadores finos de vidrio. */
+
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-separator {
   background-color: rgba(255, 255, 255, 0.38);
   width: 1px;
@@ -1640,7 +1640,7 @@
   margin-bottom: 12px;
 }
 
-/* Etiqueta de nombre: burbuja oscura de vidrio sin flecha. */
+
 .dash-label.bottom,
 .dash-label.top,
 .dash-label.left,
@@ -1656,7 +1656,7 @@
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.36);
 }
 
-/* Menú contextual de la app y miniaturas de ventanas. */
+
 .app-menu.dock-app-menu {
   -arrow-border-radius: 14px;
   -arrow-background-color: transparent;

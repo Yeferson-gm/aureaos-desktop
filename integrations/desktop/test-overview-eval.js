@@ -4,7 +4,7 @@
     const {default: Shell} = await import('gi://Shell');
     const {default: Gio} = await import('gi://Gio');
     const wait = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {resolve(); return GLib.SOURCE_REMOVE;}));
-    const renderer = Main.extensionManager.lookup('gnome-wallpaper-engine@gjs.com').stateObj._wallpaper;
+    const renderer = Main.extensionManager.lookup('aurea-wallpaper@local').stateObj._wallpaper;
     if (!renderer._sourceActor) throw new Error('El vídeo no inició');
     Main.overview.hide();
     await wait(500);
@@ -34,4 +34,14 @@
     await wait(3000);
     if (!renderer._overviewLayer) throw new Error('No se restauró la capa al reiniciar vídeo');
     return 'PASS: capa de vídeo, orden, entrada, ocultación y ciclo de vida';
-})()
+})().then(async result => {
+    const {default: Gio} = await import('gi://Gio');
+    const {default: GLib} = await import('gi://GLib');
+    Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/result.txt')
+        .replace_contents(new TextEncoder().encode('PASS: ' + JSON.stringify(result)), null, false, Gio.FileCreateFlags.NONE, null);
+}).catch(async error => {
+    const {default: Gio} = await import('gi://Gio');
+    const {default: GLib} = await import('gi://GLib');
+    Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/result.txt')
+        .replace_contents(new TextEncoder().encode('FAIL: ' + error.message + String.fromCharCode(10) + error.stack), null, false, Gio.FileCreateFlags.NONE, null);
+})

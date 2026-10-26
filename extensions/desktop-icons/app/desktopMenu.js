@@ -57,10 +57,10 @@ const DesktopActions = class {
         }
     }
 
-    // Create the menu action group
-    // and add the actions to the main app
-    // and set the accelerators
-    // for the actions
+
+
+
+
 
     _createMenuActionGroup() {
         const newFolder = Gio.SimpleAction.new('doNewFolder', null);
@@ -383,7 +383,7 @@ const DesktopActions = class {
         });
         this._mainApp.add_action(newDocument);
 
-        // showShortcutViewer action is registered by ShortcutManager.
+
 
         const toggleVisibility =
             Gio.SimpleAction.new('toggleVisibility', null);
@@ -439,7 +439,7 @@ const DesktopActions = class {
             !this.activeFileItem || this.activeFileItem.isStackMarker)
             return;
 
-        // Preserve Sushi's parent and focus while replacing the preview.
+
         proxy.ShowFileRemote(this.activeFileItem.uri, remote.previewParentHandle,
             false, '', (result, error) => {
                 if (error)
@@ -532,11 +532,11 @@ const DesktopActions = class {
             this.preferencesWindow = null;
         });
         this.preferencesWindow.set_title(_('Settings'));
-        // Do not make modal or skip-taskbar as we have a .desktop icon
-        // showing up in the dock for the window to assist navigation.
-        // const modal = true;
-        // this._DesktopIconsUtil.windowHidePagerTaskbarModal(
-        //     this.preferencesWindow, modal);
+
+
+
+
+
         this.preferencesWindow.show();
     }
 
@@ -563,7 +563,7 @@ const DesktopActions = class {
     }
 
     _selectFileItemInDirection(symbol) {
-        // Anchoring
+
         var index;
         var multiplier;
         const previousSelection = this.currentSelection;
@@ -589,7 +589,7 @@ const DesktopActions = class {
 
         let selectedCoordinates = selected.getCoordinates();
 
-        // Navigation
+
         switch (symbol) {
         case Gdk.KEY_Left:
             index = 0;
@@ -637,7 +637,7 @@ const DesktopActions = class {
             const primary = index === 0 ? deltaX : deltaY;
             const secondary = index === 0 ? Math.abs(deltaY) : Math.abs(deltaX);
 
-            // Forward candidates (in the requested direction).
+
             if (primary * multiplier > 0) {
                 const score = Math.abs(primary) + secondary;
                 if ((bestScore === null) || (score < bestScore)) {
@@ -647,8 +647,8 @@ const DesktopActions = class {
                 continue;
             }
 
-            // Wrap candidate: farthest in the opposite direction,
-            // with row/col bias.
+
+
             if (wrapExtreme === null ||
                 (multiplier > 0
                     ? primary < wrapExtreme
@@ -665,13 +665,13 @@ const DesktopActions = class {
         if (newItem === null)
             newItem = wrapItem || selected;
 
-        // Selection logic
+
         const {ctrl, shift} = this._desktopManager.modifierMode;
         const keptSelection = previousSelection || [];
 
         if (shift && selected) {
-        // Shift: select everything in the rectangle between anchor and focus,
-        // extending (not clearing) the existing selection.
+
+
             const anchor = this.lastAnchorSelected &&
                 this._displayList.includes(this.lastAnchorSelected)
                 ? this.lastAnchorSelected
@@ -699,30 +699,30 @@ const DesktopActions = class {
                     item.setSelected();
             });
 
-            // Keep any prior selection intact
+
             keptSelection.forEach(item => item.setSelected());
             focusItem.setSelected();
             this.lastAnchorSelected = focusItem;
 
             if (anchor !== selected) {
-                // Cancel navigation when extending from a previous anchor
+
                 this._setKeyboardSelected(selected);
                 this._desktopManager.fileItemMenu.activeFileItem = selected;
                 this.activeFileItem = selected;
                 return true;
             }
         } else if (ctrl) {
-            // Ctrl: do not alter existing selection
+
             if (newItem.isSelected)
                 this.lastAnchorSelected = newItem;
         } else {
-            // Default: move selection to the new item only
+
             this._desktopManager.unselectAll();
             newItem.setSelected();
             this.lastAnchorSelected = newItem;
         }
 
-        // Always keyboard-focus the new item
+
         this._setKeyboardSelected(newItem);
 
         this._desktopManager.fileItemMenu.activeFileItem = newItem;
@@ -1051,11 +1051,11 @@ const DesktopBackgroundMenu = class {
         backgroundMenu.append(
             _('Shell Menu…'), 'app.displayShellBackgroundMenu');
 
-        // Following deprectiated, Shell Menu has these options anyway
-        // this.backgroundMenu.append(
-        //       _('Change Background…'), 'app.changeBackGround');
-        // this.backgroundMenu.append(
-        //      _('Display Settings'), 'app.changeDisplaySettings');
+
+
+
+
+
 
         this.desktopBackgroundGioMenu.append_section(null, backgroundMenu);
     }

@@ -1,1 +1,8 @@
-{"uuid":"island-test-driver@local","name":"Isolated test driver","description":"Only for private smoke-test bus","shell-version":["50"],"version":1}
+{
+  "uuid": "island-test-driver@local",
+  "name": "Isolated test driver",
+  "description": "Only for private smoke-test bus",
+  "shell-version": [
+    "50"
+  ]
+}

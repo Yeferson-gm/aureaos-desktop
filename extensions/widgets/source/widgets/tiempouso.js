@@ -17,7 +17,7 @@ export const META = {
     ],
 };
 
-// Servicio: cuenta segundos de la app enfocada mientras haya actividad.
+
 export function servicio(core) {
     const PASO = 5;
     const tracker = Shell.WindowTracker.get_default();

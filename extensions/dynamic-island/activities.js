@@ -1,4 +1,4 @@
-// Sin dependencias de Shell: permite probar prioridades y caducidad de forma determinista.
+
 export class ActivityQueue {
     constructor(now = () => Date.now()) {
         this._now = now;
@@ -31,7 +31,7 @@ export class ActivityQueue {
 }
 
 export function springProgress(t) {
-    // Resorte críticamente amortiguado, normalizado: no rebasa los límites del panel.
+
     const response = x => 1 - (1 + 8 * x) * Math.exp(-8 * x);
     return response(Math.max(0, Math.min(1, t))) / response(1);
 }

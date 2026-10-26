@@ -19,12 +19,12 @@
 import {Gio, GLib, Soup} from '../../dependencies/gi.js';
 import {Enums} from '../../dependencies/localFiles.js';
 
-/**
- *
- * @param message
- * @param bytes
- * @returns {{ok: boolean, error?: string}}
- */
+
+
+
+
+
+
 export function verifyHttpDownload(message, bytes) {
     if (!message) {
         return {
@@ -51,13 +51,13 @@ export function verifyHttpDownload(message, bytes) {
     return {ok: true};
 }
 
-/**
- *
- * @param url
- * @param timeoutMs
- * @param cancellable
- * @returns {Promise<{message: object, bytes: GLib.Bytes}>}
- */
+
+
+
+
+
+
+
 export async function downloadBytes(url, timeoutMs = 30, cancellable = null) {
     if (!Soup)
         throw new Error('Soup is unavailable');
@@ -108,12 +108,12 @@ export async function downloadBytes(url, timeoutMs = 30, cancellable = null) {
     }
 }
 
-/**
- *
- * @param file
- * @param bytes
- * @param cancellable
- */
+
+
+
+
+
+
 export async function writeBytesToFile(file, bytes, cancellable = null) {
     await new Promise((resolve, reject) => {
         try {
@@ -137,19 +137,19 @@ export async function writeBytesToFile(file, bytes, cancellable = null) {
     });
 }
 
-/**
- *
- * @param archiveFile
- * @param extractDir
- * @param cancellable
- */
+
+
+
+
+
+
 export async function extractTarGzArchive(
     archiveFile,
     extractDir,
     cancellable = null
 ) {
-    // Keep the tar fallback async in the app process so extraction does not
-    // block GNOME Shell when AutoAr is unavailable.
+
+
     const subprocess = new Gio.Subprocess({
         argv: [
             'tar',
@@ -183,12 +183,12 @@ export async function extractTarGzArchive(
     }
 }
 
-/**
- * Parse MIME parameters, including quoted filenames with escaped characters.
- *
- * @param {string} value advertised format
- * @returns {?object} media type and parameters, or null for malformed input
- */
+
+
+
+
+
+
 export function parseMime(value) {
     const head = value.match(/^\s*([\w!#$&^.+-]+\/[\w!#$&^.+-]+)\s*/);
     if (!head)
@@ -209,12 +209,12 @@ export function parseMime(value) {
     return {type: head[1].toLowerCase(), parameters};
 }
 
-/**
- * Identify HTML representations our decoder supports, retaining the offer token.
- *
- * @param {string[]} mimes advertised formats
- * @returns {string[]} supported HTML representations
- */
+
+
+
+
+
+
 export function htmlFormats(mimes) {
     return mimes.filter(mime => {
         const parsed = parseMime(mime);
@@ -223,34 +223,34 @@ export function htmlFormats(mimes) {
     });
 }
 
-/**
- * Return every offered representation advertised as image content.
- *
- * @param {string[]} mimes advertised formats
- * @returns {string[]} image representation tokens
- */
+
+
+
+
+
+
 export function imageFormats(mimes) {
     return mimes.filter(mime => parseMime(mime)?.type.startsWith('image/'));
 }
 
-/**
- * Return an explicitly supplied file-content name, never a download URL.
- *
- * @param {string} mime advertised format
- * @returns {?string} suggested name
- */
+
+
+
+
+
+
 export function contentName(mime) {
     const parsed = parseMime(mime);
     return parsed?.type === Enums.DndTargetInfo.OCTET_STREAM && parsed.parameters.name?.trim()
         ? parsed.parameters.name : null;
 }
 
-/**
- * Validate one complete HTTP(S) URL without interpreting arbitrary prose.
- *
- * @param {string} value candidate text
- * @returns {?string} trimmed URL
- */
+
+
+
+
+
+
 export function webURL(value) {
     const text = value.trim();
     if (/[\s\u0000-\u001f\u007f]/u.test(text))
@@ -260,18 +260,18 @@ export function webURL(value) {
         if (['http', 'https'].includes(uri.get_scheme().toLowerCase()) && uri.get_host())
             return text;
     } catch (_e) {
-        // Invalid URI representations may still have a usable text fallback.
+
     }
     return null;
 }
 
-/**
- * Derive a readable name from a URL without fetching remote metadata.
- * Prefer the final path component and use the host for page-like URLs.
- *
- * @param {string} value web URL
- * @returns {?string} decoded path filename or host
- */
+
+
+
+
+
+
+
 export function filenameFromURL(value) {
     const url = webURL(value);
     if (!url)
@@ -285,12 +285,12 @@ export function filenameFromURL(value) {
     return uri.get_host();
 }
 
-/**
- * Handle both browsers' UTF-8 and UTF-16 representations, with or without BOM.
- *
- * @param {Uint8Array} bytes representation data
- * @returns {object} encoding and decoded text
- */
+
+
+
+
+
+
 export function decodeText(bytes) {
     let encoding = 'utf-8';
     if (bytes[0] === 0xff && bytes[1] === 0xfe)
@@ -307,16 +307,16 @@ export function decodeText(bytes) {
     };
 }
 
-/**
- * Extract the URL/title pair used by Mozilla and Netscape formats.
- *
- * @param {string} text decoded representation
- * @returns {?object} URL and title
- */
+
+
+
+
+
+
 export function parseURLTitle(text) {
     const lines = text.split(/\r\n|\n|\r/);
     const url = webURL(lines.shift());
-    // More than one URL/title pair is ambiguous; never silently discard a URL.
+
     if (!url || lines.slice(1).some(line => line.trim()))
         return null;
     return {url, title: (lines[0] ?? '').trim()};
@@ -334,13 +334,13 @@ function decodeEntities(text) {
     });
 }
 
-/**
- * Conservatively extract a single explicit anchor without rendering HTML.
- * No scripts, resource fetching, or relative URL resolution are performed.
- *
- * @param {string} html bounded HTML fragment
- * @returns {?object} unambiguous web link and visible text/title
- */
+
+
+
+
+
+
+
 export function parseHTMLLink(html) {
     const tokens = html.match(/<!--[\s\S]*?(?:-->|$)|<\/?[a-z][^>"']*(?:(?:"[^"]*"|'[^']*')[^>"']*)*>|[^<]+|</gi) ?? [];
     const links = [];
@@ -387,13 +387,13 @@ export function parseHTMLLink(html) {
     return {url: only.url, title: (only.text.trim() || only.title).replace(/\s+/gu, ' ').trim()};
 }
 
-/**
- * Retain DING's HTML redirect format, escaping all source-provided values.
- *
- * @param {string} url validated URL
- * @param {string} title optional title
- * @returns {string} HTML file contents
- */
+
+
+
+
+
+
+
 export function linkHTML(url, title) {
     const escape = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;')
         .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');

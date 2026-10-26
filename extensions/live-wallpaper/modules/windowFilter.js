@@ -26,7 +26,7 @@ export class WindowFilter {
     enable() {
         const hidden = this._hidden;
 
-        // global actors (dock, etc.)
+
         this._override(global, "get_window_actors", (original) => {
             return function () {
                 return original.call(this).filter((actor) => {
@@ -36,7 +36,7 @@ export class WindowFilter {
             };
         });
 
-        // Alt+Tab
+
         this._override(Meta.Display.prototype, "get_tab_list", (original) => {
             return function (type, workspace) {
                 return original
@@ -45,7 +45,7 @@ export class WindowFilter {
             };
         });
 
-        // Overview
+
         this._override(
             Workspace.Workspace.prototype,
             "_isOverviewWindow",
@@ -68,7 +68,7 @@ export class WindowFilter {
             },
         );
 
-        // App-System
+
         this._override(
             Shell.WindowTracker.prototype,
             "get_window_app",

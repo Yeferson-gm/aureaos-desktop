@@ -78,7 +78,7 @@ const adWDingApp = GObject.registerClass(
             });
             this.asDesktop = asDesktop;
 
-            // Connect application signals
+
             this.connect('startup', this._onStartup.bind(this));
             this.connect('command-line', this._onCommandLine.bind(this));
             this.connect('activate', this._onActivate.bind(this));
@@ -134,7 +134,7 @@ const adWDingApp = GObject.registerClass(
             let argv = [];
             argv = commandLine.get_arguments();
             try {
-                // Parse options from the main arguments
+
                 this._parseOptions(argv);
                 this._initializeDesktopOptions();
             } catch (e) {
@@ -149,17 +149,17 @@ const adWDingApp = GObject.registerClass(
                     windowManager.updateGridWindows(
                         new GLib.Variant('av', this.newDesktopsVariants)
                     ).catch(e => logError(e));
-                // If testing Dbus activations, comment the above
-                // and uncomment the following -
-                // or get remote actions from the app and activate
-                // this.desktopVariants = this.newDesktopsVariants;
-                // this.remoteDingActions.activate_action('updateGridWindows',
-                //    new GLib.Variant('av', this.desktopVariants));
-                // OR smiply activate the app action directly
-                // app.activate_action(
-                //     'updateGridWindows',
-                //     new GLib.Variant('av', this.desktopVariants)
-                // );
+
+
+
+
+
+
+
+
+
+
+
                 } else {
                     this._finishStartUp(app);
                     app.activate();
@@ -243,7 +243,7 @@ const adWDingApp = GObject.registerClass(
             this.newdesktops = [];
             this.newDesktopsVariants = [];
 
-            // modified for GJS to work like passing optioncontext
+
             args.forEach((arg, index, array) => {
                 this.options.some(entry => {
                     const longname = arg === `--${entry.long_name}`;
@@ -274,8 +274,8 @@ const adWDingApp = GObject.registerClass(
         }
 
         _printUsage() {
-            // OptionContext does not work in GJS, modifed version
-            // const helptext = this.optionsContext.get_help(false, null);
+
+
             let helpMessage =
                 'Usage: gjs -m adw-ding.js [OPTIONS]\n\nOptions:\n';
 
@@ -306,21 +306,21 @@ const adWDingApp = GObject.registerClass(
             this.desktopVariants = [];
             this.Data = {};
 
-            // Code for checking Dbus actions and remote controlling the app
-            // via DBus - see commented code in commanline invocation.
-            //
-            // const dbusID = this.asDesktop ? appID : testAppID;
-            // const dbusPath = `${dbusID}.actions`.split('.').join('/');
-            // this.remoteDingActions = Gio.DBusActionGroup.get(
-            //     Gio.DBus.session,
-            //     dbusID,
-            //     dbusPath
-            // );
+
+
+
+
+
+
+
+
+
+
         }
 
         _initializeOptions() {
             this._initializeObjects();
-            // Define options, similar to GLib.optionEntry for GJS
+
             this.options = [
                 {
                     long_name: 'asdesktop',
@@ -406,13 +406,13 @@ const adWDingApp = GObject.registerClass(
                 },
             ];
 
-            // This does not work in GJS - constructor cannot be called -
-            // therefore alternative implementation for the following
-            //
-            // this.optionsContext =
-            //      new GLib.OptionContext('Adw Desktop Icons Application');
-            //
-            // this.optionsContext.add_main_entries(options, getTextDomain);
+
+
+
+
+
+
+
         }
 
         _parseDesktopData(data) {
@@ -445,10 +445,10 @@ const adWDingApp = GObject.registerClass(
 
         _initializeDesktopOptions() {
             if (!this.newdesktops.length && !this.asDesktop) {
-                /* if no desktop list is provided,
-                 * like when launching the program in stand-alone mode,
-                 * configure a 1280x720 desktop
-                */
+
+
+
+
                 const data = '0:0:1280:720:1:0:0:0:0:0';
                 this._parseDesktopData(data);
             }
@@ -607,10 +607,10 @@ const adWDingApp = GObject.registerClass(
             if (written) {
                 this.appDesktopFile = appDesktopFile;
 
-                // Gnome will update the app info cache automatically
-                // However it takes a long time to update the cache
-                // and we need to do it manually for the app to be
-                // available sooner
+
+
+
+
                 await this._refreshDesktopDatabase();
             }
         }

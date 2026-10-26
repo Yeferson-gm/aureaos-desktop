@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-wallpaper_schema=/home/yefersongm/.local/share/gnome-shell/extensions/gnome-wallpaper-engine@gjs.com/schemas
-dock_schema=/home/yefersongm/.local/share/gnome-shell/extensions/macos27-dock@local/schemas
+wallpaper_schema="${XDG_DATA_HOME:-$HOME/.local/share}/gnome-shell/extensions/aurea-wallpaper@local/schemas"
+dock_schema="${XDG_DATA_HOME:-$HOME/.local/share}/gnome-shell/extensions/macos27-dock@local/schemas"
 gsettings --schemadir "$wallpaper_schema" set org.gnome.shell.extensions.gnome-wallpaper-engine pause-on-fullscreen false
 gsettings --schemadir "$dock_schema" set org.gnome.shell.extensions.dash-to-dock click-action 'minimize'
 gsettings --schemadir "$dock_schema" set org.gnome.shell.extensions.dash-to-dock dock-fixed false

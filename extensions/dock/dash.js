@@ -1,4 +1,4 @@
-// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
+
 
 import {
     Clutter,
@@ -29,11 +29,11 @@ import {
 } from './imports.js';
 
 import {MagnificationController} from './custom-effects/magnification.js';
-import {GlassShelf} from './custom-effects/shelf.js'; // macos27-v7:import
+import {GlassShelf} from './custom-effects/shelf.js';
 
-// module "Dash" did not export DASH_ANIMATION_TIME in old versions
-// so we just define it like it is defined in Dash;
-// taken from https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/dash.js
+
+
+
 const DASH_ANIMATION_TIME = Dash.DASH_ANIMATION_TIME ?? 200;
 const DASH_VISIBILITY_TIMEOUT = 3;
 
@@ -42,12 +42,12 @@ const Labels = Object.freeze({
     FIRST_LAST_CHILD_WORKAROUND: Symbol('first-last-child-workaround'),
 });
 
-/**
- * Extend DashItemContainer
- *
- * - set label position based on dash orientation
- *
- */
+
+
+
+
+
+
 const DockDashItemContainer = GObject.registerClass(
 class DockDashItemContainer extends Dash.DashItemContainer {
     _init(position) {
@@ -67,10 +67,10 @@ class DockDashItemContainer extends Dash.DashItemContainer {
         return AppIcons.itemShowLabel.call(this);
     }
 
-    // we override the method show taken from:
-    // https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/dash.js
-    // in order to apply a little modification at the end of the animation
-    // which makes sure that the icon background is not blurry
+
+
+
+
     show(animate) {
         if (this.child == null)
             return;
@@ -82,9 +82,9 @@ class DockDashItemContainer extends Dash.DashItemContainer {
             duration: animate ? DASH_ANIMATION_TIME : 0,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
-                // when the animation is ended, we simulate
-                // a hover to gain back focus and unblur the
-                // background
+
+
+
                 this.set_hover(true);
             },
         });
@@ -108,21 +108,21 @@ const DockDashIconsVerticalLayout = GObject.registerClass(
 
 const baseIconSizes = [16, 22, 24, 32, 48, 64, 96, 128];
 
-/**
- * This class is a fork of the upstream dash class (ui.dash.js)
- *
- * Summary of changes:
- * - disconnect global signals adding a destroy method;
- * - play animations even when not in overview mode
- * - set a maximum icon size
- * - show running and/or favorite applications
- * - hide showApps label when the custom menu is shown.
- * - add scrollview
- *   ensure actor is visible on keyfocus inseid the scrollview
- * - add 128px icon size, might be useful for hidpi display
- * - sync minimization application target position.
- * - keep running apps ordered.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const DockDash = GObject.registerClass({
     Properties: {
         'requires-visibility': GObject.ParamSpec.boolean(
@@ -145,7 +145,7 @@ export const DockDash = GObject.registerClass({
     },
 }, class DockDash extends St.Widget {
     _init(monitorIndex) {
-        // Initialize icon variables and size
+
         super._init({
             name: 'dash',
             layout_manager: new Clutter.BinLayout(),
@@ -191,13 +191,13 @@ export const DockDash = GObject.registerClass({
         });
 
         this._scrollView.connect('scroll-event', this._onScrollEvent.bind(this));
-        // macos27-v7:clip - los iconos ampliados no se recortan en el visor.
+
         this._scrollView.clip_to_allocation = false;
 
         this._boxContainer = new St.BoxLayout({
             name: 'dashtodockBoxContainer',
-            // St.BoxLayout derives from St.Viewport. Its default clip-to-view
-            // framebuffer clip would cut magnified icons at the dock edge.
+
+
             clip_to_view: false,
             x_align: Clutter.ActorAlign.FILL,
             y_align: Clutter.ActorAlign.FILL,
@@ -270,7 +270,7 @@ export const DockDash = GObject.registerClass({
         this.add_child(this._background);
         this.add_child(this._dashContainer);
 
-        // macos27-v7:shelf - estante de vidrio con desenfoque real.
+
         this._glassShelf = new GlassShelf(this, Docking.DockManager.settings);
 
         this._workId = Main.initializeDeferredWork(this._box, () => this._redisplay());
@@ -350,7 +350,7 @@ export const DockDash = GObject.registerClass({
     _onDestroy() {
         this._magnification.destroy();
         this._magnification = null;
-        // macos27-v7:shelf-destroy
+
         this._glassShelf?.destroy();
         this._glassShelf = null;
         if (this._resetHoverTimeoutId) {
@@ -408,7 +408,7 @@ export const DockDash = GObject.registerClass({
         return Dash.Dash.prototype._hookUpLabel.call(this, ...args);
     }
 
-    // macos27-v7:label - etiqueta casi inmediata, como en macOS.
+
     _syncLabel(item, appIcon) {
         const shouldShow = appIcon
             ? appIcon.shouldShowTooltip() : item.child.get_hover();
@@ -444,7 +444,7 @@ export const DockDash = GObject.registerClass({
         }
     }
 
-    // macos27-v7:locsep - separador entre las apps y la papelera/volúmenes.
+
     _updateLocationSeparator() {
         const children = this._box.get_children();
         const appOf = actor => actor.child?.app ?? actor.child?._delegate?.app;
@@ -528,8 +528,8 @@ export const DockDash = GObject.registerClass({
         }
 
         if (this._dragPlaceholder) {
-            // Ensure the next and previous icon are visible when moving the
-            // placeholder (we're assuming there's room for both of them)
+
+
             const children = this._box.get_children();
             if (this._dragPlaceholderPos > 0) {
                 ensureActorVisibleInScrollView(this._scrollView,
@@ -559,14 +559,14 @@ export const DockDash = GObject.registerClass({
     }
 
     _onScrollEvent(actor, event) {
-        // If scroll is not used because the icon is resized, let the scroll event propagate.
+
         if (!Docking.DockManager.settings.iconSizeFixed)
             return Clutter.EVENT_PROPAGATE;
 
-        // reset timeout to avid conflicts with the mousehover event
+
         this._ensureItemVisibility(null);
 
-        // Skip to avoid double events mouse
+
         if (event.get_scroll_direction() !== Clutter.ScrollDirection.SMOOTH)
             return Clutter.EVENT_STOP;
 
@@ -593,7 +593,7 @@ export const DockDash = GObject.registerClass({
 
         const value = adjustment.get_value();
 
-        // TODO: Remove this if possible.
+
         if (Number.isNaN(value))
             adjustment.set_value(delta);
         else
@@ -646,8 +646,8 @@ export const DockDash = GObject.registerClass({
         appIcon.connectObject('key-focus-in', actor => {
             const [xShift, yShift] = ensureActorVisibleInScrollView(this._scrollView, actor);
 
-            // This signal is triggered also by mouse click. The popup menu is opened at the original
-            // coordinates. Thus correct for the shift which is going to be applied to the scrollview.
+
+
             if (appIcon._menu) {
                 appIcon._menu._boxPointer.xOffset = -xShift;
                 appIcon._menu._boxPointer.yOffset = -yShift;
@@ -668,8 +668,8 @@ export const DockDash = GObject.registerClass({
             }
         }, this);
 
-        // Override default AppIcon labelActor, now the
-        // accessibleName is set at DashItemContainer.setLabelText
+
+
         appIcon.labelActor = null;
         item.setLabelText(app.get_name());
 
@@ -695,14 +695,14 @@ export const DockDash = GObject.registerClass({
             });
     }
 
-    /**
-     * Return an array with the "proper" appIcons currently in the dash
-     */
+
+
+
     getAppIcons() {
-        // Only consider children which are "proper"
-        // icons (i.e. ignoring drag placeholders) and which are not
-        // animating out (which means they will be destroyed at the end of
-        // the animation)
+
+
+
+
         const iconChildren = this._box.get_children().filter(actor => {
             return actor.child &&
                    !!actor.child.icon &&
@@ -722,18 +722,18 @@ export const DockDash = GObject.registerClass({
         if (opened) {
             this.emit('menu-opened');
         } else {
-            // I want to listen from outside when a menu is closed. I used to
-            // add a custom signal to the appIcon, since gnome 3.8 the signal
-            // calling this callback was added upstream.
+
+
+
             this.emit('menu-closed');
         }
     }
 
     _adjustIconSize() {
-        // For the icon size, we only consider children which are "proper"
-        // icons (i.e. ignoring drag placeholders) and which are not
-        // animating out (which means they will be destroyed at the end of
-        // the animation)
+
+
+
+
         const iconChildren = this._box.get_children().filter(actor => {
             return actor.child &&
                    actor.child._delegate &&
@@ -746,8 +746,8 @@ export const DockDash = GObject.registerClass({
         if (this._maxWidth === -1 && this._maxHeight === -1)
             return;
 
-        // Check if the container is present in the stage. This avoids critical
-        // errors when unlocking the screen
+
+
         if (!this._container.get_stage())
             return;
 
@@ -755,7 +755,7 @@ export const DockDash = GObject.registerClass({
         const maxAllocation = new Clutter.ActorBox({
             x1: 0,
             y1: 0,
-            x2: this._isHorizontal ? this._maxWidth : 42 /* whatever */,
+            x2: this._isHorizontal ? this._maxWidth : 42               ,
             y2: this._isHorizontal ? 42 : this._maxHeight,
         });
         const maxContent = themeNode.get_content_box(maxAllocation);
@@ -770,17 +770,17 @@ export const DockDash = GObject.registerClass({
         const [{child: firstButton}] = iconChildren;
         const {child: firstIcon} = firstButton?.icon ?? {child: null};
 
-        // if no icons there's nothing to adjust
+
         if (!firstIcon)
             return;
 
-        // Enforce valid spacings during the size request
+
         firstIcon.ensure_style();
         const [, , iconWidth, iconHeight] = firstIcon.get_preferred_size();
         const [, , buttonWidth, buttonHeight] = firstButton.get_preferred_size();
 
         if (this._isHorizontal) {
-            // Subtract icon padding and box spacing from the available width
+
             availSpace -= iconChildren.length * (buttonWidth - iconWidth) +
                            (iconChildren.length - 1) * spacing;
 
@@ -789,7 +789,7 @@ export const DockDash = GObject.registerClass({
                 availSpace -= separatorWidth + spacing;
             }
         } else {
-            // Subtract icon padding and box spacing from the available height
+
             availSpace -= iconChildren.length * (buttonHeight - iconHeight) +
                            (iconChildren.length - 1) * spacing;
 
@@ -820,21 +820,21 @@ export const DockDash = GObject.registerClass({
         for (let i = 0; i < iconChildren.length; i++) {
             const {icon} = iconChildren[i].child._delegate;
 
-            // Set the new size immediately, to keep the icons' sizes
-            // in sync with this.iconSize
+
+
             icon.setIconSize(this.iconSize);
 
-            // Don't animate the icon size change when the overview
-            // is transitioning, not visible or when initially filling
-            // the dash
+
+
+
             if (!Main.overview.visible || Main.overview.animationInProgress ||
                 !this._shownInitially)
                 continue;
 
             const [targetWidth, targetHeight] = icon.icon.get_size();
 
-            // Scale the icon's texture to the previous size and
-            // tween to the new size
+
+
             icon.icon.set_size(icon.icon.width * scale,
                 icon.icon.height * scale);
 
@@ -889,8 +889,8 @@ export const DockDash = GObject.registerClass({
 
         if (settings.isolateWorkspaces ||
             settings.isolateMonitors) {
-            // When using isolation, we filter out apps that have no windows in
-            // the current workspace
+
+
             const monitorIndex = this._monitorIndex;
             running = running.filter(app =>
                 AppIcons.getInterestingWindows(app.get_windows(), monitorIndex).length);
@@ -901,9 +901,9 @@ export const DockDash = GObject.registerClass({
                    actor.child._delegate &&
                    actor.child._delegate.app;
         });
-        // Apps currently in the dash
+
         let oldApps = children.map(actor => actor.child._delegate.app);
-        // Apps supposed to be in the dash
+
         const newApps = [];
 
         const {showFavorites} = settings;
@@ -911,10 +911,10 @@ export const DockDash = GObject.registerClass({
             newApps.push(...Object.values(favorites));
 
         if (settings.showRunning) {
-            // We reorder the running apps so that they don't change position on the
-            // dash with every redisplay() call
 
-            // First: add the apps from the oldApps list that are still running
+
+
+
             oldApps.forEach(oldApp => {
                 const index = running.indexOf(oldApp);
                 if (index > -1) {
@@ -924,7 +924,7 @@ export const DockDash = GObject.registerClass({
                 }
             });
 
-            // Second: add the new apps
+
             running.forEach(app => {
                 if (!showFavorites || !(app.get_id() in favorites))
                     newApps.push(app);
@@ -951,30 +951,30 @@ export const DockDash = GObject.registerClass({
             oldApps = oldApps.filter(app => !app.isTrash);
         }
 
-        // macos27-v7:locsep-remove
+
         this._locSeparator?.get_parent()?.remove_child(this._locSeparator);
 
-        // Temporary remove the separator so that we don't compute to position icons
+
         const oldSeparatorPos = this._box.get_children().indexOf(this._separator);
         if (this._separator)
             this._box.remove_child(this._separator);
 
-        // Figure out the actual changes to the list of items; we iterate
-        // over both the list of items currently in the dash and the list
-        // of items expected there, and collect additions and removals.
-        // Moves are both an addition and a removal, where the order of
-        // the operations depends on whether we encounter the position
-        // where the item has been added first or the one from where it
-        // was removed.
-        // There is an assumption that only one item is moved at a given
-        // time; when moving several items at once, everything will still
-        // end up at the right position, but there might be additional
-        // additions/removals (e.g. it might remove all the launchers
-        // and add them back in the new order even if a smaller set of
-        // additions and removals is possible).
-        // If above assumptions turns out to be a problem, we might need
-        // to use a more sophisticated algorithm, e.g. Longest Common
-        // Subsequence as used by diff.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         const addedItems = [];
         const removedActors = [];
@@ -985,21 +985,21 @@ export const DockDash = GObject.registerClass({
             const oldApp = oldApps.length > oldIndex ? oldApps[oldIndex] : null;
             const newApp = newApps.length > newIndex ? newApps[newIndex] : null;
 
-            // No change at oldIndex/newIndex
+
             if (oldApp === newApp) {
                 oldIndex++;
                 newIndex++;
                 continue;
             }
 
-            // App removed at oldIndex
+
             if (oldApp && !newApps.includes(oldApp)) {
                 removedActors.push(children[oldIndex]);
                 oldIndex++;
                 continue;
             }
 
-            // App added at newIndex
+
             if (newApp && !oldApps.includes(newApp)) {
                 addedItems.push({
                     app: newApp,
@@ -1010,7 +1010,7 @@ export const DockDash = GObject.registerClass({
                 continue;
             }
 
-            // App moved
+
             const nextApp = newApps.length > newIndex + 1
                 ? newApps[newIndex + 1] : null;
             const insertHere = nextApp && nextApp === oldApp;
@@ -1041,15 +1041,15 @@ export const DockDash = GObject.registerClass({
         for (let i = 0; i < removedActors.length; i++) {
             const item = removedActors[i];
 
-            // Don't animate item removal when the overview is transitioning
-            // or hidden
+
+
             if (!Main.overview.animationInProgress)
                 item.animateOutAndDestroy();
             else
                 item.destroy();
         }
 
-        // Update separator
+
         const nFavorites = Object.keys(favorites).length;
         const nIcons = children.length + addedItems.length - removedActors.length;
         if (nFavorites > 0 && nFavorites < nIcons) {
@@ -1080,10 +1080,10 @@ export const DockDash = GObject.registerClass({
         }
 
         this._adjustIconSize();
-        this._updateLocationSeparator(); // macos27-v7:locsep-update
+        this._updateLocationSeparator();
 
-        // Skip animations on first run when adding the initial set
-        // of items, to avoid all items zooming in at once
+
+
         const animate = this._shownInitially &&
             !Main.layoutManager._startingUp;
 
@@ -1092,7 +1092,7 @@ export const DockDash = GObject.registerClass({
 
         addedItems.forEach(({item}) => item.show(animate));
 
-        // This will update the size, and the corresponding number for each icon
+
         this._updateNumberOverlay();
 
         this.updateShowAppsButton();
@@ -1109,7 +1109,7 @@ export const DockDash = GObject.registerClass({
                 icon.setNumberOverlay(0);
                 counter++;
             } else {
-                // No overlay after 10
+
                 icon.setNumberOverlay(-1);
             }
             icon.updateNumberOverlay();
@@ -1146,10 +1146,10 @@ export const DockDash = GObject.registerClass({
         this._queueRedisplay();
     }
 
-    /**
-     * Reset the displayed apps icon to maintain the correct order when changing
-     * show favorites/show running settings
-     */
+
+
+
+
     resetAppIcons() {
         const children = this._box.get_children().filter(actor => {
             return actor.child &&
@@ -1160,7 +1160,7 @@ export const DockDash = GObject.registerClass({
             item.destroy();
         }
 
-        // to avoid ugly animations, just suppress them like when dash is first loaded.
+
         this._shownInitially = false;
         this._redisplay();
     }
@@ -1237,10 +1237,10 @@ export const DockDash = GObject.registerClass({
         if (needsFirstLastChildWorkaround) {
             this._signalsHandler.removeWithLabel(Labels.FIRST_LAST_CHILD_WORKAROUND);
 
-            // This is indeed ugly, but we need to ensure that the last and first
-            // visible widgets are re-computed by St, that is buggy because of a
-            // mutter issue that is being fixed:
-            // https://gitlab.gnome.org/GNOME/mutter/-/merge_requests/2047
+
+
+
+
             if (!notifiedProperties.includes('first-child'))
                 showAppsContainer.notify('first-child');
             if (!notifiedProperties.includes('last-child'))
@@ -1250,19 +1250,19 @@ export const DockDash = GObject.registerClass({
 });
 
 
-/**
- * This is a copy of the same function in utils.js, but also adjust horizontal scrolling
- * and perform few further checks on the current value to avoid changing the values when
- * it would be clamp to the current one in any case.
- * Return the amount of shift applied
- *
- * @param scrollView
- * @param actor
- */
+
+
+
+
+
+
+
+
+
 function ensureActorVisibleInScrollView(scrollView, actor) {
-    // access to scrollView.[hv]scroll was deprecated in gnome 46
-    // instead, adjustment can be accessed directly
-    // keep old way for backwards compatibility (gnome <= 45)
+
+
+
     const vAdjustment = scrollView.vadjustment ?? scrollView.vscroll.adjustment;
     const hAdjustment = scrollView.hadjustment ?? scrollView.hscroll.adjustment;
     const {value: vValue0, pageSize: vPageSize, upper: vUpper} = vAdjustment;

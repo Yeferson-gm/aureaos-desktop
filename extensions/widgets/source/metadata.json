@@ -1,9 +1,13 @@
 {
   "uuid": "lintel-widgets@local",
-  "name": "macOS 27 Widgets del Escritorio",
-  "description": "Widgets de escritorio estilo macOS (vidrio o sólido, mezclables), con modo de edición, arrastre y redimensionado: Clima, Calendario, Reloj, Baterías, Recordatorios, Notas, Fotos, Música, Podcasts, Contactos, Buscar, Noticias y Tiempo de uso.",
-  "shell-version": ["50", "51"],
+  "name": "Aurea 27 · Widgets",
+  "description": "Widgets del escritorio Aurea 27.",
+  "shell-version": [
+    "50",
+    "51"
+  ],
   "settings-schema": "org.gnome.shell.extensions.lintel-widgets",
-  "session-modes": ["user"],
-  "version": 1
+  "session-modes": [
+    "user"
+  ]
 }

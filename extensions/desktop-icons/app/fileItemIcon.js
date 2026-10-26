@@ -33,8 +33,8 @@ const FileItemIcon = class extends DesktopIconItem {
         this._file = file;
         this.isStackTop = false;
         this.stackUnique = false;
-        // _reloadIconCancellable owns the full metadata refresh pipeline;
-        // _updateIconCancellable owns the low-level icon rendering pass.
+
+
         this._reloadIconCancellable = null;
         this._encryptionCancellable = null;
         this._allowLaunchingCancellable = null;
@@ -46,7 +46,7 @@ const FileItemIcon = class extends DesktopIconItem {
         this.readSavedCoordinates();
         this.readDropCoordinates();
 
-        /* Set the metadata */
+
         this._updateMetadataFromFileInfo(fileInfo);
         if (this.Prefs.showLinkEmblem) {
             this._setEncryptionStatus().catch(e => {
@@ -63,9 +63,9 @@ const FileItemIcon = class extends DesktopIconItem {
             this.setSelected();
     }
 
-    /** *********************
-     * Destroyers *
-     ***********************/
+
+
+
 
     _destroy() {
         this._destroying = true;
@@ -90,7 +90,7 @@ const FileItemIcon = class extends DesktopIconItem {
             this._dropCoordinatesCancellable.cancel();
         this._dropCoordinatesCancellable = null;
 
-        /* Metadata */
+
         if (this._setMetadataTrustedCancellable)
             this._setMetadataTrustedCancellable.cancel();
         this._setMetadataTrustedCancellable = null;
@@ -102,9 +102,9 @@ const FileItemIcon = class extends DesktopIconItem {
         super._destroy();
     }
 
-    /** *********************
-     * Creators *
-     ***********************/
+
+
+
 
     _getVisibleName() {
         return this._fileInfo.get_display_name();
@@ -127,18 +127,18 @@ const FileItemIcon = class extends DesktopIconItem {
         const fileName = _('File');
 
         if (this._isDirectory) {
-            /** TRANSLATORS: when using a screen reader, this is the text
-             *  read when a folder is selected. Example: if a folder named
-             * "things" is selected, it will say "things Folder" */
+
+
+
             this.container.update_property(
                 [Gtk.AccessibleProperty.LABEL],
                 [`${visibleName} ${folderName}`]
             );
         } else {
-            /** TRANSLATORS: when using a screen reader, this is the text
-             * read when a normal file is selected. Example: if a file
-             * named "my_picture.jpg" is selected, it will say
-             * "my_picture.jpg File" */
+
+
+
+
             this.container.update_property(
                 [Gtk.AccessibleProperty.LABEL],
                 [`${visibleName} ${fileName}`]
@@ -200,8 +200,8 @@ const FileItemIcon = class extends DesktopIconItem {
             this._updateMetadataFromFileInfo(newFileInfo);
 
             if (this.Prefs.showLinkEmblem) {
-                // The outer reload path owns the final redraw, so keep the
-                // encryption helper from triggering a nested icon update here.
+
+
                 await this._setEncryptionStatus(cancellable, false);
             }
 
@@ -288,11 +288,11 @@ const FileItemIcon = class extends DesktopIconItem {
                 if (localCancellable.is_cancelled())
                     return;
 
-                // File may have no password or null password, so we may still be
-                // able to read/display it. It will therefore have a generated
-                // thumbnail. Check by generating the thumbnail if needed.
-                // Don't show the locked item in this case, it is encrypted in pdf
-                // per pdf specification but a user can still read it.
+
+
+
+
+
 
                 let thumbnail = this.thumbnail;
 
@@ -407,9 +407,9 @@ const FileItemIcon = class extends DesktopIconItem {
         this._setAccesibilityName();
     }
 
-    /** *********************
-     * Button Clicks *
-     ***********************/
+
+
+
 
     _doButtonOnePressed(
         button, nPress, X, Y, x, y, shiftPressed, controlPressed
@@ -432,9 +432,9 @@ const FileItemIcon = class extends DesktopIconItem {
             this.doOpen();
     }
 
-    /** *********************
-     * Drag and Drop *
-     ***********************/
+
+
+
 
     async receiveDrop(
         X, Y,
@@ -465,8 +465,8 @@ const FileItemIcon = class extends DesktopIconItem {
 
         if (dragItem && (dragItem.uri === this._file.get_uri() ||
             !(this._isValidDesktopFile || this.isDirectory))) {
-            // Dragging a file/folder over itself or over another file will
-            // do nothing, allow drag to directory or valid desktop file
+
+
             return false;
         }
 
@@ -541,9 +541,9 @@ const FileItemIcon = class extends DesktopIconItem {
             return false;
     }
 
-    /** *********************
-     * Icon Rendering *
-     ***********************/
+
+
+
 
     async _reloadIcon(cancellable) {
         if (!this._icon || !this._label)
@@ -595,9 +595,9 @@ const FileItemIcon = class extends DesktopIconItem {
         return newIconPaintable;
     }
 
-    /** *********************
-     * Class Methods *
-     ***********************/
+
+
+
 
     updatedMetadata() {
         if (this._destroying)
@@ -650,11 +650,11 @@ const FileItemIcon = class extends DesktopIconItem {
         if (this._destroying)
             return;
 
-        /*
-         * we're marking as trusted, make the file executable too. Note that we
-         * do not ever remove the executable bit, since we don't know who set
-         * it.
-         */
+
+
+
+
+
         if (this.metadataTrusted && !this._attributeCanExecute) {
             let info = new Gio.FileInfo();
             let newUnixMode = this._unixmode |
@@ -866,9 +866,9 @@ const FileItemIcon = class extends DesktopIconItem {
         }
     }
 
-    /** *********************
-     * Getters and setters *
-     ***********************/
+
+
+
 
     get attributeContentType() {
         return this._attributeContentType;

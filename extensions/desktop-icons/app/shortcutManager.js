@@ -133,7 +133,7 @@ const EditableShortcutRow = GObject.registerClass(
                 vexpand: false,
                 halign: Gtk.Align.END,
                 valign: Gtk.Align.CENTER,
-                xalign: 0,  // Right-align
+                xalign: 0,
                 placeholder_text:
                     _('Modifier + Key (e.g. Ctrl + Alt + D)'),
                 width_chars: 30,
@@ -173,7 +173,7 @@ const EditableShortcutRow = GObject.registerClass(
                 shortcutEditor.set_text('');
                 this.writeaccel(this.actionNamed, newaccelstring);
                 popover.popdown();
-            }); // on Enter
+            });
 
             shortcutEditor.connect('icon-press', (entry, position) => {
                 switch (position) {
@@ -188,7 +188,7 @@ const EditableShortcutRow = GObject.registerClass(
             });
 
 
-            // On popover close (via outside click)
+
             popover.connect('hide', () => {
                 finishEditing();
                 popover.unparent();
@@ -439,12 +439,12 @@ const ShortcutManager = class {
             'action-enabled-changed',
             (_app, name, _enabled) => this._setAccel(name)
         );
-        // Global shortcuts are automatically monitored and set by the
-        // extension from settings
+
+
     }
 
-    // this function is not used, but is another way of setting action
-    // descriptions.
+
+
     _setStateHints() {
         for (const [actionName, {Hint}] of
             Object.entries(this._localShortcuts)
@@ -684,11 +684,11 @@ const ShortcutManager = class {
         shortcutsWindow.set_title('Shortcuts');
         shortcutsWindow.set_default_size(600, 650);
 
-        // Do not make modal or skip-taskbar as we have a .desktop icon
-        // showing up in the dock for the window to assist navigation.
-        // const modal = true;
-        // this._DesktopIconsUtil.windowHidePagerTaskbarModal(
-        //     shortcutsWindow, modal);
+
+
+
+
+
 
         const shortcutsFrame = Adw.PreferencesPage.new();
         shortcutsFrame.set_name(_('Keyboard Shortcuts'));

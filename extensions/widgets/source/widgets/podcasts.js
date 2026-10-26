@@ -45,7 +45,7 @@ export class Widget extends WidgetBase {
                         eps.push({...e, show: feeds[i].nombre, feed: feeds[i].url, img: feed.imagen});
                 }
             } catch (_e) {
-                // feed ilegible
+
             }
         });
         eps.sort((a, b) => (b.fecha?.getTime() ?? 0) - (a.fecha?.getTime() ?? 0));
@@ -78,7 +78,7 @@ export class Widget extends WidgetBase {
         try {
             proceso?.force_exit();
         } catch (_e) {
-            // ya terminó
+
         }
         proceso = null;
         this._sonando = null;

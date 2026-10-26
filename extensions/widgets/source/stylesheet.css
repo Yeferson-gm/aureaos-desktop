@@ -1,4 +1,4 @@
-/* ── Marcos de widget ─────────────────────────────────────────────────── */
+
 .lw-btn { border-radius: 8px; padding: 2px 4px; }
 .lw-dark .lw-hover:hover { background-color: rgba(255, 255, 255, 0.12); }
 .lw-light .lw-hover:hover { background-color: rgba(0, 0, 0, 0.07); }
@@ -30,7 +30,7 @@
 .lw-foto-cor { padding: 4px 8px; border-radius: 99px; background-color: rgba(0, 0, 0, 0.35); }
 .lw-check { border-radius: 99px; }
 
-/* ── Hojas modales ────────────────────────────────────────────────────── */
+
 .lintel-hoja-dim { background-color: rgba(6, 8, 14, 0.5); }
 .lintel-hoja {
     padding: 18px 20px 20px 20px; border-radius: 22px; color: #f5f5f7;
@@ -90,7 +90,7 @@
 .lintel-thumb { width: 96px; height: 96px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0); }
 .lintel-thumb:hover { border-color: #0a84ff; }
 
-/* ── Menú contextual ──────────────────────────────────────────────────── */
+
 .lintel-ctx {
     min-width: 210px; padding: 6px; border-radius: 12px; color: #f5f5f7;
     background-color: rgba(44, 46, 56, 0.92); border: 1px solid rgba(255, 255, 255, 0.16);

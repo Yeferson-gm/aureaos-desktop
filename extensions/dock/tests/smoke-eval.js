@@ -57,4 +57,14 @@
     menuStream.close(null);
     app._menu.close();
     return {icons: items.length, bounds: 'ok', reset: 'ok'};
-})()
+})().then(async result => {
+    const {default: Gio} = await import('gi://Gio');
+    const {default: GLib} = await import('gi://GLib');
+    Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/result.txt')
+        .replace_contents(new TextEncoder().encode('PASS: ' + JSON.stringify(result)), null, false, Gio.FileCreateFlags.NONE, null);
+}).catch(async error => {
+    const {default: Gio} = await import('gi://Gio');
+    const {default: GLib} = await import('gi://GLib');
+    Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/result.txt')
+        .replace_contents(new TextEncoder().encode('FAIL: ' + error.message + String.fromCharCode(10) + error.stack), null, false, Gio.FileCreateFlags.NONE, null);
+})

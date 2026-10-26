@@ -1,0 +1,9 @@
+# Notas de theme/icons/Aurea27/animations/22/nm-stage01-connecting01.svg
+
+Comentarios trasladados durante la consolidación. Los números corresponden al archivo antes del traslado.
+
+## Línea 2
+
+````text
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+````

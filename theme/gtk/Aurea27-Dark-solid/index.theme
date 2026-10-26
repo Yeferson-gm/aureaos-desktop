@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Aurea27-Dark-solid
+Comment=A MacOS BigSur like Gtk+ theme based on Elegant Design
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=Aurea27-Dark-solid
+MetacityTheme=Aurea27-Dark-solid
+IconTheme=Aurea27-Dark
+CursorTheme=Aurea27-cursors
+ButtonLayout=close,minimize,maximize:menu
+

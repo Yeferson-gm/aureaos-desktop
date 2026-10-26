@@ -42,7 +42,7 @@ const SpecialFolderIcon = class extends FileItemIcon {
     _destroy() {
         this._destroying = true;
 
-        /* Trash */
+
         if (this._monitorTrashId) {
             this._monitorTrashDir.disconnect(this._monitorTrashId);
             this._monitorTrashDir.cancel();
@@ -56,8 +56,8 @@ const SpecialFolderIcon = class extends FileItemIcon {
 
     _setFileName(text) {
         if (this._fileTypeEnum === this.Enums.FileType.USER_DIRECTORY_HOME) {
-            // TRANSLATORS: "Home" is the text that will be shown in
-            //  the user's personal folder
+
+
             text = _('Home');
         }
         super._setLabelName(text);
@@ -75,8 +75,8 @@ const SpecialFolderIcon = class extends FileItemIcon {
             break;
 
         case this.Enums.FileType.USER_DIRECTORY_TRASH:
-            /** TRANSLATORS: when using a screen reader,this is the text read
-             *  when the trash folder is selected. */
+
+
             this.container.update_property(
                 [Gtk.AccessibleProperty.LABEL],
                 [`${trashName}`]

@@ -63,7 +63,7 @@ const FileItemMenu = class {
             return null;
     }
 
-    /* Shows all possible values that can be assigned to this function */
+
     showMenu(
         fileItem,
         _button = null,
@@ -228,7 +228,7 @@ const FileItemMenu = class {
             }
         }
 
-        // fileExtra == NONE
+
 
         if (fileItem.isAllSelectable &&  !fileItem.isStackMarker) {
             const contentType = fileItem.attributeContentType;
@@ -343,12 +343,12 @@ const FileItemMenu = class {
             }
         }
 
-        // fileExtra == TRASH
+
 
         if (fileItem.isTrash)
             emptyTrashMenu.append(_('Empty Trash'), 'app.emptytrash');
 
-        // fileExtra == EXTERNAL_DRIVE
+
 
         if (fileItem.isDrive) {
             if (fileItem.canEject)
@@ -810,18 +810,18 @@ const FileItemActions = class {
                     installedApp.get_filename(),
                     GLib.KeyFileFlags.KEEP_TRANSLATIONS);
 
-                // Override the in-memory copy, preserving launch metadata.
+
                 keyFile.set_string(
                     'Desktop Entry', 'Exec', 'nautilus --new-window %U');
 
-                // Use Exec; Nautilus forwards it to the running instance.
+
                 keyFile.set_boolean('Desktop Entry', 'DBusActivatable', false);
                 const launcher = DesktopAppInfo.new_from_keyfile(keyFile);
 
                 if (launcher.launch_uris([fileItem.file.get_uri()], context))
                     return;
             } catch (e) {
-                // Fall back to the default URI handler if launch fails.
+
             }
         }
 
@@ -1054,12 +1054,12 @@ const FileItemActions = class {
             return null;
         }
 
-        // Translators - basename for a zipped archive created for mailing
+
         const archiveName = _('Archive.zip');
 
         let archiveFile;
         let checkDir;
-        // Create a random directory in /tmp
+
         do {
             const randomString = GLib.uuid_string_random().slice(0, 5);
             const dir = `/tmp/gtk4-ding-${randomString}`;

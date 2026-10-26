@@ -11,7 +11,7 @@ const START = Clutter.ActorAlign.START;
 const END = Clutter.ActorAlign.END;
 const CENTER = Clutter.ActorAlign.CENTER;
 
-// Contenedor de un widget: estilo (vidrio/sólido), edición, mover y redimensionar.
+
 export class Marco {
     constructor(core, cfg, modulo) {
         this.core = core;
@@ -34,8 +34,8 @@ export class Marco {
             layout_manager: new Clutter.BinLayout(), reactive: true, style_class: 'lw-marco',
             x: cfg.x, y: cfg.y, width: cfg.w, height: cfg.h,
         });
-        // El padre puede destruir el actor mientras termina la animación de salida.
-        // Invalidar callbacks y temporizadores incluso si onComplete no se ejecuta.
+
+
         a.connect('destroy', () => this._liberar());
         this._blur = new St.Widget({x_expand: true, y_expand: true, style: 'background-color: rgba(0,0,0,0.004);'});
         this._cont = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, clip_to_allocation: true});
@@ -55,7 +55,7 @@ export class Marco {
         this.refrescarEstilo();
     }
 
-    // ── Estilo ────────────────────────────────────────────────────────
+
     refrescarEstilo() {
         const est = this.cfg.estilo;
         this.pal = paleta(est, this.core.cfg.global);
@@ -88,7 +88,7 @@ export class Marco {
         }
     }
 
-    // ── Contenido ─────────────────────────────────────────────────────
+
     reconstruir() {
         this._inst?.destruir();
         this._inst = null;
@@ -142,7 +142,7 @@ export class Marco {
         this.actor.destroy();
     }
 
-    // ── Modo edición ──────────────────────────────────────────────────
+
     _crearCapa() {
         const capa = new St.Widget({
             layout_manager: new Clutter.BinLayout(), reactive: true, visible: false,
@@ -151,8 +151,8 @@ export class Marco {
         capa.connect('button-press-event', (_a, ev) => {
             if (ev.get_button() !== Clutter.BUTTON_PRIMARY)
                 return PASS;
-            // Los eventos de los botones también llegan al contenedor. No
-            // capturar su liberación como si fueran un arrastre del widget.
+
+
             const [px, py] = ev.get_coords();
             const source = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, px, py);
             if (source && this._barra?.contains(source))
@@ -219,7 +219,7 @@ export class Marco {
         });
     }
 
-    // ── Arrastrar y redimensionar ─────────────────────────────────────
+
     _iniciarDrag(modo, ev) {
         const [px, py] = ev.get_coords();
         const {x, y, w, h} = this.cfg;

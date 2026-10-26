@@ -6,55 +6,55 @@ import {Enums, WebUtils} from '../dependencies/localFiles.js';
 
 export {ContentReader};
 
-/**
- * Clipboard reads always add isCut: true for Cut, false for Copy.
- * Drop reads omit it and use the negotiated Gdk.DragAction instead.
- *
- * references and format describe the same representation:
- * - text/uri-list: a string of newline-separated file URIs.
- * - x-special/gnome-icon-list: a string of URIs with icon coordinates.
- * - x-special/ding-icon-list: URIs on the wire, normalized to Gdk.FileList.
- * format uses the corresponding Enums.DndTargetInfo value.
- *
- * @typedef {{
- *   type: 'file-references',
- *   references: string | Gdk.FileList,
- *   format: 'text/uri-list' | 'x-special/gnome-icon-list' |
- *     'x-special/ding-icon-list',
- *   isCut?: boolean
- * }} FileReferenceContents
- *
- * @typedef {{
- *   type: 'web-links',
- *   links: Array<{url: string, title: string}>,
- *   customIcon: ?GdkPixbuf.Pixbuf
- * }} WebLinkContents
- *
- * @typedef {{type: 'text', text: string}} TextContents
- *
- * @typedef {{
- *   type: 'file-content',
- *   name: string,
- *   bytes: GLib.Bytes
- * }} NewFileContents
- *
- * @typedef {{type: 'unsupported', reason: string}} UnsupportedDropContents
- *
- * @typedef {FileReferenceContents|WebLinkContents|TextContents|
- *   NewFileContents|UnsupportedDropContents} DropContents
- */
 
-/**
- * Read the minimum representations needed for one content transfer.
- *
- * File routes read typed or textual file references. Browser text routes
- * prefer explicit URL metadata, then matching descriptions and HTML, then
- * URI-list and plain-text fallbacks. Standalone image or named binary
- * representations become file contents.
- *
- * After web links are identified, an offered image may separately provide
- * their optional custom icon.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const ContentReader = class {
     constructor(source, context, thumbnailLoader) {
         this._source = source;
@@ -63,11 +63,11 @@ const ContentReader = class {
         this._textByMimeType = new Map();
     }
 
-    // Public methods
 
-    // Clipboard file references extend the shared shape with an isCut boolean.
-    // Copy/cut metadata supplies its value; references without it use false.
-    // Drops use readContents() and obtain their action from Gdk.DragAction.
+
+
+
+
     async readClipboardContents() {
         if (this._offersMime('x-special/gnome-copied-files')) {
             const text = await this._readText('x-special/gnome-copied-files');
@@ -102,8 +102,8 @@ const ContentReader = class {
         const types = Enums.DropContentsType;
 
         if (route === routes.INTERNAL_DESKTOP_ITEMS) {
-            // dragManager offers this MIME as bytes (including special icons),
-            // not necessarily as a typed Gdk.FileList.
+
+
             const text = await this._readText(targets.DING_ICON_LIST);
             const data = Gdk.FileList.new_from_array(
                 GLib.Uri.list_extract_uris(text).map(uri => Gio.File.new_for_uri(uri))
@@ -156,7 +156,7 @@ const ContentReader = class {
             customIcon = await this.readOptionalWebLinkIcon();
         } catch (e) {
             this._rethrowIfCancelled(e);
-            // A missing optional icon must not prevent link creation.
+
         }
 
         return {...contents, customIcon};
@@ -195,13 +195,13 @@ const ContentReader = class {
         return null;
     }
 
-    // Private methods
+
 
     _offersMime(mime) {
         return this._context.mimeTypes.includes(mime);
     }
 
-    // Transfer each textual representation at most once for this operation.
+
     async _readText(mime) {
         if (!this._offersMime(mime))
             return '';
@@ -303,7 +303,7 @@ const ContentReader = class {
         };
     }
 
-    // Choose the most specific usable contents from the offered formats.
+
     async _readExternalDropContents() {
         const {route} = this._context;
         const routes = Enums.DndOfferRoute;
@@ -432,7 +432,7 @@ const ContentReader = class {
         return {
             type: Enums.DropContentsType.FILE_CONTENT,
             name: `Image.${extension}`,
-            // Preserve the source encoding and animation.
+
             bytes: new GLib.Bytes(bytes),
         };
     }
@@ -493,8 +493,8 @@ const ContentReader = class {
         return '';
     }
 
-    // Classify the decoded representation for routing. Whether a filesystem
-    // action can actually be performed is decided by its downstream handler.
+
+
     _classifyURIListText(text) {
         const types = Enums.DropContentsType;
         const targets = Enums.DndTargetInfo;

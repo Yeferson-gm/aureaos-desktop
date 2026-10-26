@@ -4,13 +4,13 @@ import os from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 
-// Un solo recurso instalado; los nombres antiguos siguen resolviendo para no
-// romper aplicaciones que solicitan, por ejemplo, folder-blue o folder-open.
+
+
 const project = path.dirname(fileURLToPath(import.meta.url));
 const iconRoot = process.env.ICON_TEST_ROOT ?? path.join(os.homedir(), '.local/share/icons');
-const themes = ['WhiteSur', 'WhiteSur-light', 'WhiteSur-dark'];
-const master = path.join(iconRoot, 'WhiteSur/places/scalable/folder.svg');
-const symbolic = path.join(iconRoot, 'WhiteSur/places/symbolic/folder-symbolic.svg');
+const themes = ['Aurea27', 'Aurea27-light', 'Aurea27-dark'];
+const master = path.join(iconRoot, 'Aurea27/places/scalable/folder.svg');
+const symbolic = path.join(iconRoot, 'Aurea27/places/symbolic/folder-symbolic.svg');
 const folderName = /^(?:folder(?:-.*)?|user-home(?:-symbolic)?|user-desktop(?:-symbolic)?|desktop)\.svg$/;
 const targets = new Set();
 for (const theme of themes) {
@@ -36,7 +36,7 @@ if (process.argv.includes('--check')) {
     }
     console.log(`PASS: ${targets.size} nombres/tamaños, una base cian y su silueta simbólica`);
 } else if (process.argv.includes('--apply')) {
-    // El llamador debe haber guardado una copia temporal antes de aplicar.
+
     if (fs.lstatSync(master).isSymbolicLink()) throw Error('El recurso principal debe ser un archivo normal');
     fs.copyFileSync(path.join(project, 'folder.svg'), master);
     fs.copyFileSync(path.join(project, 'folder-symbolic.svg'), symbolic);

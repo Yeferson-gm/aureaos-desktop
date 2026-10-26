@@ -18,13 +18,13 @@ export default class VerticalAppGridExtension extends Extension {
     this._vertAppDisplay = new VerticalAppDisplay(this._settings);
     this._injectionManager = new InjectionManager();
 
-    // Add the vertical app display to the overview
+
     this._overviewControls = Main.overview._overview._controls;
     this._overviewLayoutManager = this._overviewControls.layout_manager;
 
     this._overviewControls.add_child(this._vertAppDisplay);
 
-    // Steal the layout of the original app display
+
     this._overviewLayoutManager._appDisplay = this._vertAppDisplay;
 
     this._injectionManager.overrideMethod(overviewControlsProto, '_updateAppDisplayVisibility', () => function (params = null) {
@@ -39,17 +39,17 @@ export default class VerticalAppGridExtension extends Extension {
         state > OverviewControls.ControlsState.WINDOW_PICKER &&
         !this._searchController.searchActive;
 
-      // Focus the vertical app display
+
       if (extension._vertAppDisplay.visible) {
         global.stage.set_key_focus(extension._vertAppDisplay);
       }
 
-      // Disable drag and drop on the original app grid to prevent internal
-      // errors when rearranging app icons in the dash
+
+
       extension._overviewControls.appDisplay._disconnectDnD();
     });
 
-    // Fade out the app display when the search becomes active
+
     this._injectionManager.overrideMethod(overviewControlsProto, '_onSearchChanged', originalFn => function () {
       originalFn.call(this);
 
@@ -59,13 +59,13 @@ export default class VerticalAppGridExtension extends Extension {
         opacity: searchActive ? 0 : 255,
         duration: OverviewControls.SIDE_CONTROLS_ANIMATION_TIME,
         mode: Clutter.AnimationMode.EASE_OUT_QUAD
-        // TODO: https://gitlab.gnome.org/GNOME/gnome-shell/-/commit/c518e3ddcc7bee86331a3c2f73896793d00f4f91
-        // TODO: overview on startup
-        // TODO: check all injections
+
+
+
       });
     });
 
-    // Rename the "Pin to Dash" item in the app menu
+
     this._injectionManager.overrideMethod(AppMenu.AppMenu.prototype, '_updateFavoriteItem', originalFn => function () {
       originalFn.call(this);
 

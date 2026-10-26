@@ -20,25 +20,25 @@ import {WidgetWindow} from '../dependencies/localFiles.js';
 export {PinnedWindowManager};
 
 const PinnedWindowManager = class {
-    /**
-     * Runtime owner for pinned widget host windows.
-     *
-     * WidgetManager keeps canonical widget state. This class owns only the
-     * runtime host objects that expose those instances as pinned windows.
-     *
-     * @param {object} params
-     * @param {object} params.widgetManager
-     * @param {object} params.mainApp
-     */
+
+
+
+
+
+
+
+
+
+
     constructor(params = {}) {
         this._widgetManager = params.widgetManager ?? null;
         this._mainApp = params.mainApp ?? null;
         this._windows = new Map();
     }
 
-    // -----------------------------------------------------------------
-    // Public API
-    // -----------------------------------------------------------------
+
+
+
 
     hasInstance(instanceId) {
         return this._windows.has(instanceId);

@@ -45,7 +45,7 @@ function importar(ruta, existentes) {
             if (ok)
                 nuevos.push(...parsearVcf(new TextDecoder().decode(b)));
         } catch (_e) {
-            // ilegible
+
         }
     };
     try {
@@ -61,7 +61,7 @@ function importar(ruta, existentes) {
             leer(ruta);
         }
     } catch (_e) {
-        // ruta inválida
+
     }
     const tiene = new Set(existentes.map(c => c.nombre.toLowerCase()));
     return nuevos.filter(c => !tiene.has(c.nombre.toLowerCase()));

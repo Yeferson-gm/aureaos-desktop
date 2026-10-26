@@ -43,12 +43,12 @@ export {DesktopManager};
 
 const DesktopManager = class {
     constructor(Data, Utils, desktopList, codePath, asDesktop, primaryIndex) {
-        // Inherit
+
         this.mainApp = Data.mainApp;
         this.codePath = codePath;
         this._asDesktop = asDesktop;
         if (asDesktop) {
-            // Don't close the application if there are no desktops
+
             this.mainApp.hold();
             this._hold_active = true;
         }
@@ -57,7 +57,7 @@ const DesktopManager = class {
 
         this.uuid = Data.uuid;
 
-        // Init and import Scripts and classes
+
         this.DesktopIconsUtil = Utils.DesktopIconsUtil;
         this.FileUtils = Utils.FileUtils;
         this.Enums = Data.Enums;
@@ -71,7 +71,7 @@ const DesktopManager = class {
         this.appChooser = AppChooser;
         this.ThumbnailLoader = Utils.ThumbnailLoader;
 
-        // init methods
+
         this.dropOperations =
             new DesktopDropOperations.DesktopDropOperations(this);
         this.dragManager = new DragManager.DragManager(this);
@@ -93,17 +93,17 @@ const DesktopManager = class {
         this.mainApp.getDialogParentWindow =
             this.getDialogParentWindow.bind(this);
 
-        // Init Variables
+
         this._clickX = null;
         this._clickY = null;
         this._compositeStackList = null;
         this._displayList = [];
         this._desktopUpdateQueue = Promise.resolve();
-        // Track last seen keyboard modifier state so accelerators can query it
+
         this._lastModifierState = 0;
         this.ignoreKeys = this.Enums.IgnoreKeys.map(_k => Gdk[_k]);
 
-        // setup gracefull termination
+
         if (this._asDesktop) {
             this._sigtermID = GLibUnix.signalAdd(
                 GLib.PRIORITY_DEFAULT,
@@ -137,15 +137,15 @@ const DesktopManager = class {
     }
 
     runSerializedDesktopMutation(updateFn) {
-        // Run desktop updates one at a time. Each call keeps its own turn, so
-        // this serializes updates but does not merge them into a single call.
-        //
-        // Callers must pass a function with the correct `this` binding already
-        // applied; `then()` invokes it directly.
+
+
+
+
+
         const nextUpdate = this._desktopUpdateQueue.then(updateFn);
 
-        // Keep the queue chain alive even if one update fails; callers still
-        // get the rejection from `nextUpdate`.
+
+
         this._desktopUpdateQueue = nextUpdate.catch(() => {});
 
         return nextUpdate;
@@ -158,35 +158,35 @@ const DesktopManager = class {
     }
 
     async _syncStartupDesktop() {
-        // startup in a particular order
-        // First create and make sure windows are created
+
+
         const windowscreated = new Promise(resolve => {
             this.windowsPromiseResolve = resolve;
             this.windowManager.createGridWindows().catch(e => logError(e));
-            // If this desktop List is null, ask for a new one
+
             this.windowManager.requestGeometryUpdate();
         });
 
-        // Monitor is attached, windows are created with proper geometry
+
         await windowscreated.catch(e => logError(e));
 
-        // Now we can actually display errors, so check for them
-        // Ensure that there is a 'Desktop' folder set and it exists
-        // Verify if Gnome Files is available and executable, otherwise warn
-        // Confirm Gnome Files is registered with xdg-utils
-        // to handle inode/directory
+
+
+
+
+
         this._performSanityChecks().catch(e => logError(e));
 
-        // The initialRead parameter insures tha grid positions are recalculated
-        // and recaculated postions of all fileItems will be re-written to
-        // disk with write mode 'OVERWRITE'
+
+
+
         const initialRead = true;
 
-        // prior fileList, even if triggered through desktopdir changes
-        // will not be displayed as windows were not there.
+
+
         const fileList = await this.desktopMonitor.getFileList();
 
-        // This is no longer needed, if true it blocks and all updates.
+
         this.windowsPromiseResolve = null;
 
         await this._runSerializedDrawDesktop(
@@ -195,28 +195,28 @@ const DesktopManager = class {
         ).catch(e => {
             logError(e);
         });
-        // First intitiation complete, valid file read from
-        // desktopdir, even if a prior fileList was read, the
-        // forced new read will recalculate and resave new
-        // normalized coordinates and monitor information.
+
+
+
+
 
         this._startWidgetDisplay();
 
-        // force a queue draw of all windows now that we have drawn the desktop,
-        // and poke mutter to map the meta window.
+
+
         this.windowManager.queue_draw();
     }
 
     async _performSanityChecks() {
-        // show error if monitor frame buffer scaling is not enabled first,
-        //  as windows may be awry
+
+
         if (this.windowManager.differentZooms &&
             !this.fractionalScaling &&
             !this._framebufferWarningDone) {
             const header = _('Monitor Frame Buffer Scaling is not enabled');
             const text = _('Multiple monitors with different zoom settings, recommend per monitor framebuffer scaling.\n\nPlease enable in Mutter Dconf Settings');
-            // show notification as well as error dialog as windows may
-            //  not be postioned correctly
+
+
             this.dbusManager.doNotify(header, text);
             this._framebufferWarningDone = true;
 
@@ -253,7 +253,7 @@ const DesktopManager = class {
             null);
         if (fileType === Gio.FileType.SYMBOLIC_LINK) {
             const header = _('Can Not Show the Desktop');
-            // TRANSLATORS: {desktop} folder path automatically inserted
+
             const text = _('The Desktop folder {desktop} is a Symbolic Link\n\nPlease set the Desktop Folder to a real Folder');
             const errorDialog = this.showError(
                 header,
@@ -263,7 +263,7 @@ const DesktopManager = class {
             this._desktops.forEach(d => d.setErrorState());
         } else if (fileType !== Gio.FileType.DIRECTORY) {
             const header = _('Can Not Show the Desktop');
-            // TRANSLATORS: {desktop} folder path automatically inserted
+
             const text = _('The Desktop folder {desktop} does not exist, or is not a Directory\n\nCheck your xdg-utils installation and set the correct Desktop Folder');
             const errorDialog = this.showError(
                 header,
@@ -344,16 +344,16 @@ const DesktopManager = class {
         this.windowManager.destroyDesktops();
     }
 
-    // Keyboard and Mouse Events
+
 
     onPressButton(X, Y, x, y, button, shiftPressed, controlPressed) {
         this._clickX = Math.floor(X);
         this._clickY = Math.floor(Y);
 
-        // Left Click
+
         if (button === 1) {
             if (!shiftPressed && !controlPressed) {
-                // clear selection
+
                 this.unselectAll();
             }
             this.dragManager.startRubberband(X, Y);
@@ -361,7 +361,7 @@ const DesktopManager = class {
     }
 
     async onReleaseButton(X, Y, x, y, button, isShift, isCtrl, grid) {
-        // Right Click
+
         if (button === 3) {
             await this.desktopMenuManager
                 .showDesktopMenu(x, y, grid)
@@ -412,7 +412,7 @@ const DesktopManager = class {
                     !this.keypressTimeoutID) {
                     const secondaryText = null;
                     const helpURL = null;
-                    const timeoutClose = 2000; // In ms
+                    const timeoutClose = 2000;
                     this.showError(
                         _('Clear current selection before new search'),
                         secondaryText,
@@ -452,12 +452,12 @@ const DesktopManager = class {
     }
 
     updateModifierState(state) {
-        // cache modifier state for use by accelerator-driven handlers
+
         this._lastModifierState = state;
     }
 
     clearModifierState() {
-        // reset cached modifier state
+
         this._lastModifierState = 0;
     }
 
@@ -475,10 +475,10 @@ const DesktopManager = class {
     }
 
     clearAllLayersFromGrids(layoutChange = {}) {
-        // Icons: clear from all grids
+
         this._displayList.forEach(x => x.removeFromGrid());
 
-        // Widgets: clear from all grids
+
         this.widgetManager.clearFromGrids(layoutChange);
     }
 
@@ -489,7 +489,7 @@ const DesktopManager = class {
     } = {}) {
         this._performSanityChecks();
 
-        // Icons first
+
         await this._reFrameDesktop({
             redisplay,
             monitorschanged,
@@ -504,8 +504,8 @@ const DesktopManager = class {
     }
 
 
-    // Destktop Icon Placement and Display
-    // ********************************************************************** */
+
+
 
     _removeAllFilesFromGrids() {
         for (let fileItem of this._displayList)
@@ -527,8 +527,8 @@ const DesktopManager = class {
         const selectedFiles = this.getCurrentSelectionAsUri();
         const displayList = [...fileList];
 
-        //* Remove all files from the grids just before placing new files to
-        // prevent flickering icons *//
+
+
         if (opts.initialRead)
             this._removeAllFilesFromGrids();
         else
@@ -538,21 +538,21 @@ const DesktopManager = class {
         this._placeAllFilesOnGrids(opts);
 
         const drawComplete = displayList.map(async fileItem => {
-            // Start icon loading early so late loads settle before first paint.
+
             await fileItem.updateIcon();
             if (selectedFiles) {
                 if (selectedFiles.includes(fileItem.uri))
                     fileItem.setSelected();
             }
-            // Wait for either snapshot placement or the not-shown fallback.
+
             await fileItem.iconPlaced;
         });
 
         await Promise.all([...drawComplete]);
 
-        //* Desktop draw/paint is now complete *//
-        //* Reposition open Menus, renameFileItem pop up's **//
-        //* Any task after complete desktop draw can now be done *//
+
+
+
         this._refreshMenus();
     }
 
@@ -605,17 +605,17 @@ const DesktopManager = class {
         let storeMode = this.Enums.StoredCoordinates.PRESERVE;
         if (opts.redisplay ||
             opts.initialRead) {
-            // write the new recomputed positions to metadata when assigned
+
             storeMode = this.Enums.StoredCoordinates.OVERWRITE;
             this._sortByCurrentPosition();
             this._recomputeWindowPositions();
         }
         if (opts.gridschanged && !this.Prefs.freePositionIcons) {
-            // if snap to grid, recompute column, row for fileItems
-            // so they end up in the same relative grid, otherwise they keep
-            // shifting postions. This keeps them in the same relative grid
-            // position. For snap to grid this will apply the new  global x,y of
-            // the grid assigned
+
+
+
+
+
             this._recomputeGridPositions();
         }
         this._addFilesToDesktop(this._displayList, storeMode);
@@ -673,8 +673,8 @@ const DesktopManager = class {
             const itemMonitorIndex = fileItem._monitorIndex;
             let desktop;
 
-            // reassign to monitors
-            // if on primary monitor, reassign to new primary
+
+
             if (itemMonitorIndex === this._priorPrimaryMonitorIndex &&
                 this._primaryMonitorIndex != null) {
                 if (!this.Prefs.showOnSecondaryMonitor) {
@@ -686,26 +686,26 @@ const DesktopManager = class {
                 }
             }
 
-            // reassign not on primary monitor to prior monitor if
-            // if the prior monitor is still in index
+
+
             if (!desktop) {
                 [desktop] = this._desktops.filter(d => {
                     return d.monitorIndex === itemMonitorIndex;
                 });
             }
 
-            // reassingn to new monitor, prior monitor not available
+
             if (!desktop)
                 desktop = this.preferredDisplayDesktop;
 
-            // if any error, leave unmapped to new monitor, placement algorithm
-            //  will find placement from the old global position
+
+
             if (!desktop)
                 return;
 
             fileItem.temporaryMonitorIndex = desktop.monitorIndex;
 
-            // recompute coordinates for the new monitor
+
             const x = fileItem._normalCoordinates[0];
             const y = fileItem._normalCoordinates[1];
             const [newlocalX, newlocalY] =
@@ -724,8 +724,8 @@ const DesktopManager = class {
         let notAssignedYet = [];
         let droppedFiles = [];
 
-        // First, add those icons that have saved coordinates
-        // and fit in the current desktops
+
+
         for (let fileItem of fileList) {
             if (fileItem.savedCoordinates === null) {
                 if (fileItem.dropCoordinates !== null)
@@ -756,9 +756,9 @@ const DesktopManager = class {
                 outOfDesktops.push(fileItem);
         }
 
-        // Now, assign icons that have landed in changed margins, belong to
-        // monitor and the window, however no longer fit on the grid as
-        // they overlap margins.
+
+
+
 
         if (outOfDesktops.length) {
             this._addFilesCloseToAssignedDesktop(
@@ -770,7 +770,7 @@ const DesktopManager = class {
 
         outOfDesktops = [];
 
-        // Now assign those icons that have dropped coordinates
+
         for (let fileItem of droppedFiles) {
             let [x, y] = fileItem.dropCoordinates;
             storeMode = this.Enums.StoredCoordinates.OVERWRITE;
@@ -790,8 +790,8 @@ const DesktopManager = class {
                 outOfDesktops.push(fileItem);
         }
 
-        // Now, try again assign those icons that had dropped coordinates and
-        // did not fit on dropped desktop, to the preferred or closest desktop
+
+
         if (outOfDesktops.length) {
             this._addFilesCloseToAssignedDesktop(
                 outOfDesktops,
@@ -801,15 +801,15 @@ const DesktopManager = class {
             outOfDesktops = [];
         }
 
-        // Finally, assign coordinates of preferred desktop to those new icons
-        // that still don't have coordinates and place on preferred desktop or
-        // the next closest one
+
+
+
         for (let fileItem of notAssignedYet) {
             let x = preferredDesktop.gridGlobalRectangle.x;
             let y = preferredDesktop.gridGlobalRectangle.y;
             storeMode = this.Enums.StoredCoordinates.ASSIGN;
 
-            // try first in the designated desktop
+
             let assigned = false;
             if (preferredDesktop.coordinatesBelongToThisGrid(x, y) &&
                 preferredDesktop.isAvailable()) {
@@ -821,8 +821,8 @@ const DesktopManager = class {
                 outOfDesktops.push(fileItem);
         }
 
-        // if there was no space in the preferred desktop, place on the
-        // desktop closest to preferred
+
+
         if (outOfDesktops.length) {
             this._addFilesCloseToAssignedDesktop(
                 outOfDesktops,
@@ -846,8 +846,8 @@ const DesktopManager = class {
                 storeMode = this.Enums.StoredCoordinates.OVERWRITE;
             }
 
-            // Find the closest desktop to given position, is null
-            // if not available
+
+
             const newDesktop = this.windowManager.getClosestDesktop(x);
 
             if (newDesktop) {
@@ -949,9 +949,9 @@ const DesktopManager = class {
     }
 
     _sortAllFilesFromGridsByKindStacked(opts = {redisplay: false}) {
-        /**
-         * Looks through the generated fileItems
-         */
+
+
+
         function determineStackTopSizeOrTime() {
             for (let item of otherFiles) {
                 if (item.isStackMarker) {
@@ -967,22 +967,22 @@ const DesktopManager = class {
             }
         }
 
-        /**
-         * Sorts fileItems by file size
-         *
-         * @param {integer} a the first file size
-         * @param {integer} b the secondfile size
-         */
+
+
+
+
+
+
         function bySize(a, b) {
             return a.fileSize - b.fileSize;
         }
 
-        /**
-         * Sorts fileItems by time
-         *
-         * @param {integer} a the first file timestamp
-         * @param {integer} b the second file timestamp
-         */
+
+
+
+
+
+
         function byTime(a, b) {
             return a._modifiedTime - b._modifiedTime;
         }
@@ -1127,17 +1127,17 @@ const DesktopManager = class {
     }
 
     _sortByName(fileList) {
-        /**
-         * @param {string} a fileItem filename for A
-         * @param {string} b fileItem filename for B
-         */
+
+
+
+
         function byName(a, b) {
-            // sort by label name instead of the the fileName or displayName so
-            // that the "Home" folder is sorted in the correct order
-            // alphabetical sort taking into account accent characters &
-            // locale, natural language sort for numbers, ie 10.etc before 2.etc
-            // other options for locale are best fit, or by specifying directly
-            // in function below for translators
+
+
+
+
+
+
             return a.labelText
                 .localeCompare(
                     b.labelText,
@@ -1152,12 +1152,12 @@ const DesktopManager = class {
     }
 
     _sortByKindByName(fileList) {
-        /**
-         * Sort by Kind, then by name
-         *
-         * @param {string} a fileItem
-         * @param {string} b fileItem
-         */
+
+
+
+
+
+
         function byKindByName(a, b) {
             return (
                 a.attributeContentType
@@ -1344,8 +1344,8 @@ const DesktopManager = class {
         );
     }
 
-    // Desktop Manager Main methods
-    // ********************************************************************** */
+
+
 
 
     findFiles(text) {
@@ -1486,10 +1486,10 @@ const DesktopManager = class {
     }
 
     _sortAllFilesFromGridsByModifiedTime() {
-        /**
-         * @param {integer} a fileItem file modified time
-         * @param {integer} b fileItem file modified time
-         */
+
+
+
+
         function byTime(a, b) {
             return a._modifiedTime - b._modifiedTime;
         }
@@ -1498,10 +1498,10 @@ const DesktopManager = class {
     }
 
     _sortAllFilesFromGridsBySize() {
-        /**
-         * @param {integer} a fileItem fileSize
-         * @param {integer} b fileItem fileSize
-         */
+
+
+
+
         function bySize(a, b) {
             return a.fileSize - b.fileSize;
         }
@@ -1785,8 +1785,8 @@ const DesktopManager = class {
     }
 
     async redrawDesktop() {
-        // fileList is not changed, we just need to render the desktop again
-        // with changes in icon color, emblem, appearance, theme change etc.
+
+
         const opts = {initialRead: false, redisplay: true};
         const fileList = [...this.desktopMonitor.fileList];
 
@@ -1802,9 +1802,9 @@ const DesktopManager = class {
     }
 
     async refreshDesktop() {
-        // fileList is changed, we need to render the desktop again
-        // with latest fileList from the desktopMonitor. The position of the
-        // icons is also recomputed from the normalized coordinates.
+
+
+
         const opts = {initialRead: true};
         const fileList = [...this.desktopMonitor.fileList];
 
@@ -1814,11 +1814,11 @@ const DesktopManager = class {
     }
 
     async _reFrameDesktop(opts) {
-        // fileList is not changed, grids changed, monitor added, removed,
-        // monitor geometry, zoom, or index changed.
-        // We need to recompute the position of the icons
-        // from the normalized coordinates and redraw the desktop and reassign
-        // the icons to the correct grid and monitors
+
+
+
+
+
         const fileList = [...this.desktopMonitor.fileList];
 
         await this._drawDesktop(fileList, opts).catch(e => {
@@ -1831,8 +1831,8 @@ const DesktopManager = class {
     }
 
     async onGtkSettingsChanged() {
-        // No serializer here. The actual desktop mutation is serialized later
-        // when the reload reaches refreshDesktop().
+
+
         await this.reLoadDesktop();
         this.desktopMenuManager.updateTemplates();
     }
@@ -1904,7 +1904,7 @@ const DesktopManager = class {
         this.widgetManager.onAnimationChanged();
     }
 
-    // Getters and Setters
+
 
     get desktopDir() {
         return this.desktopMonitor.desktopDir;

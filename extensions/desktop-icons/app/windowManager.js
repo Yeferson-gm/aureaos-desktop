@@ -109,9 +109,9 @@ const WindowManager = class {
     }
 
     async updateGridWindows(updateData) {
-        // Keep only the latest pending request while a grid update is already
-        // running. That lets us serialize the actual work and skip bursty
-        // intermediate geometry changes that would be replaced anyway.
+
+
+
         this._pendingGridWindowsUpdate = updateData;
 
         if (this._gridWindowsUpdatePromise != null) {
@@ -122,8 +122,8 @@ const WindowManager = class {
         const updatePromise = (async () => {
             let lastError = null;
 
-            // Drain the newest pending request one at a time so bursty
-            // geometry changes collapse down to the latest state.
+
+
             while (this._pendingGridWindowsUpdate != null) {
                 const nextUpdate = this._pendingGridWindowsUpdate;
                 this._pendingGridWindowsUpdate = null;
@@ -173,8 +173,8 @@ const WindowManager = class {
         const changeInfo =
             this._computeDesktopChangeInfo(newdesktoplist);
 
-        // A failed apply may have changed both bookkeeping and live windows.
-        // Rebuild instead of diffing against that partially applied state.
+
+
         if (this._geometryNeedsRecovery) {
             await this._handleMonitorCountChange();
             return;
@@ -190,14 +190,14 @@ const WindowManager = class {
             redisplay,
         } = changeInfo;
 
-        // Allow initial startup if no desktops defined on initiation
+
         if (firstDesktop) {
             await this._handleFirstDesktop();
             return;
         }
 
-        // If any new monitors plugged in or removed
-        // by creating new desktops
+
+
         if (monitorCountChanged) {
             await this._handleMonitorCountChange();
             return;
@@ -216,12 +216,12 @@ const WindowManager = class {
     }
 
     async _handleMonitorCountChange() {
-        // monitor has been plugged in or removed.
+
         this._desktopManager.clearAllLayersFromGrids();
         await this.createGridWindows();
 
-        // WindowManager owns the serialized geometry update flow; desktopManager
-        // only applies the resulting desktop mutations.
+
+
         await this._desktopManager.applyDesktopLayoutChange({
             redisplay: true,
             monitorschanged: true,
@@ -235,8 +235,8 @@ const WindowManager = class {
         this._desktopManager.clearAllLayersFromGrids();
         await this.createGridWindows();
 
-        // sanity checks and icons placement on grid will be done by
-        // desktopManager in sync startup
+
+
     }
 
     async _handleRedisplay({
@@ -267,54 +267,54 @@ const WindowManager = class {
             }
         });
 
-        // There is a subtle difference here, all information is needed
-        //
-        // gridschanged implies prior grid information is available.
-        // Therefore write mode is 'PRESERVE' initially
-        //
-        // monitors changed implies that all coordintes are rewritten to the
-        // new monitor relative coordinates with a write mode of 'OVERWRITE'
-        //
-        // redisplay re-arranges all the icons on the new desktop monitor,
-        // essential for proper sorting/stacking of icons and arranging of
-        // icons
-        //
-        // For keep arranged new coordinates are automatically written to
-        // grid. However for stacked co-ordinates- we will neeed to redo the
-        // old coordinates seperately in do stacks with nonitorschanged info
-        //
-        // WindowManager owns the serialized geometry update flow; desktopManager
-        // only applies the resulting desktop mutations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         await this._desktopManager.applyDesktopLayoutChange({
             redisplay,
             monitorschanged,
             gridschanged,
         });
 
-        // animate to the new margins and positions
-        // force a queue draw of all windows now that we have drawn the desktop,
-        // and poke mutter to map the meta window.
+
+
+
         this._displayAnimationToLive();
     }
 
 
     _updatePrimaryStateAndZoomInfo(newdesktoplist) {
-        // Save prior primary state
+
         this._priorPrimaryIndex = this._primaryIndex ?? null;
         this._priorPrimaryMonitorIndex = this._primaryMonitorIndex ?? 0;
 
-        // Compute new primary index
+
         let newPrimaryIndex;
 
         if (newdesktoplist.length > 0 &&
             ('primaryMonitor' in newdesktoplist[0]))
             newPrimaryIndex = newdesktoplist[0].primaryMonitor ?? null;
 
-        // Update primary index if changed
+
         if (newPrimaryIndex !== this._priorPrimaryIndex)
             this._primaryIndex = newPrimaryIndex;
 
-        // Find the new primary monitor
+
         this._primaryScreen = this._desktopList[this._primaryIndex] ?? null;
         this._primaryMonitorIndex = this._primaryScreen.monitorIndex ?? null;
 
@@ -323,8 +323,8 @@ const WindowManager = class {
         this._scaleFactorChanged = currentScaleFactor !== previousScaleFactor;
         this._priorScaleFactor = currentScaleFactor;
 
-        // See if there are different zooms in the desktops when logical scaling
-        // is not active. If scaleFactor is 1, zoom differences do not matter.
+
+
         this._differentZooms = this._desktopList[0]?.scaleFactor !== 1 &&
             this._desktopList.some((d, index) => {
                 const nextd = this._desktopList[index + 1];
@@ -342,7 +342,7 @@ const WindowManager = class {
 
         this._updatePrimaryStateAndZoomInfo(newDesktopList);
 
-        // Allow initial startup if no desktops defined on initiation
+
         const firstDesktop =
             priorDesktopList.some(d => typeof d !== 'object' || d == null) ||
             priorDesktopList.length === 0;
@@ -353,7 +353,7 @@ const WindowManager = class {
         const monitorschangedList = [];
         const gridschangedList = [];
 
-        // If this is the first desktop, we don't need finer diffing;
+
         if (firstDesktop) {
             return {
                 firstDesktop,
@@ -383,13 +383,13 @@ const WindowManager = class {
             };
         }
 
-        // if no change in monitors, check if any change in monitor geometry
-        // or if any change in grid geometry
+
+
         newDesktopList.forEach((area, index) => {
             const area2 = priorDesktopList[index];
 
             if (!area || !area2) {
-                // Monitor count changed; mark this index as changed and skip diff
+
                 monitorschangedList.push(index);
                 gridschangedList.push(index);
                 return;
@@ -420,19 +420,19 @@ const WindowManager = class {
         const indexChanged =
             this._priorPrimaryMonitorIndex !== this._primaryMonitorIndex;
 
-        // indexChanged implies monitors have changed
-        // monitors changed or index changed implies grids have changed
-        // as there may be other actors on the new monitor edge
+
+
+
         const monitorschanged = !!monitorschangedList.length || indexChanged;
 
-        // only the grids have changed, no monitor changes
+
         const gridschanged = gridschangedList.length
             ? gridschangedList.some(i => !monitorschangedList.includes(i))
             : false;
 
-        // redisplay is needed for sorting and stacking. Icons
-        // need to be redisplayed if anything changes - the actual fileList
-        // has not changed
+
+
+
         const redisplay = monitorschanged || gridschanged;
 
         return {
@@ -458,10 +458,10 @@ const WindowManager = class {
     }
 
     async createGridWindows() {
-        // Allow startup with no desktops from constructor
-        // even if no desktops are defined when started by the extension
-        // desktops can be defined later from updateGridWindows(), dbus
-        // activation
+
+
+
+
         if (!this._desktopList.length ||
             this._desktopList.some(d => {
                 return typeof d !== 'object' || d == null;
@@ -501,7 +501,7 @@ const WindowManager = class {
                 safegaurd = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000,
                     () => {
                         safegaurd = 0;
-                        // No useless log noise if windows fail to map
+
                         // eslint-disable-next-line prefer-promise-reject-errors
                         reject();
                         return GLib.SOURCE_REMOVE;
@@ -516,9 +516,9 @@ const WindowManager = class {
 
             await Promise.race([mapPromises, timeoutPromise]);
         } catch (e) {
-            // logError(e);
-            // if the windows fail to map, we should still proceed
-            // and poke the desktop windows later.
+
+
+
             this.show();
         } finally {
             if (safegaurd)
@@ -661,9 +661,9 @@ const WindowManager = class {
             if (tempDesktops.length === 1)
                 return tempDesktops[0];
 
-            // Positional algorithms here depending on new geomertry
-            // of the placed monitors, -FIX ME- currently rudimentary
-            // only going by position in the index, not by placement geometry.
+
+
+
 
             if (tempDesktops.length <= this._primaryMonitorIndex)
                 return tempDesktops[0];
@@ -671,7 +671,7 @@ const WindowManager = class {
                 return tempDesktops[tempDesktops.length - 1];
         }
 
-        // Catch All if everything fails
+
         return this._desktops[0];
     }
 

@@ -1,0 +1,143 @@
+{
+  "v": 1,
+  "global": {
+    "estilo": "glass",
+    "tema": "auto",
+    "cuadricula": true,
+    "tam": 20,
+    "imantar": true,
+    "animaciones": true,
+    "capa": "auto",
+    "unidad": "C",
+    "rastrear": true
+  },
+  "widgets": [
+    {
+      "id": "aurea-widget-0",
+      "tipo": "reloj",
+      "x": 24,
+      "y": 14,
+      "w": 170,
+      "h": 170,
+      "estilo": {
+        "estilo": "glass",
+        "tema": "global",
+        "radio": 24,
+        "tinte": "",
+        "acento": "",
+        "borde": true,
+        "sombra": true,
+        "escala": 100,
+        "opacidad": 42,
+        "desenfoque": 45
+      },
+      "opts": {
+        "estilo": "analogico",
+        "esfera": "clasica",
+        "segundos": true,
+        "barrido": false,
+        "h24": true
+      }
+    },
+    {
+      "id": "aurea-widget-1",
+      "tipo": "clima",
+      "x": 208,
+      "y": 14,
+      "w": 380,
+      "h": 170,
+      "estilo": {
+        "estilo": "glass",
+        "tema": "global",
+        "radio": 24,
+        "tinte": "",
+        "acento": "",
+        "borde": true,
+        "sombra": true,
+        "escala": 100,
+        "opacidad": 42,
+        "desenfoque": 45
+      },
+      "opts": {
+        "animacion": true,
+        "horas": true,
+        "dias": true
+      }
+    },
+    {
+      "id": "aurea-widget-2",
+      "tipo": "calendario",
+      "x": 24,
+      "y": 198,
+      "w": 564,
+      "h": 282,
+      "estilo": {
+        "estilo": "glass",
+        "tema": "global",
+        "radio": 24,
+        "tinte": "",
+        "acento": "",
+        "borde": true,
+        "sombra": true,
+        "escala": 100,
+        "opacidad": 42,
+        "desenfoque": 45
+      },
+      "opts": {
+        "feriados": true,
+        "cumples": true,
+        "lunes": true
+      }
+    },
+    {
+      "id": "aurea-widget-3",
+      "tipo": "baterias",
+      "x": 420,
+      "y": 500,
+      "w": 170,
+      "h": 170,
+      "estilo": {
+        "estilo": "glass",
+        "tema": "global",
+        "radio": 24,
+        "tinte": "",
+        "acento": "",
+        "borde": true,
+        "sombra": true,
+        "escala": 100,
+        "opacidad": 42,
+        "desenfoque": 45
+      },
+      "opts": {
+        "kde": true,
+        "tiempo": true
+      }
+    },
+    {
+      "id": "aurea-widget-4",
+      "tipo": "fotos",
+      "x": 24,
+      "y": 500,
+      "w": 374,
+      "h": 440,
+      "estilo": {
+        "estilo": "glass",
+        "tema": "global",
+        "radio": 24,
+        "tinte": "",
+        "acento": "",
+        "borde": true,
+        "sombra": true,
+        "escala": 100,
+        "opacidad": 42,
+        "desenfoque": 45
+      },
+      "opts": {
+        "modo": "aleatoria",
+        "intervalo": 10,
+        "ajuste": "cover",
+        "etiqueta": true
+      }
+    }
+  ]
+}

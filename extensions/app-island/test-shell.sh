@@ -10,7 +10,7 @@ if [[ ${1:-} != --session ]]; then
   mkdir -m 0700 "$XDG_RUNTIME_DIR"
   mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions"
   cp -a "$project" "$XDG_DATA_HOME/gnome-shell/extensions/side-dock-gnome50@local"
-  cp -a "$project/../macos27-dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
+  cp -a "$project/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
   echo "$DI_TEST_DIR"
   exec dbus-run-session -- bash "$0" --session
 fi

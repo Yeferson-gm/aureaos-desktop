@@ -3,24 +3,6 @@ import {readFileSync} from 'node:fs';
 
 const css = readFileSync(new URL('../stylesheet.css', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../extension.js', import.meta.url), 'utf8');
-const installer = readFileSync(new URL('../instalar-macos27-top-bar.sh', import.meta.url), 'utf8');
-const runtime = readFileSync(
-    `${process.env.HOME}/.local/share/gnome-shell/extensions/lintel-v2@local/extension.js`, 'utf8');
-const runtimeCss = readFileSync(
-    `${process.env.HOME}/.local/share/gnome-shell/extensions/lintel-v2@local/stylesheet.css`, 'utf8');
-
-function embedded(file, marker) {
-    const pattern = new RegExp(
-        `write_file ${file} <<'(${marker})'\\n([\\s\\S]*?)\\n\\1`);
-    return installer.match(pattern)?.[2] ?? null;
-}
-
-assert.equal(runtime, source, 'La versión instalada debe coincidir con el proyecto del Escritorio');
-assert.equal(runtimeCss, css, 'El CSS instalado debe coincidir con el proyecto del Escritorio');
-assert.equal(`${embedded('extension\\.js', '__LINTEL_EXTENSION_JS__')}\n`, source,
-    'El instalador debe contener el extension.js verificado');
-assert.equal(`${embedded('stylesheet\\.css', '__LINTEL_STYLESHEET__')}\n`, css,
-    'El instalador debe contener el stylesheet.css verificado');
 
 const braces = [...css].reduce((depth, character) => {
     if (character === '{')

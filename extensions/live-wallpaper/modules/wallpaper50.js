@@ -12,9 +12,9 @@ import { getBackgroundsDir } from "./utils.js";
 
 const RENDERER_WINDOW_PREFIX = "gwe-wallpaper-";
 
-// Mutter skips CPU culling for actors with an active effect. Without this,
-// the off-screen source is culled as fully obscured on fractionally scaled
-// monitors, so mpv stops receiving frames and the clones freeze.
+
+
+
 const NoCullEffect = GObject.registerClass(
     class NoCullEffect extends Clutter.Effect {}
 );
@@ -66,10 +66,10 @@ export class Wallpaper {
         const backgroundGroup = Main.layoutManager._backgroundGroup;
         backgroundGroup.add_child(actor);
 
-        // Tahoe Widgets comparte la capa de fondo con el video. Cuando el
-        // reproductor se inicia después, add_child() lo colocaba encima del
-        // lienzo y ocultaba todos los widgets. Mantener el video justo debajo
-        // del lienzo conserva el fondo animado sin tapar contenido de escritorio.
+
+
+
+
         const tahoeCanvas = backgroundGroup.get_children()
             .find(child => child.get_name?.() === "tahoe-canvas");
         if (tahoeCanvas && tahoeCanvas !== actor)
@@ -230,7 +230,7 @@ export class Wallpaper {
             try {
                 metaWindow.set_input_region(new Cairo.Region());
             } catch (_) {
-                // Some windowing backends don't support assigning an empty input region.
+
             }
             metaWindow.move_resize_frame(
                 true,
@@ -285,8 +285,8 @@ export class Wallpaper {
 
             windowActor.connect("destroy", () => {
                 this._windowFilter?.removeWindow(metaWindow);
-                // Un renderer anterior puede destruirse después de adjuntar
-                // el siguiente. Nunca eliminar los clones de otra sesión.
+
+
                 if (this._sourceActor !== windowActor) return;
                 this._destroyClones();
                 this._sourceActor = null;
@@ -299,8 +299,8 @@ export class Wallpaper {
     }
 
     _createOverviewLayer(source, monitors) {
-        // The overview has its own opaque theme background, above the desktop.
-        // Share the same video surface: no extra decoder or playback process.
+
+
         const group = Main.layoutManager.overviewGroup;
         this._overviewLayer = new St.Widget({
             name: "gwe-overview-video",
@@ -321,7 +321,7 @@ export class Wallpaper {
                 clip_to_allocation: true,
             }));
         }
-        // A light scrim keeps application labels readable without hiding video.
+
         this._overviewLayer.add_child(new St.Widget({
             reactive: false,
             style: "background-color: rgba(0, 0, 0, 0.18);",

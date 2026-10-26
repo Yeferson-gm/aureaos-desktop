@@ -1,10 +1,10 @@
 import {_} from '../dependencies/gettext.js';
 
-// app.actionName, Hint: Hint to display for action, Accel: Accelerator Key
-// Editing this file will automatically set the hints and Accelerator when
-// the program is started.
-//
-// Make sure file is not broken by edits!
+
+
+
+
+
 
 export const DefaultShortcuts = {
     doNewFolder: {Hint: _('New Folder'), Accel: '<Control><Shift>N', Edit: true},
@@ -43,7 +43,7 @@ export const DefaultShortcuts = {
         Edit: true,
     },
     addWidget: {Hint: _('Add Widget'), Accel: '<Shift><Control>plus', Edit: true},
-    // Allow navigation while holding Shift/Ctrl/Alt (and their shift combos)
+
     chooseIconLeft: {
         Hint: _('Choose Icon Left'),
         Accel: 'Left,<Shift>Left,<Control>Left,<Alt>Left,' +
@@ -73,7 +73,7 @@ export const DefaultShortcuts = {
     showShortcutViewer: {Hint: _('Show Shortcut Viewer'), Accel: '', Edit: true},
     forceGC: {Hint: _('Force Garbage Collection'), Accel: '', Edit: true},
     toggleVisibility: {Hint: _('Show Or Hide Desktop Icons'), Accel: '', Global: true},
-    // FileItem Menu Actions
+
     openMultipleFileAction: {Hint: 'Open All', Accel: '<Control>Return', Edit: true},
     openOneFileAction: {Hint: 'Open Item', Accel: 'Return', Edit: true},
     openInNewWindow: {
@@ -108,8 +108,8 @@ export const DefaultShortcuts = {
     onScriptClicked: {Hint: 'Run Script', Accel: ''},
     closeWidget: {Hint: 'Close Selected Widget', Accel: '<Shift><Control>X', Edit: true},
     toggleWidgetGrid: {Hint: 'Toggle Widget Grid', Accel: '<Control><Shift>G', Edit: true},
-    // Internal actions without user-facing shortcuts. Keep them registered so
-    // shortcut sync can ignore them safely when actions are added at runtime.
+
+
     updateGridWindows: {Hint: 'Update Grid Windows', Accel: ''},
     lowerWidgetLayer: {Hint: 'Lower Widget Layer', Accel: ''},
     raiseWidgetLayer: {Hint: 'Raise Widget Layer', Accel: ''},
@@ -122,12 +122,12 @@ export const DefaultShortcuts = {
     reloadCSS: {Hint: 'Reload CSS', Accel: ''},
 };
 
-// Following Global shortcuts will be added for editing and are editable
-// However we need to add the key - the actioinName in lowercase to schemas
-// for this to work, whithout the key added, it will not work.
-// For example, for the one below, togglevisibility key added as {as} gvariant
-// The program will automatically look for the lowercase key in schemas by
-// converting the actionName.toLowerCase().
+
+
+
+
+
+
 
 export const GlobalShortcuts = {
     toggleVisibility: DefaultShortcuts.toggleVisibility,

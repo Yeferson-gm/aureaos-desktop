@@ -36,7 +36,7 @@ const GioUnix = await import('gi://GioUnix?version=2.0')
     });
 
 var DesktopAppInfo;
-// Prefer GioUnix if available (newer GLib ≥ 2.80)
+
 if (GioUnix?.DesktopAppInfo)
     DesktopAppInfo = GioUnix.DesktopAppInfo;
 else if (Gio?.DesktopAppInfo)

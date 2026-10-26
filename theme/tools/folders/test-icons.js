@@ -1,10 +1,10 @@
-// Prueba la resolución real de iconos GTK 3/4, sin cambiar preferencias.
+
 imports.gi.versions.Gtk = ARGV[0];
 const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
 if (ARGV[0] === '4.0') Gtk.init();
 else Gtk.init(null);
-const themes = ['WhiteSur', 'WhiteSur-light', 'WhiteSur-dark'];
+const themes = ['Aurea27', 'Aurea27-light', 'Aurea27-dark'];
 const root = ARGV[1];
 const names = ['folder', 'folder-blue', 'folder-red', 'folder-green', 'folder-cyan',
     'folder-documents', 'folder-download', 'folder-pictures', 'folder-music', 'folder-videos',

@@ -21,7 +21,7 @@ export class WidgetBase {
     guardarDatos() { this.ctx.core.datos.guardar(); }
     guardarCfg() { this.ctx.core.guardarCfg(); }
 
-    // Etiqueta con la paleta del widget.
+
     t(texto, px = 13, {peso = 'normal', c = 'texto', align = null, ellipsis = true, expand = false, extra = ''} = {}) {
         const col = this.pal[c] ?? c;
         const l = new St.Label({
@@ -35,7 +35,7 @@ export class WidgetBase {
         return l;
     }
 
-    // Botón plano con realce al pasar el cursor.
+
     boton(hijo, cb, {extra = '', expand = false} = {}) {
         const b = new St.Button({
             style_class: 'lw-btn lw-hover', child: hijo, reactive: true, can_focus: true,

@@ -24,7 +24,7 @@ export {ShowErrorPopup};
 const ShowErrorPopup = class {
     constructor(text, secondaryText, waitDelayMs, helpURL = null,
         parentWindow = null) {
-        this._waitDelayMs = waitDelayMs; // async function
+        this._waitDelayMs = waitDelayMs;
         this._applicationId = Gio.Application.get_default();
         if (parentWindow)
             this._window = parentWindow;

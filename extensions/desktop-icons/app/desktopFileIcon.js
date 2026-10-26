@@ -246,7 +246,7 @@ const DesktopFileIcon = class extends FileItemIcon {
         _event
     ) {
         if (this._isValidDesktopFile) {
-            // open the desktop file with these dropped files as the arguments
+
             this.doOpen(fileList);
             return Gdk.DragAction.COPY;
         } else {

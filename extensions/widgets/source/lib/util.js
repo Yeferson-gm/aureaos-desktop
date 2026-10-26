@@ -41,14 +41,14 @@ export function haceTiempo(fecha) {
     return `${fecha.getDate()} ${MESES[fecha.getMonth()].slice(0, 3)}`;
 }
 
-// ── Archivos y almacén JSON con guardado diferido ───────────────────────
+
 export function leerJSON(file, def) {
     try {
         const [ok, bytes] = GLib.file_get_contents(file);
         if (ok)
             return JSON.parse(new TextDecoder().decode(bytes));
     } catch (_e) {
-        // primer arranque
+
     }
     return def;
 }
@@ -139,7 +139,7 @@ export function listarImagenes(dir, prof = 1, limite = 2500, sinEnlaces = false)
     return out;
 }
 
-// ── HTTP (Soup 3) con caché en memoria ──────────────────────────────────
+
 let _sesion = null;
 const _cache = new Map();
 
@@ -183,7 +183,7 @@ export function cerrarHttp() {
     _cache.clear();
 }
 
-// Descarga una imagen a la caché y devuelve su ruta local.
+
 export async function imagenLocal(url) {
     if (url.startsWith('file://'))
         return Gio.File.new_for_uri(url).get_path();
@@ -196,7 +196,7 @@ export async function imagenLocal(url) {
     return ruta;
 }
 
-// ── D-Bus ───────────────────────────────────────────────────────────────
+
 export function llamar(bus, dest, ruta, iface, metodo, params = null, tipo = null, timeout = 4000) {
     return new Promise((res, rej) => {
         bus.call(dest, ruta, iface, metodo, params, tipo ? new GLib.VariantType(tipo) : null,
@@ -221,7 +221,7 @@ export function fijarProp(bus, dest, ruta, iface, nombre, tipo, valor) {
         new GLib.Variant('(ssv)', [iface, nombre, new GLib.Variant(tipo, valor)]));
 }
 
-// KDE Connect: dispositivos vinculados (null si no está instalado).
+
 export async function dispositivosKde() {
     const bus = Gio.DBus.session;
     let ids;
@@ -244,18 +244,18 @@ export async function dispositivosKde() {
                     d.bateria = b.charge ?? null;
                     d.cargando = !!b.isCharging;
                 } catch (_e) {
-                    // sin plugin de batería
+
                 }
             }
             out.push(d);
         } catch (_e) {
-            // dispositivo no disponible
+
         }
     }
     return out;
 }
 
-// ── RSS / Atom ──────────────────────────────────────────────────────────
+
 const ENT = {amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' '};
 function decod(s) {
     return s.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => {
@@ -310,7 +310,7 @@ export function parsearFeed(xml) {
     };
 }
 
-// ── Feriados de Perú ────────────────────────────────────────────────────
+
 function pascua(y) {
     const a = y % 19, b = Math.floor(y / 100), c = y % 100;
     const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);

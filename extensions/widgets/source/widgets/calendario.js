@@ -44,7 +44,7 @@ function leerIcs(dir) {
         }
         en.close(null);
     } catch (_e) {
-        // carpeta inexistente
+
     }
     return out;
 }
@@ -61,7 +61,7 @@ export class Widget extends WidgetBase {
         });
     }
 
-    // Todo lo que ocurre en una fecha ISO.
+
     _eventos(f) {
         const o = this.o;
         const out = [];

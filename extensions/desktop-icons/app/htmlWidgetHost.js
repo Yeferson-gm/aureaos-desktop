@@ -21,19 +21,19 @@ import {WidgetApi} from '../dependencies/localFiles.js';
 export {HtmlWidgetHost};
 
 const HtmlWidgetHost = class {
-    /**
-     * @param {object} params
-     *   {
-     *     instanceId: string,
-     *     widgetId: string,
-     *     frameRect: {x, y, width, height},
-     *     mainApp: Adw.Application | null,
-     *     widgetRegistry: WidgetRegistry | null,
-     *     webContext: WebKit.WebContext,
-     *     mode: 'prefs' or 'widget'
-     *     prefsUri: string relative uri
-     *   }
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
     constructor(params) {
         this._instanceId = params.instanceId;
         this._widgetId = params.widgetId;
@@ -205,10 +205,10 @@ const HtmlWidgetHost = class {
         webView.reload();
     }
 
-    // Reparenting an HTML widget between the desktop container and a floating
-    // widget window can leave WebKit visually blank even though the WebView is
-    // still mapped, sized, and otherwise healthy. A full reload reliably
-    // rebuilds WebKit's render/compositing state for the new parent chain.
+
+
+
+
     async reloadForReparent() {
         await this.reload();
     }
@@ -277,9 +277,9 @@ const HtmlWidgetHost = class {
         return guri.to_string();
     }
 
-    // ─────────────────────────
-    // start orchestration
-    // ─────────────────────────
+
+
+
     async _start() {
         const [_, url] = await Promise.all([
             this._makeWebView(),
@@ -408,7 +408,7 @@ const HtmlWidgetHost = class {
 
             this._tickId = 0;
 
-            // Host-side “poke”: invalidate + optional JS nudge
+
             wv.queue_draw();
             wv.queue_allocate();
             this._frame?.queue_draw();
@@ -519,16 +519,16 @@ const HtmlWidgetHost = class {
     }
 };
 
-/**
- * DingRoundedClip
- *
- * A tiny single-child container that clips its child to a rounded rect
- * using GTK4 snapshot APIs (push_rounded_clip).
- *
- * Intended to be used as the "frame" root for WebKitWebView so that GTK CSS
- * border-radius matches the child's visible corners without visual
- * artifacts as CSS is not clipping the webview's contents with a box or frame.
- */
+
+
+
+
+
+
+
+
+
+
 export const DingRoundedClip = GObject.registerClass({
     GTypeName: 'DingRoundedClip',
     Properties: {
@@ -550,9 +550,9 @@ export const DingRoundedClip = GObject.registerClass({
         this._radius = 12.0;
     }
 
-    // ─────────────────────────
-    // properties
-    // ─────────────────────────
+
+
+
     get radius() {
         return this._radius;
     }
@@ -567,9 +567,9 @@ export const DingRoundedClip = GObject.registerClass({
         this.queue_draw();
     }
 
-    // ─────────────────────────
-    // child management
-    // ─────────────────────────
+
+
+
     set_child(child) {
         if (child === this._child)
             return;
@@ -591,9 +591,9 @@ export const DingRoundedClip = GObject.registerClass({
         return this._child;
     }
 
-    // ─────────────────────────
-    // layout
-    // ─────────────────────────
+
+
+
     vfunc_measure(orientation, forSize) {
         if (!this._child)
             return [0, 0, -1, -1];
@@ -608,11 +608,11 @@ export const DingRoundedClip = GObject.registerClass({
         this._child.allocate(width, height, baseline, null);
     }
 
-    // ─────────────────────────
-    // rendering
-    //
-    // Snapshot is called by GTK4 to render the widget inside the clipped area.
-    // ─────────────────────────
+
+
+
+
+
     vfunc_snapshot(snapshot) {
         if (!this._child)
             return;

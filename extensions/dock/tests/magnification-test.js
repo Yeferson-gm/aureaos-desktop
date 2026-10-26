@@ -50,8 +50,8 @@ const completeVisual = {name: 'icon-container'};
 assertEqual(selectVisualActor({
     _iconContainer: completeVisual,
     icon: {_iconBin: iconImageOnly},
-}), completeVisual,
-'magnification selects the common icon, badge, highlight and indicator container');
+}), iconImageOnly,
+'magnification scales only the image; badge and indicator have independent positioning tests');
 assertEqual(selectVisualActor({icon: {_iconBin: iconImageOnly}}), iconImageOnly,
     'magnification keeps a safe fallback for non-application dock items');
 
@@ -65,4 +65,4 @@ assertClose(offsets[0], -20, 'left neighbours move away from the active icon');
 assertClose(offsets[1], 0, 'the active icon stays at the pointer anchor');
 assertClose(offsets[2], 22.5, 'right neighbours move away from the active icon');
 
-print('magnification-test: OK');
+console.log('magnification-test: OK');

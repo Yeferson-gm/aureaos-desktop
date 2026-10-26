@@ -12,7 +12,7 @@ import * as buscar from './buscar.js';
 import * as noticias from './noticias.js';
 import * as tiempouso from './tiempouso.js';
 
-// Orden de la galería «Añadir widget».
+
 export const LISTA = [clima, calendario, reloj, baterias, recordatorios, notas, fotos, musica,
     podcasts, contactos, buscar, noticias, tiempouso];
 export const MODULOS = Object.fromEntries(LISTA.map(m => [m.META.id, m]));

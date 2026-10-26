@@ -14,7 +14,7 @@ Git `v0.0.1`. Sin publicación remota ni reinicio forzado de sesión.
 - `extensions/` contiene barra, dock, isla superior, isla lateral, widgets,
   fondo animado, iconos del escritorio y centro de aplicaciones.
 - `integrations/` conserva pruebas y configuraciones auxiliares sin datos privados.
-- La marca visible es Aurea 27. Los UUID, D-Bus y esquemas existentes se conservan
+- La marca visible es Aurea 27. Los UUID locales, D-Bus y esquemas existentes se conservan
   como identificadores de compatibilidad: cambiarlos borraría la asociación de
   preferencias y rompería integraciones entre extensiones. No son versiones.
 - La versión de distribución procede de etiquetas Git. Los metadatos generados

@@ -67,7 +67,7 @@ export class Widget extends WidgetBase {
                     if (!mejor || (c.estado === 'Playing' && mejor.estado !== 'Playing'))
                         mejor = c;
                 } catch (_e) {
-                    // reproductor no responde
+
                 }
             }
             if (!this._vivo)
@@ -96,7 +96,7 @@ export class Widget extends WidgetBase {
             this._barra.style = `height: 4px; border-radius: 2px; background-color: ${this.pal.acento}; width: ${len ? Math.round(Math.min(1, pos / len) * this._anchoBarra) : 0}px;`;
             this._tiempo?.set_text(`${fmt(pos)} / ${len ? fmt(len) : '--:--'}`);
         } catch (_e) {
-            // sin posición
+
         }
     }
 

@@ -1,4 +1,4 @@
-/* ═══ Barra superior transparente, estilo macOS Tahoe ═══════════════════ */
+
 
 #panel.lintel-panel,
 #panel.lintel-panel.lock-screen,
@@ -34,7 +34,7 @@
     transition-duration: 80ms;
 }
 
-/* Indicadores derechos: separación uniforme sin modificar los menús. */
+
 #panel .lintel-button.lintel-right {
     -natural-hpadding: 6px;
     -minimum-hpadding: 4px;
@@ -64,13 +64,13 @@
     margin: 0 1px;
 }
 
-/* Logo de Apple: más grande que el resto de iconos */
+
 #panel .lintel-button .lintel-apple-icon {
     icon-size: 19px;
     margin: 0 1px;
 }
 
-/* Batería: el SVG es apaisado (28 × 16), así que necesita más ancho. */
+
 #panel .lintel-button .lintel-battery-icon {
     icon-size: 24px;
     margin: 0 1px;
@@ -85,7 +85,7 @@
     font-weight: 600;
 }
 
-/* Indicadores de privacidad: llevan su propio color, como los puntos de macOS. */
+
 .lintel-privacy-box {
     spacing: 2px;
 }
@@ -107,7 +107,7 @@
     color: #bf5af2;
 }
 
-/* Texto claro (sobre fondos oscuros) */
+
 #panel.lintel-text-light .lintel-button {
     color: #ffffff;
     text-shadow: none;
@@ -120,7 +120,7 @@
     background-color: rgba(255, 255, 255, 0.22);
 }
 
-/* Texto oscuro (sobre fondos claros) */
+
 #panel.lintel-text-dark .lintel-button {
     color: #111216;
     text-shadow: none;
@@ -133,7 +133,7 @@
     background-color: rgba(0, 0, 0, 0.13);
 }
 
-/* Botón con su menú abierto: píldora azul, como macOS */
+
 #panel.lintel-text-light .lintel-button:active,
 #panel.lintel-text-light .lintel-button:checked,
 #panel.lintel-text-dark .lintel-button:active,
@@ -144,7 +144,7 @@
     background-color: rgba(79, 135, 245, 0.92);
 }
 
-/* ═══ Menús desplegables de vidrio claro ═════════════════════════════════ */
+
 
 .popup-menu-boxpointer.lintel-menu {
     -arrow-rise: 0px;
@@ -173,7 +173,7 @@
     font-weight: 400;
 }
 
-/* Wi-Fi y Bluetooth: más anchos para nombres de redes y dispositivos. */
+
 .lintel-menu-content.lintel-menu-wide.popup-menu-content {
     min-width: 290px;
 }
@@ -185,7 +185,7 @@
     margin: 0;
 }
 
-/* Cada fila: [icono 16px] [texto] .......... [atajo] */
+
 .lintel-menu-content .popup-menu-item {
     min-height: 24px;
     padding: 3px 10px;
@@ -214,7 +214,7 @@
     background-color: transparent;
 }
 
-/* Cabecera con interruptor (Wi-Fi, Bluetooth): no se resalta en azul. */
+
 .lintel-menu-content .lintel-toggle-item,
 .lintel-menu-content .lintel-toggle-item:hover,
 .lintel-menu-content .lintel-toggle-item:focus,
@@ -228,7 +228,7 @@
     background-color: rgba(27, 29, 33, 0.06);
 }
 
-/* Títulos de sección ("Mis dispositivos", "Otras redes"…) */
+
 .lintel-menu-content .lintel-item-heading {
     min-height: 20px;
     padding-top: 6px;
@@ -289,7 +289,7 @@
     color: rgba(27, 29, 33, 0.30);
 }
 
-/* Iconos a la derecha de la fila (candado y señal Wi-Fi) */
+
 .lintel-menu-content .lintel-item-trailing {
     icon-size: 14px;
     color: rgba(27, 29, 33, 0.70);
@@ -339,7 +339,7 @@
     background-color: #34c759;
 }
 
-/* Deslizadores de los menús (Sonido) */
+
 .lintel-slider-row {
     spacing: 8px;
 }
@@ -370,7 +370,7 @@
     -slider-handle-radius: 7px;
 }
 
-/* ═══ Calendario ═════════════════════════════════════════════════════════ */
+
 
 .lintel-menu-content .lintel-cal-holder,
 .lintel-menu-content .lintel-cal-holder:hover,
@@ -445,7 +445,7 @@
     background-color: #ff3b30;
 }
 
-/* ═══ Centro de control: rejilla fija de 280 px ══════════════════════════ */
+
 
 .popup-menu-boxpointer.lintel-cc-menu {
     -arrow-rise: 0px;
@@ -475,7 +475,7 @@
     background-color: transparent;
 }
 
-/* St suma padding y borde al width: 280 + 2×10 = 300 px exteriores. */
+
 .lintel-cc-content {
     spacing: 8px;
     padding: 10px;
@@ -489,7 +489,7 @@
     spacing: 8px;
 }
 
-/* Tarjeta de conexiones (izquierda) */
+
 .lintel-cc-group {
     width: 156px;
     min-height: 152px;
@@ -501,13 +501,13 @@
     box-shadow: none;
 }
 
-/* Columna de mosaicos verticales (derecha) */
+
 .lintel-cc-features {
     width: 102px;
     spacing: 8px;
 }
 
-/* Base de todos los mosaicos: tarjeta de cristal */
+
 .lintel-cc-tile {
     color: #17212d;
     background-color: rgba(255, 255, 255, 0.52);
@@ -525,7 +525,7 @@
     border-color: rgba(79, 135, 245, 0.85);
 }
 
-/* Filas dentro de la tarjeta de conexiones: sin fondo propio */
+
 .lintel-cc-tile.lintel-cc-row {
     width: 142px;
     min-height: 32px;
@@ -560,7 +560,7 @@
     spacing: 5px;
 }
 
-/* Círculo del icono */
+
 .lintel-cc-tile-icon-shell {
     width: 28px;
     height: 28px;
@@ -579,7 +579,7 @@
     color: #243040;
 }
 
-/* Activo: el círculo se llena de color y el icono pasa a blanco */
+
 .lintel-cc-tile-icon-shell:checked {
     background-color: #0a84ff;
 }
@@ -613,7 +613,7 @@
     text-shadow: none;
 }
 
-/* Tarjetas con deslizador (Brillo, Sonido y Micrófono) */
+
 .lintel-cc-slider {
     width: 254px;
     padding: 9px 12px 10px 12px;
@@ -635,7 +635,7 @@
     height: 24px;
 }
 
-/* El icono va dentro de la barra, a la izquierda */
+
 .lintel-cc-slider-icon {
     padding-left: 9px;
     icon-size: 14px;
@@ -671,9 +671,9 @@
     background-color: rgba(255, 255, 255, 0.50);
 }
 
-/* ═══ MODO OSCURO de los menús ═══════════════════════════════════════════
-   La extensión añade la clase lintel-dark al menú (según color-scheme o la
-   configuración). Cada regla lleva un prefijo extra para ganar a la versión clara. */
+
+
+
 
 .lintel-dark .lintel-menu-content.popup-menu-content {
     color: #f2f4f7;
@@ -790,7 +790,7 @@
     -barlevel-active-background-color: #3b82f6;
 }
 
-/* Calendario */
+
 .lintel-dark .lintel-menu-content .lintel-cal-holder,
 .lintel-dark .lintel-menu-content .lintel-cal-holder:hover,
 .lintel-dark .lintel-menu-content .lintel-cal-holder:focus,
@@ -820,7 +820,7 @@
     color: #ffffff;
 }
 
-/* Centro de control */
+
 .lintel-dark .lintel-cc-menu-content.popup-menu-content {
     background-color: rgba(30, 33, 40, 0.92);
     background-gradient-direction: vertical;
@@ -921,7 +921,7 @@
     background-color: rgba(255, 255, 255, 0.12);
 }
 
-/* El contenedor no es una opción seleccionable: solo sus controles. */
+
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder,
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:hover,
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:focus,

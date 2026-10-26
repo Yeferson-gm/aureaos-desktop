@@ -52,7 +52,7 @@ export const Selection = {
     RELEASE: 5,
 };
 
-/* From NautilusFileUndoManagerState */
+
 export const UndoStatus = {
     NONE: 0,
     UNDO: 1,
@@ -125,35 +125,35 @@ export const DropContentsType = {
     UNSUPPORTED: 'unsupported',
 };
 
-// Ordered by read preference: try the first advertised format, then fall back
-// to later entries if it does not provide usable URL/title data.
+
+
 DndTargetInfo.URL_FORMATS = [
     DndTargetInfo.MOZ_URL,
     DndTargetInfo.MOZ_URL_DATA,
     DndTargetInfo.NETSCAPE_URL,
 ];
 
-// Ordered by read preference: try UTF-8 variants before plain text.
+
 DndTargetInfo.TEXT_FORMATS = [
     DndTargetInfo.TEXT_PLAIN_UTF8,
     DndTargetInfo.TEXT_PLAIN_UTF8_SPACED,
     DndTargetInfo.TEXT_PLAIN,
 ];
 
-// Since Gnome Shell 48 the enumeration of the cursor is different,
-// the name has changed, althugh the value is the same;
-// We use our own enumeration names to avoid problems with the version
-// of the Gnome Shell, the enumeration integer points to the correct
-// value in the Gnome Shell 48 and Meta 48 Enum and earlier.
-// We use strings to avoid problems with the version of the Gnome Shell
-// with corresponging Enum in DingManager.js. The strings are transmitted
-// over DBus to the exetension.
+
+
+
+
+
+
+
+
 
 export const ShellDropCursor = {
-    DEFAULT: 'default', // 2 META_CURSOR_DEFAULT Meta.Cursor.DEFAULT
-    NODROP: 'dndNoDropCursor', // 15 META_CURSOR_NO_DROP Meta.Cursor.DND_UNSUPPORTED_TARGET
-    COPY: 'dndCopyCursor', // 13 META_CURSOR_COPY Meta.Cursor.DND_COPY
-    MOVE: 'dndMoveCursor', // 14 META_CURSOR_MOVE Meta.Cursor.DND_MOVE
+    DEFAULT: 'default',
+    NODROP: 'dndNoDropCursor',
+    COPY: 'dndCopyCursor',
+    MOVE: 'dndMoveCursor',
 };
 
 export const DEFAULT_ATTRIBUTES = 'metadata::*,standard::*,access::*,time::modified,unix::mode';
@@ -170,11 +170,11 @@ export const DESKTOPFILE_TERMINAL_EXEC_KEY = 'Exec';
 export const DESKTOPFILE_TERMINAL_EXEC_SWITCH = 'X-ExecArg';
 export const NAUTILUS_SCRIPTS_DIR = '.local/share/nautilus/scripts';
 export const THUMBNAILS_DIR = '.cache/thumbnails';
-export const DND_HOVER_TIMEOUT = 1500; // In milliseconds
-export const DND_SHELL_HOVER_POLL = 200; // In milliseconds
-export const DND_DATA_TRANSFER_TIMEOUT = 3000; // In milliseconds
+export const DND_HOVER_TIMEOUT = 1500;
+export const DND_SHELL_HOVER_POLL = 200;
+export const DND_DATA_TRANSFER_TIMEOUT = 3000;
 export const TRANSFER_TEXT_FILENAME_WORDS = 5;
-export const TOOLTIP_HOVER_TIMEOUT = 1000; // In milliseconds
+export const TOOLTIP_HOVER_TIMEOUT = 1000;
 export const XDG_EMAIL_CMD = 'xdg-email';
 export const XDG_EMAIL_CMD_OPTIONS = '--attach';
 export const ZIP_CMD = 'zip';
@@ -192,25 +192,25 @@ export const XDG_USER_DIRS = 'user-dirs.dirs';
 export const XDG_SYSTEM_DIRS = 'user-dirs.defaults';
 export const DEFAULT_DESKTOP_NAME = 'Desktop';
 export const UnixPermissions = {
-    S_ISUID: 0o04000, // set-user-ID bit
-    S_ISGID: 0o02000, // set-group-ID bit (see below)
-    S_ISVTX: 0o01000, // sticky bit (see below)
+    S_ISUID: 0o04000,
+    S_ISGID: 0o02000,
+    S_ISVTX: 0o01000,
 
-    S_IRWXU: 0o00700, // mask for file owner permissions
-    S_IRUSR: 0o00400, // owner has read permission
-    S_IWUSR: 0o00200, // owner has write permission
-    S_IXUSR: 0o00100, // owner has execute permission
+    S_IRWXU: 0o00700,
+    S_IRUSR: 0o00400,
+    S_IWUSR: 0o00200,
+    S_IXUSR: 0o00100,
 
-    S_IRWXG: 0o00070, // mask for group permissions
-    S_IRGRP: 0o00040, // group has read permission
-    S_IWGRP: 0o00020, // group has write permission
-    S_IXGRP: 0o00010, // group has execute permission
+    S_IRWXG: 0o00070,
+    S_IRGRP: 0o00040,
+    S_IWGRP: 0o00020,
+    S_IXGRP: 0o00010,
 
-    S_IRWXO: 0o00007, // mask for permissions for others (not in group)
-    S_IROTH: 0o00004, // others have read permission
-    S_IWOTH: 0o00002, // others have write permission
-    S_IXOTH: 0o00001, // others have execute permission
-    // From https://www.commandlinux.com/man-page/man2/lstat.2.html
+    S_IRWXO: 0o00007,
+    S_IROTH: 0o00004,
+    S_IWOTH: 0o00002,
+    S_IXOTH: 0o00001,
+
 };
 export const IgnoreKeys = [
     'KEY_space', 'KEY_Shift_L', 'KEY_Shift_R', 'KEY_Control_L',
@@ -218,7 +218,7 @@ export const IgnoreKeys = [
     'KEY_Meta_R', 'KEY_Alt_L', 'KEY_Alt_R', 'KEY_Super_L',
     'KEY_Super_R', 'KEY_ISO_Level3_Shift', 'KEY_ISO_Level5_Shift',
 ];
-export const TRANSITIONDURATION = 500; // in ms
+export const TRANSITIONDURATION = 500;
 
 export const WidgetManagerDebugFlags = Object.freeze({
     NONE:            0,
@@ -227,10 +227,10 @@ export const WidgetManagerDebugFlags = Object.freeze({
 });
 
 export const WIDGET_MANAGER_DEBUG = WidgetManagerDebugFlags.NONE;
-// For debugging use
-// const WIDGET_MANAGER_DEBUG =
-//     WidgetManagerDebugFlags.HOST_STATE |
-//     WidgetManagerDebugFlags.WIDGET_MESSAGES;
+
+
+
+
 
 export const CspProfile = Object.freeze({
     STRICT: 0,

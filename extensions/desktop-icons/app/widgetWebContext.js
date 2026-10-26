@@ -51,19 +51,19 @@ const HOST_URI_MAX_BURST = 150;
 const CONFIG_UPDATE_WINDOW_MS = 3000;
 const CONFIG_UPDATE_MAX_BURST = 12;
 
-/**
- * WebWidgetContext
- *
- * Single runtime for all HTML widgets:
- *  - Owns shared WebKit.WebContext and WebKit.UserContentManager.
- *  - Injects WIDGET_API (window.ding) into all frames.
- *  - Receives script messages ("dingWidget") and parses JSON payloads.
- *  - Delegates semantics to WidgetManager (config, host state, prefs).
- *
- * Lifetime:
- *  - Created lazily by WidgetManager when the first HTML widget is created.
- *  - Destroyed explicitly by WidgetManager when the last HTML widget is removed.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
 const WebWidgetContext = class {
     constructor(desktopManager, widgetManager) {
         this._desktopManager = desktopManager;
@@ -92,9 +92,9 @@ const WebWidgetContext = class {
         this._setCspString();
     }
 
-    // ---------------------------------------------------------------------
-    // Public WebKit runtime access
-    // ---------------------------------------------------------------------
+
+
+
 
     get webContext() {
         this._initWebKitRuntime();
@@ -141,15 +141,15 @@ const WebWidgetContext = class {
         this._deleteGuardEntriesForInstance(this._hostUriGuard, instanceId);
     }
 
-    /*
-     * Create a WebView for a widget instance and bind its FS root.
-     *
-     * @param {string} widgetId   - logical widget ID (e.g. 'weather')
-     * @param {string} instanceId - UUID-like instance ID
-     * @param {Gio.File} rootDir  - widget bundle root directory
-     */
+
+
+
+
+
+
+
     async newViewForInstance(widgetId, instanceId) {
-        // Ensure runtime is set up before constructing a view.
+
         this._initWebKitRuntime();
 
         const webViewOptions = {
@@ -162,7 +162,7 @@ const WebWidgetContext = class {
 
         const rootDir = await this._getInstanceRoot(instanceId);
 
-        // Per-view FS jail root (we ignore URL host in scheme handler)
+
         webView._dingWidgetRoot = rootDir;
         webView._dingWidgetId = widgetId;
         webView._dingInstanceId = instanceId;
@@ -243,30 +243,30 @@ const WebWidgetContext = class {
         return webView;
     }
 
-    // ---------------------------------------------------------------------
-    // Preferences window helpers (called from WidgetManager)
-    // ---------------------------------------------------------------------
 
-    /**
-     * Open or focus the preferences window for a given instance.
-     *
-     *  - Only one prefs window at a time (shared runtime).
-     *  - Only opens if that instance is currently selected.
-     *  - If already open for another instance, closes and reopens for this one.
-     *
-     * WidgetManager should:
-     *  - Calls this in response to gear-icon click for the selected widget.
-     *  - Calls closePreferencesForInstance() or closePreferencesIfForInstance()
-     *    when unselecting/destroying the widget.
-     *
-     * @param {string} instanceId
-     * @param {string} prefsUri
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     openPreferencesForInstance(instanceId, prefsUri) {
         if (!instanceId || !prefsUri)
             return;
 
-        // Only for currently selected instance
+
         const selectedId = this._widgetManager.getSelectedInstanceId();
         if (!selectedId || selectedId !== instanceId)
             return;
@@ -364,9 +364,9 @@ const WebWidgetContext = class {
         this._prefsInstanceId = null;
     }
 
-    // ---------------------------------------------------------------------
-    // Internal: WebKit runtime setup
-    // ---------------------------------------------------------------------
+
+
+
 
     _initPaths() {
         const appId = this._mainApp.get_application_id();
@@ -393,7 +393,7 @@ const WebWidgetContext = class {
 
         this._initPaths();
 
-        // Shared WebKit plumbing: one WebContext, one UserContentManager
+
         this._webContext = new WebKit.WebContext();
         this._webContext.set_cache_model(WebKit.CacheModel.DOCUMENT_VIEWER);
 
@@ -413,9 +413,9 @@ const WebWidgetContext = class {
 
         this._userContentManager = new WebKit.UserContentManager();
 
-        const defaultWorld = null; // default JS world
+        const defaultWorld = null;
 
-        // Register script message handler for window.ding → "dingWidget"
+
         try {
             this._userContentManager.register_script_message_handler(
                 'dingWidget',
@@ -495,11 +495,11 @@ const WebWidgetContext = class {
         this._cspString = cspString.replace(/\s+/g, ' ').trim();
     }
 
-    // ---------------------------------------------------------------------
-    // Internal: JS API bridge (window.ding)
-    // ---------------------------------------------------------------------
 
-    // Debug Helpers
+
+
+
+
 
     _debugHostState(op, inst, patch) {
         if (!(this.Enums.WIDGET_MANAGER_DEBUG &
@@ -532,7 +532,7 @@ const WebWidgetContext = class {
         );
     }
 
-    // Script Handler
+
 
     _onWidgetScriptMessage(_manager, jsResult) {
         let jsValue;
@@ -558,7 +558,7 @@ const WebWidgetContext = class {
             if (jsValue.is_string && jsValue.is_string())
                 json = jsValue.to_string();
             else if (jsValue.to_json && jsValue.is_object && jsValue.is_object())
-                json = jsValue.to_json(0); // stringify objects
+                json = jsValue.to_json(0);
             else if (jsValue.to_string)
                 json = jsValue.to_string();
         } catch (e) {
@@ -601,7 +601,7 @@ const WebWidgetContext = class {
 
         this._debugWidgetMessage(payload);
 
-        // Log messages are always allowed through
+
         if (type === 'log') {
             console.log(
                 'HtmlWidget log:',
@@ -660,7 +660,7 @@ const WebWidgetContext = class {
         if (!uri.startsWith(`ding-widget://${instanceId}/`))
             return;
 
-        // Delegate semantics to WidgetManager, reusing its existing helpers.
+
         switch (type) {
         case 'updateConfig':
             if (config && typeof config === 'object') {
@@ -674,7 +674,7 @@ const WebWidgetContext = class {
                 break;
             }
 
-            // Broadcast so widget + prefs can update live
+
             this._pushConfigChangedForInstance(inst, mode);
             break;
 
@@ -764,7 +764,7 @@ const WebWidgetContext = class {
         }
 
         case 'removeWidget': {
-            // Widgets may remove only themselves.
+
             if (manager.getSelectedInstanceId?.() === instanceId)
                 manager.deleteSelectedInstance?.();
             else
@@ -811,14 +811,14 @@ const WebWidgetContext = class {
         }
 
         default:
-            // Unknown message type; ignore for now
+
             break;
         }
     }
 
-    // Script Helpers
+
     _postNoBackendError(inst, payload) {
-        // Ensure the JSAPI Promise resolves/rejects; otherwise it hangs.
+
         const instanceId = inst?.instanceId ?? payload?.instanceId;
 
         const reply = {
@@ -894,7 +894,7 @@ const WebWidgetContext = class {
         if (!items)
             return;
 
-        // Iterate through the items
+
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
 
@@ -909,7 +909,7 @@ const WebWidgetContext = class {
             const stockAction = item.get_stock_action?.();
             const label = item.get_label?.()?.toLowerCase?.() ?? '';
 
-            // Match by either the ID (StockAction) or by text keywords
+
             const isForbidden = forbiddenActions.has(stockAction) ||
                 label.includes('download') ||
                 label.includes('new window') ||
@@ -1090,10 +1090,10 @@ const WebWidgetContext = class {
                 headers.append('Access-Control-Allow-Origin', origin);
                 headers.append('Vary', 'Origin');
             } else if ((origin === 'null' || !origin) && isBoundLocalRequest) {
-                // WebKit may serialize custom local-scheme fetches with an
-                // opaque/null origin. For our jailed widget bundle scheme, the
-                // bound WebView+instance root checks are the actual security
-                // boundary, so allow the local response through here.
+
+
+
+
                 headers.append('Access-Control-Allow-Origin', '*');
                 if (origin)
                     headers.append('Vary', 'Origin');
@@ -1140,9 +1140,9 @@ const WebWidgetContext = class {
         request.finish_with_response(response);
     }
 
-    // For rate-limited widget resource requests, return a tiny successful
-    // response instead of an explicit error so a bad widget is less likely to
-    // escalate into a retry/error storm that overwhelms the host.
+
+
+
     _finishQuietUriRequest(request, uri = '') {
         let resourcePath = uri;
         try {
@@ -1170,10 +1170,10 @@ const WebWidgetContext = class {
         this._finishUriResponse(request, bytes, mimeType, headers);
     }
 
-    // For missing bundled widget assets, return an HTTP-style 404 response
-    // instead of a scheme error so WebKit can treat the failure like a normal
-    // missing resource rather than surfacing it as a generic access-control
-    // problem for custom-scheme fetches.
+
+
+
+
     _finishMissingUriRequest(request, uri = '') {
         let resourcePath = uri || request?.get_uri?.() || '';
         try {
@@ -1266,9 +1266,9 @@ const WebWidgetContext = class {
         this._pushPatchtoTarget(inst, patch);
     }
 
-    /* -----------------------------------------------------------------
-    * Instance roots and FS isolation
-    * -----------------------------------------------------------------*/
+
+
+
 
     async _getInstanceRoot(instanceId) {
         if (this._instanceRoots.has(instanceId))
@@ -1293,9 +1293,9 @@ const WebWidgetContext = class {
         return dir;
     }
 
-    /*
-     * URI scheme handler for ding-widget://instanceId/path
-    */
+
+
+
     _onDingWidgetUriRequest(request) {
         this._onDingWidgetUriRequestAsync(request).catch(e => {
             console.error(
@@ -1340,7 +1340,7 @@ const WebWidgetContext = class {
             return;
         }
 
-        // Basic parse: ding-widget://<instanceId>/<relPath>
+
         const scheme = 'ding-widget';
 
         if (guri.get_scheme() !== scheme) {
@@ -1401,7 +1401,7 @@ const WebWidgetContext = class {
             return;
         }
 
-        // Extra guard: ensure the bound root on the WebView matches registry
+
         try {
             const boundRootPath = webView._dingWidgetRoot?.get_path?.();
             const registryRootPath = rootDir.get_path?.();
@@ -1422,9 +1422,9 @@ const WebWidgetContext = class {
             return;
         }
 
-        // Normalize relPath:
-        //  - treat URI path as widget-root-relative (strip leading "/")
-        //  - strip leading "./" segments (so "./clock.css" works)
+
+
+
         const path = guri.get_path?.() ?? '';
         const effectiveRelPath =
             path
@@ -1436,8 +1436,8 @@ const WebWidgetContext = class {
             return;
         }
 
-        // Lexical confinement: canonicalize +
-        // prefix check to block "../" traversal.
+
+
         const rootPath = rootDir.get_path();
         if (!rootPath) {
             console.error('WebWidgetContext: cannot enforce confinement (no root path)');
@@ -1479,8 +1479,8 @@ const WebWidgetContext = class {
             return;
         }
 
-        // Symlink confinement: reject symlinks anywhere
-        // in the path (NOFOLLOW_SYMLINKS).
+
+
         let file = rootDir;
         try {
             const parts = effectiveRelPath.split('/').filter(p => p.length > 0);
@@ -1520,8 +1520,8 @@ const WebWidgetContext = class {
             return;
         }
 
-        // Guess MIME type using filename + data,
-        // but then *force* sane types for HTML/CSS/JS.
+
+
         let mimeType = null;
         let filePathForMime = '';
 
@@ -1537,7 +1537,7 @@ const WebWidgetContext = class {
             console.error('WebWidgetContext: content_type_guess failed', e);
         }
 
-        // Force explicit types by extension – important for the main HTML.
+
         if (filePathForMime.endsWith('.html') ||
         filePathForMime.endsWith('.htm'))
             mimeType = 'text/html';

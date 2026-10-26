@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-const file = process.argv[2] ?? '/home/yefersongm/.local/share/gnome-shell/extensions/gtk4-ding@smedius.gitlab.com/app/contentReader.js';
+const file = process.argv[2] ?? new URL('../../extensions/desktop-icons/app/contentReader.js', import.meta.url);
 const code = fs.readFileSync(file,'utf8').replace(/^import .*;$/gm,'').replace(/^export .*;$/gm,'');
 const context = vm.createContext({
     Gdk:{FileList:{$gtype:'FileList',new_from_array:files => ({get_files:()=>files})}},

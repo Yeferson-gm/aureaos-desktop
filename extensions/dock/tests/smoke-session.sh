@@ -13,3 +13,11 @@ sleep 3
 result=$(gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval "$(< "$DI_PROJECT_DIR/tests/smoke-eval.js")")
 printf '%s\n' "$result"
 [[ "$result" == '(true,'* ]]
+
+for attempt in {1..50}; do
+  [[ -f "$DI_TEST_DIR/result.txt" ]] && break
+  sleep 1
+done
+cat "$DI_TEST_DIR/result.txt"
+rg -q '^PASS:' "$DI_TEST_DIR/result.txt"
+if rg 'JS ERROR|CRITICAL' "$DI_TEST_DIR/shell.log"; then exit 1; fi

@@ -36,7 +36,7 @@ async function leerUPower() {
                 principal: d.Type === 2,
             });
         } catch (_e) {
-            // dispositivo ilegible
+
         }
     }
     return out.sort((a, b) => Number(b.principal) - Number(a.principal));
@@ -55,7 +55,7 @@ export class Widget extends WidgetBase {
         try {
             lista = await leerUPower();
         } catch (_e) {
-            // sin UPower
+
         }
         if (this.o.kde) {
             const k = await dispositivosKde();
@@ -103,7 +103,7 @@ export class Widget extends WidgetBase {
                 cr.closePath();
                 cr.fill();
             } else {
-                // Pila centrada; conectada pero en pausa no equivale a cargar.
+
                 cr.setSourceRGBA(tr, tg, tb, 0.95);
                 cr.setLineWidth(Math.max(1.5, R * 0.07));
                 cr.setLineJoin(1);

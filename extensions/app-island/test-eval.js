@@ -24,7 +24,7 @@ async function exercise() {
     const installed = d._appSystem.get_installed().filter(i => i.should_show())
         .map(i => d._appSystem.lookup_app(i.get_id())).filter(Boolean);
     check(installed.length > 6, 'Need test applications');
-    // Only this isolated XDG profile is modified.
+
     d._favIds = installed.slice(0, 5).map(a => a.get_id());
     d._saveFavs();
     d._rebuildBar();
@@ -34,7 +34,7 @@ async function exercise() {
     if (GLib.getenv('SIDE_TEST_MONITORS') === '2') {
         check(Main.layoutManager.monitors.length === 2, 'Two actual virtual monitors');
         await wait(400);
-        // _rebuildBar may be finishing its normal geometry transition.
+
         d._syncAutoHide(false);
         const m = Main.layoutManager.primaryMonitor;
         const clip = d._root.get_clip();

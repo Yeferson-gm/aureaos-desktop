@@ -283,7 +283,7 @@ export class Widget extends WidgetBase {
         }
         this.box.add_child(new St.Widget({y_expand: true}));
         if (h >= 300 || (w >= 330 && h >= 190)) {
-            // sin pie
+
         }
         void u;
     }

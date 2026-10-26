@@ -9,7 +9,7 @@ unset DISPLAY
 mkdir -m 0700 "$XDG_RUNTIME_DIR"
 mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions"
 cp -a "$project_dir" "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local"
-cp -a "$project_dir/../macos27-dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
+cp -a "$project_dir/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
 glib-compile-schemas "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local/schemas"
 printf 'Prueba aislada: %s\n' "$DI_TEST_DIR"
 dbus-run-session -- bash "$project_dir/tests/smoke-session.sh"

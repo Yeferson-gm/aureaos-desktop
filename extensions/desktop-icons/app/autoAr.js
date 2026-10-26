@@ -241,7 +241,7 @@ var AutoAr = class {
     }
 
     getProgressElements() {
-        return this._progressElements; // this._progressContainer.get_children();
+        return this._progressElements;
     }
 
     removeProgressDialog(progressElement) {

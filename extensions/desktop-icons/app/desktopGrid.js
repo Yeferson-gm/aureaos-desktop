@@ -72,7 +72,7 @@ const DisplayGrid = class {
             this._window.set_deletable(false);
             this._window.set_resizable(false);
 
-            // Transparent Background only if this is working as a desktop
+
             this._window.set_name('desktopwindow');
 
             this._window
@@ -84,8 +84,8 @@ const DisplayGrid = class {
             this._mappedPromise =
                 new Promise(resolve => (this._resolveMapped = resolve));
 
-            // Wayland compositor may hang on some high-resolution displays
-            // unless windows are maximized before first map.
+
+
             this._window.maximize();
 
             this._window.connect('map', () => {
@@ -93,18 +93,18 @@ const DisplayGrid = class {
                     return;
                 this._resolveMapped(true);
                 this._resolveMapped = null;
-                // Maximize however creates an error where the window can
-                // be moved by the user by dragging down on top panel.
-                // So we unmaximize all windows after they are mapped
-                // as maximization is not needed anymore.
+
+
+
+
                 this._window.unmaximize();
             });
         } else {
-            // Opaque black test window
+
             this._window.set_name('testwindow');
         }
 
-        // Remove any other css classes, even if applied by other apps later
+
         this._window.set_css_classes(['background']);
         this._window.connect('notify::css_classes', () => {
             this._window.set_css_classes(['background']);
@@ -117,19 +117,19 @@ const DisplayGrid = class {
                     return false;
 
                 if (this._asDesktop) {
-                    // Do not destroy window when closing if the instance
-                    // is working as desktop
+
+
                     return true;
                 } else {
-                    // Exit if this instance is working as an
-                    // stand-alone window
+
+
                     this._desktopManager.terminateProgram();
                     return false;
                 }
             }
         );
 
-        // New: one fixed root that contains both layers
+
         this._rootFixed = new Gtk.Fixed();
         this._rootFixed.set_size_request(this._windowWidth, this._windowHeight);
 
@@ -138,7 +138,7 @@ const DisplayGrid = class {
         this._container.set_size_request(this._windowWidth, this._windowHeight);
         this._containerContext.add_class('unhighlightdroptarget');
 
-        // icon grid goes in rootFixed
+
         this._rootFixed.put(this._container, 0, 0);
 
         this._overlay = new Gtk.Overlay();
@@ -157,10 +157,10 @@ const DisplayGrid = class {
     }
 
     ensureMapped() {
-        // show/present only here after the window is fully set up to
-        // and to avoit commiting content too early so that the shell
-        // errors on commiting first frame before acknowleding ack from wayland
-        // compositor.
+
+
+
+
         this._window.set_visible(!this._hidden);
         this._window.present();
         return this._mappedPromise;
@@ -251,8 +251,8 @@ const DisplayGrid = class {
         this._window.queue_draw();
     }
 
-    // Establish and update window geometry, establish and update
-    // grid for the desktop icons
+
+
 
     updateGridDescription(desktopDescription) {
         this._desktopDescription = desktopDescription;
@@ -264,8 +264,8 @@ const DisplayGrid = class {
         this._y = this._desktopDescription.y;
         this._monitor = this._desktopDescription.monitorIndex;
 
-        // GNOME Shell reports logical coordinates when the scale factor is 1.
-        // In that case, DING should not divide the geometry by zoom again.
+
+
         const coordinatesAreLogical =
             this._desktopDescription.scaleFactor === 1;
 
@@ -394,7 +394,7 @@ const DisplayGrid = class {
     resizeGrid() {
         this._updateUnscaledHeightWidthMargins();
         this._createGrids();
-        // Ensure event targets cover the full window even when no icons/widgets
+
         this._container.set_size_request(this._windowWidth, this._windowHeight);
         this._rootFixed.set_size_request(this._windowWidth, this._windowHeight);
         this._sizeContainer(this._container);
@@ -424,8 +424,8 @@ const DisplayGrid = class {
         return [newGlobalX, newGlobalY];
     }
 
-    // Compute correct position for pop up menus relative to
-    // margins to prevent going under/over margins
+
+
 
     getIntelligentPosition(gdkRectangle) {
         if (!this._marginLeftHiddenObject &&
@@ -601,10 +601,10 @@ const DisplayGrid = class {
         return returnvalue;
     }
 
-    // Functions for computing postion/Geometry
+
 
     _getColumnRowFromLocal(x, y) {
-        // Returns the column, row of the grid that holds the local x, y
+
         let placeX = Math.floor(x / this._elementWidth);
         let placeY = Math.floor(y / this._elementHeight);
         placeX = this.DesktopIconsUtil.clamp(placeX, 0, this._maxColumns - 1);
@@ -614,8 +614,8 @@ const DisplayGrid = class {
     }
 
     _getGridLocalCoordinates(x, y) {
-        // Returns the local grid coordinates of top left rectangle
-        // vertex of the grid that has local x,y
+
+
         const [column, row] = this._getColumnRowFromLocal(x, y);
 
         return this._getLocalCoordinatesForGrid(column, row);
@@ -629,7 +629,7 @@ const DisplayGrid = class {
     }
 
     getDistance(x) {
-        // Returns the distance to the middle point of this grid from X //
+
         return Math.pow(x - (this._x + this._windowWidth * this._sizer / 2), 2) +
             Math.pow(x - (this._y + this._windowHeight * this._sizer / 2), 2);
     }
@@ -730,8 +730,8 @@ const DisplayGrid = class {
     }
 
     getCoordinatesOfGridContaining(X, Y, globalCoordinates = false) {
-        // returns the local or global coordinates if requested,
-        // of the local grid rectangle top left vertex that contains x, y
+
+
 
         if (this.coordinatesBelongToThisGrid(X, Y)) {
             const [x, y] = this._coordinatesGlobalToLocal(X, Y);
@@ -745,11 +745,11 @@ const DisplayGrid = class {
         }
     }
 
-    // Functions to query and set grid use by Icons and files
+
 
     _fileAtColumnRow(column, row) {
-        // only works for grid placement of icons,
-        // with free placements there maybe multiple fileItems per grid
+
+
 
         const setOfFileItemsOnGridNumber =
             this._gridStatus.get(row * this._maxColumns + column);
@@ -805,7 +805,7 @@ const DisplayGrid = class {
     }
 
     isAvailable() {
-        // Returns true if there is an available slot in the grid
+
         let isFree = false;
         for (const [, setOfFileItemsOnGridNumber] of this._gridStatus.entries()
         ) {
@@ -847,7 +847,7 @@ const DisplayGrid = class {
     }
 
     _isEmptyAt(column, row) {
-        // returns if grid at column row has a file or not
+
         const setOfFileItemsOnGridNumber =
             this._gridStatus.get(row * this._maxColumns + column);
 
@@ -855,8 +855,8 @@ const DisplayGrid = class {
     }
 
     _gridInUse(x, y) {
-        // returns if the local grid containing local coordinates
-        // x, y has a file assigned.
+
+
         const [placeX, placeY] = this._getColumnRowFromLocal(x, y);
 
         return !this._isEmptyAt(placeX, placeY);
@@ -869,7 +869,7 @@ const DisplayGrid = class {
     }
 
     _getEmptyPlaceClosestTo(x, y, coordinatesAction, reverseHorizontal) {
-        // returns the column row of empty grid available at global X, Y
+
         let cornerInversion = this.Prefs.StartCorner;
 
         if (reverseHorizontal)
@@ -929,7 +929,7 @@ const DisplayGrid = class {
         return [resColumn, resRow];
     }
 
-    // Finally the actual code that places and removes icons on the desktop
+
 
     _addFileItemToGrid(fileItem, column, row, coordinatesAction) {
         if (this._destroying)
@@ -959,12 +959,12 @@ const DisplayGrid = class {
 
         this._fileItems.set(fileItem, [localX, localY]);
 
-        /* If this file is new in the Desktop and hasn't yet
-         * fixed coordinates, store the new position to ensure
-         * that the next time it will be shown in the same position.
-         * Also store the new position if it has been moved by the user,
-         * and not triggered by a screen change.
-         */
+
+
+
+
+
+
         if ((fileItem.savedCoordinates === null) ||
             (coordinatesAction === this.Enums.StoredCoordinates.OVERWRITE)) {
             const [normalizedX, normalizedY] =
@@ -996,7 +996,7 @@ const DisplayGrid = class {
         emptyrow,
         coordinatesAction
     ) {
-        // For sanpping to grid
+
         if (fileItem.savedCoordinates == null ||
             (fileItem.savedCoordinates[0] === 0 &&
             fileItem.savedCoordinates[1] === 0) ||
@@ -1017,9 +1017,9 @@ const DisplayGrid = class {
         if (this._destroying)
             return;
 
-        // For free placement
 
-        // Make sure the icon lands inside the grid and does not protrude out
+
+
         const [currentColumn, currentRow] = this._getColumnRowFromLocal(x, y);
         let translocated = false;
 
@@ -1047,7 +1047,7 @@ const DisplayGrid = class {
             translocated = true;
         }
 
-        // recompute global coordinates from the translocatedd local coordinates
+
         if (translocated)
             [X, Y] = this.coordinatesLocalToGlobal(x, y);
 
@@ -1061,7 +1061,7 @@ const DisplayGrid = class {
         this._container.put(fileItem.container, x, y);
         this._fileItems.set(fileItem, [x, y]);
 
-        // set column row being used for all four vertices
+
         this._setUseColumnRowOverlappingThis(
             fileItem,
             currentColumn,
@@ -1069,12 +1069,12 @@ const DisplayGrid = class {
             X, Y
         );
 
-        /* If this file is new in the Desktop and hasn't yet
-         * fixed coordinates, store the new position to ensure
-         * that the next time it will be shown in the same position.
-         * Also store the new position if it has been moved by the user,
-         * and not triggered by a screen change.
-         */
+
+
+
+
+
+
         if ((fileItem.savedCoordinates === null) ||
             (coordinatesAction === this.Enums.StoredCoordinates.OVERWRITE)
         ) {
@@ -1166,7 +1166,7 @@ class GridOverlay extends Gtk.Widget {
 
         this._grid._doDrawOnGrid(snapshot);
 
-        // Ensure this widget contributes a node so the frame overwrites stale content.
+
         const rect = new Graphene.Rect();
         rect.init(0, 0, 1, 1);
         snapshot.append_color(
@@ -1199,7 +1199,7 @@ const DrawGrid =  class extends DisplayGrid {
         this._sizeContainer(this._drawArea);
     }
 
-    // Functions for drawing on the grid
+
 
     highLightGridAt(x, y) {
         const globalCoordinates = false;
@@ -1479,15 +1479,15 @@ const ControlGrid = class extends DrawGrid {
         this.updateOverlay();
     }
 
-    // Private methods
+
 
     _addDragControllers() {
-        // Bubble-phase controller: delivers key events to DesktopManager for actions
+
         this._eventKey = Gtk.EventControllerKey.new();
         this._eventKey.set_propagation_phase(Gtk.PropagationPhase.BUBBLE);
         this._window.add_controller(this._eventKey);
 
-        // Capture-phase controller: only caches modifier state, does not invoke actions
+
         this._eventKeyState = Gtk.EventControllerKey.new();
         this._eventKeyState.set_propagation_phase(Gtk.PropagationPhase.CAPTURE);
         this._window.add_controller(this._eventKeyState);
@@ -1671,9 +1671,9 @@ const ControlGrid = class extends DrawGrid {
             this._dropSession.supportedDropActions
         );
 
-        // Parameterized MIME names cannot be enumerated ahead of time.
-        // The accept handler filters all offers, including exact
-        // source-supplied filename tokens.
+
+
+
         this.gridDropController.set_formats(null);
 
         this._dropAcceptId = this.gridDropController.connect(
@@ -1784,13 +1784,13 @@ const ControlGrid = class extends DrawGrid {
 
         const dropContext = session.dropContext;
 
-        // Start the asynchronous read → selected action → native finish chain.
-        // `void` explicitly discards the returned Promise; the GTK handler
-        // returns without awaiting its completion.
+
+
+
         void this._completeAcceptedDrop(dropContext);
 
-        // True means that we accepted responsibility for finishing the drop;
-        // it does not mean that the asynchronous operation has finished yet.
+
+
         return true;
     }
 
@@ -2016,7 +2016,7 @@ const ControlGrid = class extends DrawGrid {
     }
 };
 
-/* A Picture that can translate itself at paint time (render-only) */
+
 const OffsetPicture = GObject.registerClass({
     Properties: {
         'tx': GObject.ParamSpec.double('tx', 'tx', 'translate x',
@@ -2146,15 +2146,15 @@ const OffsetPicture = GObject.registerClass({
     }
 });
 
-// Adds an auxiliary fixed layer that can sit above/below the icon grid.
+
 const WidgetGrid = class extends ControlGrid {
     constructor(params) {
         super(params);
-        this._selectedWidget = null;   // instanceId
-        this._draggedWidget = null;    // instanceId
-        // Pending only until the pointer moves far enough to count as a drag.
+        this._selectedWidget = null;
+        this._draggedWidget = null;
+
         this._pendingChromeDrag = null;
-        // Small pointer jitter should not steal clicks from draggable chrome.
+
         this._chromeDragThreshold = 5;
         this.widgetGridEnabled = false;
         this._gridSize = this.Enums.WIDGET_GRID_SIZE;
@@ -2171,7 +2171,7 @@ const WidgetGrid = class extends ControlGrid {
         drag.set_propagation_phase(Gtk.PropagationPhase.CAPTURE);
         this._widgetContainer.add_controller(drag);
 
-        // Click gesture: used only to track selection + click radius
+
         const click = new Gtk.GestureClick({button: 0});
         click.set_propagation_phase(Gtk.PropagationPhase.CAPTURE);
         this._widgetContainer.add_controller(click);
@@ -2253,17 +2253,17 @@ const WidgetGrid = class extends ControlGrid {
         this._widgetContainerOnTop = onTop;
 
         if (onTop) {
-        // Widgets above icons (edit mode)
-        // Draw order: icons (bottom), widgets (top)
 
-            // Reorder without unparenting:
-            // place widgetContainer after container in _rootFixed
+
+
+
+
             this._widgetContainer.insert_after(this._rootFixed, this._container);
 
             this._widgetContainer.add_css_class('widgets-on-top');
             this._window.add_css_class('widgets-on-top');
 
-            // Input: widget layer active, icons inert
+
             this._container.opacity = 0.05;
             this._container.set_can_target(false);
             this._widgetContainer.set_can_target(true);
@@ -2276,16 +2276,16 @@ const WidgetGrid = class extends ControlGrid {
 
             this.restoreWidgetLayerFocus();
         } else {
-        // Icons above widgets (normal mode)
-        // Draw order: widgets (bottom), icons (top)
 
-            // Reorder the other way: container after widgetContainer
+
+
+
             this._container.insert_after(this._rootFixed, this._widgetContainer);
 
             this._widgetContainer.remove_css_class('widgets-on-top');
             this._window.remove_css_class('widgets-on-top');
 
-            // Input: icons active, widget layer background only
+
             this._container.opacity = 1.0;
             this._container.set_can_target(true);
             this._widgetContainer.set_can_target(false);
@@ -2374,7 +2374,7 @@ const WidgetGrid = class extends ControlGrid {
         if (!instanceId)
             return;
 
-        // Record the chrome press; actual drag start waits for movement.
+
         this._pendingChromeDrag = {
             instanceId,
             startX,
@@ -2384,9 +2384,9 @@ const WidgetGrid = class extends ControlGrid {
 
     _onWidgetMoveDragUpdate(gesture, offsetX, offsetY) {
         if (this._pendingChromeDrag) {
-            // Ignore small jitter until the pointer has moved far enough
-            // to count as a real drag. This will reliably deliver clicks
-            // to the underlying chrome as we are using a grouped controllers
+
+
+
             const dist = offsetX * offsetX + offsetY * offsetY;
             const threshold =
                 this._chromeDragThreshold * this._chromeDragThreshold;
@@ -2434,7 +2434,7 @@ const WidgetGrid = class extends ControlGrid {
         if (!picked)
             return null;
 
-        // We only want to return a direct child in widgetContainer,
+
         let w = picked;
         while (w && w !== this._widgetContainer) {
             if (w.get_parent() === this._widgetContainer)
@@ -2615,16 +2615,16 @@ const WidgetGrid = class extends ControlGrid {
         if (!this._selectedWidget)
             return;
 
-        // Reliable for the normal widget-content path: if the press stayed
-        // within click radius and did not become a drag, we hand the click
-        // back to the child actor here. Chrome drag handles use their own
-        // thresholded path and do not depend on this fallback.
+
+
+
+
         const [clickX, clickY] = this.click ?? [x, y];
         const dx = x - clickX;
         const dy = y - clickY;
         const dist = dx * dx + dy * dy;
-        // Keep a small click radius so tiny pointer jitter does not turn a
-        // normal widget click into a drag-like sequence.
+
+
         const radius = 4 * 4;
         const isClick = dist <= radius;
         this.click = null;
@@ -2632,10 +2632,10 @@ const WidgetGrid = class extends ControlGrid {
         if (!isClick)
             return;
 
-        // At this point we’ve done all our selection work in _onClick.
-        // For a real click, we now DENY the sequence
-        // so that the underlying actor (HTML WebView or Gtk.Button add
-        // widget) sees a normal click.
+
+
+
+
         gesture.set_state(Gtk.EventSequenceState.DENIED);
     }
 
@@ -2719,8 +2719,8 @@ const DesktopGrid = class extends WidgetGrid {
         this._pendingMargins = null;
         this._newMargins = null;
         this._tweenDelta = null;
-        this._reverse = 0.33; // single tuning knob for spring snappiness
-        // in ms
+        this._reverse = 0.33;
+
         this._duration =  Math.max(350, this.Enums.TRANSITIONDURATION ?? 0);
         this._setupAnimations();
     }
@@ -2864,9 +2864,9 @@ const DesktopGrid = class extends WidgetGrid {
             Old.contentRectangle.height === New.contentRectangle.height;
 
         if (sameShape) {
-            // If the content rectangles are the same shape, we can just tween
-            // the top left corner of the content rectangle as the anchor
-            // for pixel perfect alignment of the content rectangle.
+
+
+
             const anchor = 'topleft';
             const dx = Old.left - New.left;
             const dy = Old.top - New.top;
@@ -2876,11 +2876,11 @@ const DesktopGrid = class extends WidgetGrid {
             return {sameShape, anchor, dx, dy, pivotx, pivoty};
         }
 
-        // If the content rectangles are not the same shape, or if the
-        // or both axis changed size, then we cannot just tween the
-        // top left corner of the content rectangle as the anchor.
-        // Instead, we need to tween the center, to account for the
-        // difference in aspect ratio.
+
+
+
+
+
         const ocx = Old.contentRectangle.x + Old.contentRectangle.width  / 2;
         const ocy = Old.contentRectangle.y + Old.contentRectangle.height / 2;
         const ncx = New.contentRectangle.x + New.contentRectangle.width  / 2;
@@ -2900,7 +2900,7 @@ const DesktopGrid = class extends WidgetGrid {
             this._relayoutCoalesceSource = 0;
         }
 
-        // coalesce multiple relayouts within this time
+
         const relayoutBurstMs = 100;
 
         this._pendingMargins = this._getCurrentMargins();
@@ -2916,7 +2916,7 @@ const DesktopGrid = class extends WidgetGrid {
     }
 
     _setupSpringAnimation() {
-        const dampingRatio = 0.58; // < 1 => underdamped (dip then settle)
+        const dampingRatio = 0.58;
         const stiffness   = 250 + Math.round((1 - this._reverse) * 350);
         const mass        = 1.0;
 
@@ -2924,7 +2924,7 @@ const DesktopGrid = class extends WidgetGrid {
             Adw.SpringParams.new(dampingRatio, mass, stiffness);
 
         const springTarget = Adw.CallbackAnimationTarget.new(v => {
-            const s = Number(v); // animates around 1.0 due to initial_velocity
+            const s = Number(v);
             this._setLiveTransform(
                 s, this._tweenDelta.pivotx, this._tweenDelta.pivoty
             );
@@ -2935,7 +2935,7 @@ const DesktopGrid = class extends WidgetGrid {
             value_from: 1.0,
             value_to:   1.0,
             spring_params: springParams,
-            initial_velocity: -3.0, // negative => dip “away”, then return
+            initial_velocity: -3.0,
             epsilon: 0.001,
             clamp: false,
             target: springTarget,
@@ -2944,13 +2944,13 @@ const DesktopGrid = class extends WidgetGrid {
 
     _setupOffsetAnimation() {
         const target = Adw.CallbackAnimationTarget.new(value => {
-            const t = Number(value); // 0.0 to 1.0
+            const t = Number(value);
             const x = Math.round(-this._tweenDelta.dx * t);
             const y = Math.round(-this._tweenDelta.dy * t);
             this._setLiveOffset(x, y);
             this._snapshotPic.opacity = 1 - t;
 
-            // Fade in the NEW live layers only near the end
+
             if (t > 0.8)
                 this._rootFixed.opacity = t;
         });
@@ -2966,7 +2966,7 @@ const DesktopGrid = class extends WidgetGrid {
 
         this._offsetAnim.connect('done', () => {
             this._setLiveOffset(-this._tweenDelta.dx, -this._tweenDelta.dy);
-            // Ensure we end exactly at identity scale
+
             if (this._moveAway) {
                 this._setLiveTransform(
                     1.0, this._tweenDelta.pivotx, this._tweenDelta.pivoty
@@ -2996,14 +2996,14 @@ const DesktopGrid = class extends WidgetGrid {
         const noshift = this._tweenDelta.dx === 0 && this._tweenDelta.dy === 0;
         this._moveAway = !this._tweenDelta.sameShape;
         if (noshift && !this._moveAway) {
-            // No visible change, so just end the animation
+
             this._displayLive();
             return;
         }
-        // Initialize transform for the OLD snapshot we are animating
-        // - translation starts at the old position
-        // - scale is 1.0 (no depth change yet)
-        // - pivot is from tweenDelta (center for shape change, topleft otherwise)
+
+
+
+
         this._setLiveOffset(0, 0);
         this._setLiveTransform(1.0,
             this._tweenDelta.pivotx,

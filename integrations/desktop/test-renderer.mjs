@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-const path = '/home/yefersongm/.local/share/gnome-shell/extensions/gnome-wallpaper-engine@gjs.com/modules/wallpaper50.js';
+const path = new URL('../../extensions/live-wallpaper/modules/wallpaper50.js', import.meta.url);
 const source = fs.readFileSync(path, 'utf8');
 const body = source.match(/windowActor\.connect\("destroy", \(\) => \{([\s\S]*?)\n            \}\);/)[1];
 const destroyedActor = {};

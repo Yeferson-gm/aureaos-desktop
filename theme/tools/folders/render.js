@@ -1,4 +1,4 @@
-// Renderización local del SVG vectorial, no modifica la imagen de referencia.
+
 imports.gi.versions.Rsvg = '2.0';
 const Rsvg = imports.gi.Rsvg;
 const Cairo = imports.cairo;

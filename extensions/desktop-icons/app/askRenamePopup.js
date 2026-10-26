@@ -198,8 +198,8 @@ const AskRenamePopup = class {
             this._textArea.text
         );
 
-        // popdown will trigger the 'close' signal, which,
-        //  in turn, will call _closeCB()
+
+
         this._popover.popdown();
     }
 

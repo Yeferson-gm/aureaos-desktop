@@ -1,7 +1,7 @@
 {
-  "description": "Dock personalizado con ampliación coordinada al estilo macOS.",
+  "description": "Dock del escritorio Aurea 27.",
   "gettext-domain": "dashtodock",
-  "name": "Dock macOS 27",
+  "name": "Aurea 27 · Dock",
   "original-author": "micxgx@gmail.com",
   "shell-version": [
     "45",
@@ -13,6 +13,5 @@
     "51"
   ],
   "url": "https://micheleg.github.io/dash-to-dock/",
-  "uuid": "macos27-dock@local",
-  "version": 7
+  "uuid": "macos27-dock@local"
 }

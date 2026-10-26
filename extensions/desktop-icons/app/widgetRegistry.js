@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * Layout:
- *   $XDG_DATA_HOME/<app-id>/widgets/<widgetId>/widget.json
- *   $XDG_DATA_DIRS/.../<app-id>/widgets/<widgetId>/widget.json
- */
+
+
+
+
+
 
 import {Gio, GLib} from '../dependencies/gi.js';
 
@@ -45,7 +45,7 @@ const WidgetRegistry = class  {
         this._userRoot = null;
         this._systemRoots = [];
 
-        // id -> descriptor
+
         this._widgets = new Map();
 
         this._loaded = false;
@@ -55,9 +55,9 @@ const WidgetRegistry = class  {
         this.preload();
     }
 
-    // ---------------------------------------------------------------------
-    // Public API
-    // ---------------------------------------------------------------------
+
+
+
 
     preload() {
         this._ensureLoadedAsync().catch(e => {
@@ -65,11 +65,11 @@ const WidgetRegistry = class  {
         });
     }
 
-    /**
-     * Get a snapshot of all known widgets.
-     *
-     * @returns {Promise<Array<object>>}
-     */
+
+
+
+
+
     async listWidgets() {
         await this._ensureLoadedAsync();
         return Array.from(this._widgets.values()).map(
@@ -77,44 +77,44 @@ const WidgetRegistry = class  {
         );
     }
 
-    /**
-     * Look up a widget descriptor by ID.
-     *
-     * Descriptor shape:
-     * {
-     *   id: string,
-     *   name: string,
-     *   kind: 'html' | 'gtk',
-     *   dir: Gio.File,
-     *   manifestFile: Gio.File,
-     *   isUser: boolean,
-     *   defaultWidth: number | null,
-     *   defaultHeight: number | null,
-     *   defaultConfig: object | null,
-     *   "name_localized": {
-     *     "fr": "Horloge analogique"
-     *   },
-     *   description: "A simple analog clock widget.",
-     *   "description_localized": {
-     *     "fr": "Un widget d'horloge analogique simple."
-     *   },
-     *   category: "time",
-     *   author: "Sundeep Mediratta",
-     *   version: "1.0",
-     *   homepage: "https://…",
-     *   license: "GPL-3.0-or-later",
-     *   pinnable: boolean,
-     *   chrome: {
-     *     showCloseButton: boolean,
-     *     showPrefsButton: boolean,
-     *     showMoveButton: boolean,
-     *     showPinButton: boolean
-     *   }
-     * }
-     *
-     * @param {string} id Widget identifier
-     * @returns {Promise<object|null>}
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     async getDescriptor(id) {
         if (!id)
             return null;
@@ -124,23 +124,23 @@ const WidgetRegistry = class  {
         return desc ? this._cloneDescriptor(desc) : null;
     }
 
-    /*
-     * Get widget kind ('html' | 'gtk')
-     *
-     * @param {string} id Widget identifier
-     * @returns {Promise<'html'|'gtk'>}
-     */
+
+
+
+
+
+
     async getKind(id) {
         const desc = await this.getDescriptor(id);
         return desc?.kind === 'gtk' ? 'gtk' : 'html';
     }
 
-    /**
-     * For HTML widgets, return the entry file (always index.html).
-     *
-     * @param {string} id Widget identifier
-     * @returns {Promise<Gio.File|null>}
-     */
+
+
+
+
+
+
     async getHtmlEntryFile(id) {
         const desc = await this.getDescriptor(id);
         if (!desc || desc.kind !== 'html')
@@ -174,9 +174,9 @@ const WidgetRegistry = class  {
         this.preload();
     }
 
-    // ---------------------------------------------------------------------
-    // Internal
-    // ---------------------------------------------------------------------
+
+
+
 
     _initPaths() {
         const mainApp = this._util.mainApp;
@@ -194,7 +194,7 @@ const WidgetRegistry = class  {
 
         this._appId = appId;
 
-        // User root: $XDG_DATA_HOME/<app-id>/widgets
+
         try {
             const appDataDir = this._util.getAppUserDataDir();
             this._userRoot = appDataDir.get_child('widgets');
@@ -202,7 +202,7 @@ const WidgetRegistry = class  {
             console.warn('WidgetRegistry: failed to resolve user root:', e);
         }
 
-        // System roots: for each XDG data dir, <dir>/<app-id>/widgets
+
         try {
             const systemBaseDirs = GLib.get_system_data_dirs();
 
@@ -223,7 +223,7 @@ const WidgetRegistry = class  {
         if (this._loaded)
             return;
 
-        // Idempotent
+
         if (this._loadingPromise) {
             await this._loadingPromise;
             return;
@@ -255,14 +255,14 @@ const WidgetRegistry = class  {
         this._loaded = true;
     }
 
-    /**
-     * Async scan of a single root dir:
-     *   <root>/<widgetId>/widget.json
-     *
-     * @param {Gio.File} root
-     * @param {boolean} isUser
-     * @param {Map<string,object>} outMap
-     */
+
+
+
+
+
+
+
+
     async _scanRootAsync(root, isUser, outMap) {
         let info;
         try {
@@ -330,7 +330,7 @@ const WidgetRegistry = class  {
                     if (!manifest)
                         continue;
 
-                    // ID must come from widget.json and must be valid.
+
                     const idRaw =
                         typeof manifest.id === 'string'
                             ? manifest.id.trim() : '';
@@ -418,8 +418,8 @@ const WidgetRegistry = class  {
                         hasBackend: !!backend,
                     };
 
-                    // Resolve duplicates deterministically;
-                    // log each duplicated id only once.
+
+
 
                     const existing = outMap.get(id);
                     if (existing) {
@@ -615,7 +615,7 @@ const WidgetRegistry = class  {
                 ? backend.argv.filter(a => typeof a === 'string')
                 : [];
 
-        // Resolve argv[0] to an absolute path if it isn't already.
+
         let argv0 = null;
 
         if (cmd.startsWith('/')) {

@@ -1,7 +1,7 @@
-// Estante de vidrio del dock (macOS 27): desenfoque real del fondo + estilo CSS.
-//
-// El desenfoque de Shell es rectangular; se recorta por dentro del radio de las
-// esquinas (inset ≈ 0,3 × radio) para que nunca asome fuera del borde redondeado.
+
+
+
+
 
 import {Clutter, Shell, St} from '../dependencies/gi.js';
 
@@ -50,7 +50,7 @@ export class GlassShelf {
         this.blur = null;
     }
 
-    // Estiramiento del estante cuando el dock se ensancha (ver magnification.js).
+
     setStretch(a, b) {
         this._a = a;
         this._b = b;
@@ -76,7 +76,7 @@ export class GlassShelf {
                 this._applyOffsets();
             }
         } catch (_e) {
-            // se conserva el valor anterior
+
         }
     }
 

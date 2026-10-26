@@ -51,7 +51,7 @@ export class Widget extends WidgetBase {
                 for (const e of parsearFeed(r.value).items.slice(0, 8))
                     items.push({...e, fuente: feeds[i][0]});
             } catch (_e) {
-                // feed ilegible
+
             }
         });
         items.sort((a, b) => (b.fecha?.getTime() ?? 0) - (a.fecha?.getTime() ?? 0));

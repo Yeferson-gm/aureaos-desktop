@@ -3,42 +3,42 @@
 import {Gdk, Gio} from '../dependencies/gi.js';
 import {ContentReader, Enums, WebUtils} from '../dependencies/localFiles.js';
 
-// DropSession sync session state and managment
-//   inspect formats
-//   → choose route
-//   → classify ambiguous URI list
-//   → apply destination policy
-//   → advertise action
-//   → capture stable context on drop for reading contents
 
-// ContentReader reads only one stable transfer context
-//   read only required representations
-//   → combine matching browser metadata
-//   → decode into one small DropContents shape
-//   → optionally create a custom link icon
 
-// DesktopGrid
-//   receive DropContents
-//   → perform the selected action
-//   → finish the original Gdk.Drop
 
-// DragManager / utilities
-//   perform filesystem operations and write accepted content
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export {DropSession};
 
-/**
- * Negotiate one drop without reading unnecessary representations.
- *
- * 1. Choose an initial route from the advertised formats.
- * 2. If text/uri-list is the only decisive format, read and classify it
- *    during hover as web links, file references, or unsupported.
- * 3. Apply destination policy and advertise the selected action.
- * 4. Capture stable drop state when the drop is accepted.
- *
- * The hover-time URI-list result is retained so accepted-drop processing
- * does not transfer the same representation again.
- */
+
+
+
+
+
+
+
+
+
+
+
+
 const DropSession = class {
     constructor(gtkDropController, desktopManager) {
         this._gtkDropController = gtkDropController;
@@ -58,8 +58,8 @@ const DropSession = class {
         this._dropBeingProcessed = null;
     }
 
-    // Public drop-target API. The grid forwards GTK events here while the
-    // session owns the current drop, its destination, and its advertised action.
+
+
     accept(drop) {
         this._updateDrop(drop);
         const accepted = this.acceptsDrop;
@@ -90,12 +90,12 @@ const DropSession = class {
         return !!this._preferredActionFor(destination);
     }
 
-    /**
-     * Read all contents offered by one accepted drop.
-     *
-     * @param {object} context immutable state captured for the accepted drop
-     * @returns {Promise<DropContents>} fully decoded contents
-     */
+
+
+
+
+
+
     async readDropContents(context) {
         this._dropBeingProcessed = context.drop;
         this._hovering = false;
@@ -145,10 +145,10 @@ const DropSession = class {
         this._thumbnailLoader = null;
     }
 
-    // Private methods
 
-    // Current-drop ownership is established once, including the offered
-    // formats, cancellation scope, initial route, and grid movement policy.
+
+
+
     _updateDrop(drop) {
         if (this._drop === drop)
             return;
@@ -226,8 +226,8 @@ const DropSession = class {
         return routes.UNSUPPORTED;
     }
 
-    // Negotiation classifies the cached formats, applies destination policy,
-    // chooses an action, and advertises that action on the current Gdk.Drop.
+
+
     _offersMime(mimeType) {
         return this._mimeTypeSet.has(mimeType);
     }
@@ -245,8 +245,8 @@ const DropSession = class {
             WebUtils.imageFormats(this._mimeTypes).length > 0;
     }
 
-    // Cleanup disconnects cancellation before cancelling I/O, then clears every
-    // reference owned by the current drop in one place.
+
+
     _cancelDrop(drop, cancellable) {
         if (this._drop !== drop ||
             this._cancellable !== cancellable)
@@ -283,8 +283,8 @@ const DropSession = class {
             });
     }
 
-    // Context capture freezes the decisions and values used after GTK's drop
-    // callback returns. GDK, Gio, and file-item objects retain their identity.
+
+
     _captureReadContext() {
         return Object.freeze({
             drop: this._drop,
@@ -408,17 +408,17 @@ const DropSession = class {
         this._drop.status(this.supportedDropActions, action);
     }
 
-    // Reader delegation is the only place where the session knows how drop
-    // representations are transferred and decoded. The reader receives one
-    // captured context and never reads mutable session state.
+
+
+
     _readCapturedDropContents(context) {
         return this._createContentsReader(context).readContents();
     }
 
-    // Getters
 
-    // Getters expose the current synchronous state. `dropContext` is the one
-    // exception: it returns a frozen snapshot for the asynchronous drop chain.
+
+
+
     get dropContext() {
         const destination = this._effectiveDestination;
         const effectiveDestination = destination

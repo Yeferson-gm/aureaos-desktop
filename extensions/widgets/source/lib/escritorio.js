@@ -70,7 +70,7 @@ export class Escritorio {
         this._serv = [];
     }
 
-    // ── Ciclo de vida ─────────────────────────────────────────────────
+
     iniciar() {
         this._cfgAlm = new Almacen('config', CFG_DEF);
         this.cfg = this._cfgAlm.datos;
@@ -148,7 +148,7 @@ export class Escritorio {
         Main.notify(titulo, msg);
     }
 
-    // ── Geometría y capas ─────────────────────────────────────────────
+
     _medir() {
         this.mon = Main.layoutManager.primaryMonitor;
         this.top = Main.panel.get_height();
@@ -170,8 +170,8 @@ export class Escritorio {
     _pedirColocar() {
         if (this._colocarLater)
             return;
-        // Mutter puede elevar actores ajenos a las ventanas al reordenarlas.
-        // Corregir antes de pintar: un idle puede esperar toda la animación.
+
+
         this._colocarLater = global.compositor.get_laters().add(Meta.LaterType.BEFORE_REDRAW, () => {
             this._colocarLater = 0;
             this.colocar();
@@ -209,8 +209,8 @@ export class Escritorio {
         if (this.cfg.global.capa === 'auto') {
             const set = new Set(this._ventanasEscritorio());
             for (const hijo of wg.get_children()) {
-                // Nunca seguir un escritorio que esté temporalmente por encima
-                // de una app durante map/minimize/maximize.
+
+
                 if (hijo.meta_window && !set.has(hijo))
                     break;
                 if (set.has(hijo))
@@ -221,7 +221,7 @@ export class Escritorio {
             wg.set_child_above_sibling(this.capa, destino);
     }
 
-    // ── Gestión de widgets ────────────────────────────────────────────
+
     _montar(cfg) {
         const mod = MODULOS[cfg.tipo];
         if (!mod)
@@ -350,7 +350,7 @@ export class Escritorio {
         this.cfg.widgets = this.cfg.widgets.filter(c => c !== m.cfg).concat(m.cfg);
     }
 
-    // Imanes: bordes de pantalla, otros widgets y cuadrícula.
+
     imantar(marco, modo, r) {
         const g = this.cfg.global;
         const T = 9;
@@ -408,7 +408,7 @@ export class Escritorio {
         return {x, y, w, h};
     }
 
-    // ── Modo de edición ───────────────────────────────────────────────
+
     _crearBarra() {
         const b = new St.BoxLayout({style_class: 'lw-barra', visible: false, width: 470, height: 54});
         b.add_child(boton('＋  Añadir widget', () => this.abrirGaleria(), 'lintel-btn lintel-btn-primary'));
@@ -453,7 +453,7 @@ export class Escritorio {
         return abrirGaleria(this);
     }
 
-    // ── Menú contextual de widget ─────────────────────────────────────
+
     _cerrarMenu() {
         if (this._menu) {
             this._menu.destroy();

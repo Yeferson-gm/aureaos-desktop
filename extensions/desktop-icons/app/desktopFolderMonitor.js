@@ -236,8 +236,8 @@ const DesktopMonitor = class extends DesktopFolderUtils {
     }
 
     async _clearInheritedDesktopPosition(file) {
-        // Finish before enumeration so a late clear cannot erase coordinates
-        // saved during placement. Never follow a link to its target.
+
+
         const info = new Gio.FileInfo();
         info.set_attribute_string('metadata::desktop-icon-position', '');
 
@@ -249,19 +249,19 @@ const DesktopMonitor = class extends DesktopFolderUtils {
                 null
             );
         } catch (e) {
-            // The file may have been removed before its metadata was cleared.
+
         }
     }
 
     async _updateFileListIfChanged(file, otherFile, eventType) {
         if (eventType === Gio.FileMonitorEvent.CHANGED) {
-            // use only CHANGES_DONE_HINT
+
             return;
         }
 
         if (!this.Prefs.showHidden && (file.get_basename()[0] === '.')) {
-            // If the file is not visible, we don't need to refresh the desktop
-            // Unless it is a hidden file being renamed to visible
+
+
             if (!otherFile || (otherFile.get_basename()[0] === '.'))
                 return;
         }
@@ -269,15 +269,15 @@ const DesktopMonitor = class extends DesktopFolderUtils {
         switch (eventType) {
         case Gio.FileMonitorEvent.MOVED_IN:
         case Gio.FileMonitorEvent.MOVED_CREATED:
-            // Pending placement already discards inherited coordinates for
-            // DING-managed copies, moves, and links. Only files arriving from
-            // an out-of-band filesystem operation need generic cleanup.
+
+
+
             if (!this.desktopManager.dropOperations
                 .isPlacementManagedFor(file.get_basename()))
                 await this._clearInheritedDesktopPosition(file);
             break;
         case Gio.FileMonitorEvent.ATTRIBUTE_CHANGED:
-            /* The desktop is what changed, and not a file inside it */
+
             if (file.get_uri() === this._desktopDir.get_uri()) {
                 if (await this._updateWritableByOthers()) {
                     try {
@@ -308,7 +308,7 @@ const DesktopMonitor = class extends DesktopFolderUtils {
 
     async _updateFileList() {
         if (this._readingDesktopFiles) {
-            // just notify that the files changed while being read from disk.
+
             this._desktopFilesChanged = true;
 
             if (this._desktopEnumerateCancellable && !this._forceDraw) {
@@ -452,14 +452,14 @@ const DesktopMonitor = class extends DesktopFolderUtils {
                             );
 
                         if (fileItem.isHidden && !this.Prefs.showHidden) {
-                            /* if there are hidden files in the desktop and the
-                            user doesn't want to show them, remove the
-                            coordinates. This ensures that if the user enables
-                            showing them, they won't fight with other icons
-                            for the same place
-                            */
+
+
+
+
+
+
                             if (fileItem.savedCoordinates) {
-                                // only overwrite them if needed
+
                                 fileItem.savedCoordinates = null;
                             }
                             fileItem.onDestroy();
@@ -568,9 +568,9 @@ const DesktopMonitor = class extends DesktopFolderUtils {
         }
 
         if (basename in this._positionsForNewFiles) {
-            // This file was created by the current drop. Copies and symbolic
-            // links can expose desktop-position metadata from their source;
-            // discard it so the current drop position takes precedence.
+
+
+
             fileItem.forgetSavedCoordinates();
             fileItem.dropCoordinates = this._positionsForNewFiles[basename];
             delete this._positionsForNewFiles[basename];

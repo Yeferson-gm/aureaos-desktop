@@ -950,7 +950,7 @@
                                 <property name="round_digits">0</property>
                                 <property name="digits">2</property>
                                 <property name="value_pos">right</property>
-                                <!-- <signal name="format-value" handler="preview_size_scale_format_value_cb" /> -->
+
                                 <signal name="value-changed" handler="preview_size_scale_value_changed_cb" />
                               </object>
                             </child>

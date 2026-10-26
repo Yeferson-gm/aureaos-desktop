@@ -79,16 +79,16 @@ const DesktopIconItem = class {
         this._iconContainerEventControllerLeaveId = 0;
         this.thumbnail = null;
         this.thumbnailFile = null;
-        // Create the placement promise up front so snapshot and fallback
-        // paths can resolve the same instance later.
+
+
         this.iconPlaced = new Promise(resolve => {
             this.iconPlacedPromiseResolve = resolve;
         });
     }
 
-    /** *********************
-     * Destroyers *
-     ***********************/
+
+
+
 
     removeFromGrid(opts = {callOnDestroy: false}) {
         if (this._grid) {
@@ -103,7 +103,7 @@ const DesktopIconItem = class {
     _destroy() {
         this._destroying = true;
 
-        /* Icons update */
+
         if (this._updateIconCancellable)
             this._updateIconCancellable.cancel();
         this._updateIconCancellable = null;
@@ -168,9 +168,9 @@ const DesktopIconItem = class {
         );
     }
 
-    /** *********************
-     * Creators *
-     ***********************/
+
+
+
 
     _createIconActor() {
         if (this.container)
@@ -242,7 +242,7 @@ const DesktopIconItem = class {
                 this._destroyToolTip();
             });
 
-        // This controls how the icons look - Rectangular or skinny trapezoid
+
 
         if (!this.Prefs.freePositionIcons) {
             this._labelContainer.append(this._iconContainer);
@@ -311,7 +311,7 @@ const DesktopIconItem = class {
     }
 
     _resolveIconPlaced() {
-        // Gtk snapshot is run, icon is painted for the first time.
+
         if (!this.iconPlacedPromiseResolve)
             return;
 
@@ -320,8 +320,8 @@ const DesktopIconItem = class {
     }
 
     iconCannotBeShown() {
-        // Resolve the placement promise even when the icon never gets a snapshot.
-        // Resolve is done by desktopManager when it determines icon cannot be shown.
+
+
         this._resolveIconPlaced();
     }
 
@@ -390,8 +390,8 @@ const DesktopIconItem = class {
     }
 
     forgetSavedCoordinates() {
-        // Update only the in-memory state. Drop placement will immediately
-        // replace it and persist the resulting desktop position.
+
+
         this._parseSavedCoordinates(null);
     }
 
@@ -443,9 +443,9 @@ const DesktopIconItem = class {
         this._label.label = text;
     }
 
-    /** *********************
-     * Button Clicks *
-     ***********************/
+
+
+
 
     _checkHasHoveredPointer(widget) {
         let stateFlags = widget.get_state_flags();
@@ -495,7 +495,7 @@ const DesktopIconItem = class {
 
     _onLongPressButton(
         _actor, _X, _Y, _x, _y, _button, _shiftPressed, _controlPressed) {
-        // Handle long press events here if needed
+
     }
 
     _onReleaseButton(actor, X, Y, x, y, shiftPressed, controlPressed) {
@@ -555,9 +555,9 @@ const DesktopIconItem = class {
         button, nPressX, Y, x, y, shiftPressed, controlPressed) {
     }
 
-    /** *********************
-     * Drag and Drop *
-     ***********************/
+
+
+
 
     _onEnter() {
         if (!this._grid)
@@ -763,9 +763,9 @@ const DesktopIconItem = class {
         return false;
     }
 
-    /** *********************
-     * Icon Rendering *
-     ***********************/
+
+
+
 
     async updateIcon() {
         if (this._destroying)
@@ -1095,9 +1095,9 @@ const DesktopIconItem = class {
         return this._addEmblemsToIconIfNeeded(iconPaintable);
     }
 
-    /** *********************
-     * Getters and setters *
-     ***********************/
+
+
+
 
     get _desktopDir() {
         return this._desktopManager.desktopDir;

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
-// Run the actual desktop controller with a deterministic compositor frame queue.
+
 const beforePaint = [];
 const idle = [];
 const source = fs.readFileSync(new URL('../source/lib/escritorio.js', import.meta.url), 'utf8')

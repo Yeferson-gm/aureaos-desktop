@@ -21,35 +21,35 @@ import {_} from '../dependencies/gettext.js';
 export {WidgetWindow};
 
 const WidgetWindow = class {
-    /**
-     * Runtime adapter for one pinned widget window.
-     *
-     * The WidgetManager remains the canonical owner of widget geometry/state.
-     * WidgetWindow only owns the Gtk.Window runtime host and reports runtime
-     * events back to WidgetManager through explicit callbacks.
-     *
-     * Contract:
-     * - This class is runtime-only. It does not own persistent widget state.
-     * - It should be created only after WidgetManager has created inst.actor.
-     * - The authoritative position/size remain in WidgetManager.
-     * - The shell-side window type/stacking behavior is derived from the title
-     *   string emitted here and enforced by windowTypeManager.
-     *
-     * @param {object} params
-     * @param {object} params.widgetManager
-     *   Canonical owner of the widget instance. Must provide:
-     *   - getInstance(instanceId)
-     *   - getInstanceFrame(instanceId)
-     *   - beginPinnedEdit(instanceId)
-     *   - beginPinnedWindowMove(instanceId, params)
-     *   - setInstancePinned(instanceId, pinned)
-     *   - optional pinned-window lifecycle callbacks
-     * @param {object} params.mainApp
-     *   Gtk.Application used to create a DING-owned Gtk.ApplicationWindow.
-     * @param {string} params.instanceId
-     *   The instance being hosted. Its actor must already exist before this
-     *   runtime host is constructed and used.
-     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     constructor(params = {}) {
         this._widgetManager = params.widgetManager ?? null;
         this._mainApp = params.mainApp ?? null;
@@ -73,9 +73,9 @@ const WidgetWindow = class {
         this._createWindow();
     }
 
-    // -----------------------------------------------------------------
-    // Public API
-    // -----------------------------------------------------------------
+
+
+
 
     attachActor(actor) {
         if (!this._window || !this._overlay || !actor)
@@ -203,9 +203,9 @@ const WidgetWindow = class {
         this.updateFromInstance(inst, frame);
     }
 
-    // -----------------------------------------------------------------
-    // Private API
-    // -----------------------------------------------------------------
+
+
+
 
     _createWindow() {
         this._window = new Gtk.ApplicationWindow({
@@ -303,8 +303,8 @@ const WidgetWindow = class {
         if (!this._overlay || !button)
             return;
 
-        // The controls strip can be rebuilt while a press sequence is in flight.
-        // Only act on the current live move button that belongs to this overlay.
+
+
         if (this._overlayButtons.get('move') !== button)
             return;
 
@@ -500,8 +500,8 @@ const WidgetWindow = class {
     }
 
     _onCloseRequest() {
-        // Pinned widgets do not destroy themselves via the window close path.
-        // WidgetManager decides whether close means "unpin" or "remove".
+
+
         this._widgetManager.onPinnedWindowCloseRequest(this._instanceId);
         return true;
     }
@@ -531,9 +531,9 @@ const WidgetWindow = class {
             return;
         }
 
-        // The strip itself is the drag handle for pinned windows.
-        // The move button only changes the visible affordance; it does not
-        // control whether the strip can start a window move.
+
+
+
         this._beginWindowMoveFromPoint({
             localX: startX,
             localY: startY,

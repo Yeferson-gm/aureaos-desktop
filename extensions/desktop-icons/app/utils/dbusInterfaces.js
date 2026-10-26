@@ -17,7 +17,7 @@
 export {DBusInterfaces};
 
 const DBusInterfaces = {
-    // net.haddes.SwitcherooControl
+
     'net.hadess.SwitcherooControl': `<node>
     <interface name="net.hadess.SwitcherooControl">
       <property name="HasDualGpu" type="b" access="read"/>
@@ -26,7 +26,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // org.freedesktop.FileManager1
+
     'org.freedesktop.FileManager1': `<node>
     <interface name='org.freedesktop.FileManager1'>
       <method name='ShowFolders'>
@@ -44,7 +44,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // org.gnome.ArchiveManager1
+
     'org.gnome.ArchiveManager1': `<node>
     <interface name="org.gnome.ArchiveManager1">
       <method name="GetSupportedTypes">
@@ -77,7 +77,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // org.gnome.Nautilus.FileOperations2
+
     'org.gnome.Nautilus.FileOperations2': `<node>
     <interface name='org.gnome.Nautilus.FileOperations2'>
       <method name='CopyURIs'>
@@ -122,7 +122,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // org.gnome.NautilusPreviewer
+
     'org.gnome.NautilusPreviewer': `<node>
     <interface name='org.gnome.NautilusPreviewer'>
       <method name='ShowFile'>
@@ -133,9 +133,9 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // Sushi advertises SelectionEvent(q), but some versions emit (u).
-    // Leave that signal out of the proxy metadata and validate it in the
-    // g-signal handler so GIO accepts either wire signature.
+
+
+
     'org.gnome.NautilusPreviewer2': `<node>
     <interface name='org.gnome.NautilusPreviewer2'>
       <method name='ShowFile'>
@@ -150,7 +150,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // org.gtk.vfs.Metadata
+
     'org.gtk.vfs.Metadata': `<node>
     <interface name='org.gtk.vfs.Metadata'>
       <method name="Set">
@@ -179,7 +179,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // org.freedesktop.DBus.Introspectable
+
     'org.freedesktop.DBus.Introspectable': `<node>
     <interface name="org.freedesktop.DBus.Introspectable">
       <method name="Introspect">
@@ -188,7 +188,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // org.freedesktop.Notifications
+
     'org.freedesktop.Notifications': `<node>
     <interface name="org.freedesktop.Notifications">
       <method name="Notify">
@@ -244,7 +244,7 @@ const DBusInterfaces = {
     </interface>
   </node>`,
 
-    // com.desktop.dingextension/service
+
     'com.desktop.dingextension.service': `<node>
     <interface name="com.desktop.dingextension.service">
       <method name="updateDesktopGeometry"/>

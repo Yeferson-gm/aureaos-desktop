@@ -23,7 +23,7 @@ export function fotosDe() {
     return listarImagenes(dirImagenes(), 0, 3000, true);
 }
 
-// Usar el archivo original; no crear copias ni miniaturas persistentes.
+
 function urlFoto(f) {
     return uriDe(f.path);
 }
@@ -31,7 +31,7 @@ function urlFoto(f) {
 export class Widget extends WidgetBase {
     construir(box) {
         this.box = box;
-        // Las opciones antiguas no deben permitir acceder a otras carpetas.
+
         if (this.o.modo === 'album') this.o.modo = 'aleatoria';
         delete this.o.album;
         delete this.o.carpeta;
@@ -79,7 +79,7 @@ export class Widget extends WidgetBase {
                 });
             });
         } catch (_e) {
-            // La presentación vuelve a consultar la carpeta, incluso vacía.
+
         }
     }
 
@@ -164,7 +164,7 @@ export class Widget extends WidgetBase {
         const nuevas = this._armar();
         const paths = new Set(nuevas.map(f => f.path));
         const porRuta = new Map(nuevas.map(f => [f.path, f]));
-        // Conservar el orden de la presentación para no repetir fotos en cada consulta.
+
         const previas = new Set(this._lista.map(f => f.path));
         this._lista = this._lista.filter(f => paths.has(f.path)).map(f => porRuta.get(f.path))
             .concat(nuevas.filter(f => !previas.has(f.path)));
