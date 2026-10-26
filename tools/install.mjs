@@ -6,10 +6,11 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {verifyTree} from './files.mjs';
 import {parseTag} from './version.mjs';
+import {parseInstallOptions, validateMigrations} from './install-options.mjs';
+import {installTarget} from './install-target.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const folder = process.argv.find((arg, i) => i > 1 && !arg.startsWith('--'));
-if (!folder) throw new Error('Uso: node tools/install.mjs dist/aurea-27-VERSION [--apply | --check]');
+const {folder, action} = parseInstallOptions(process.argv.slice(2));
 const releaseDir = fs.realpathSync(folder);
 if (!releaseDir.startsWith(path.join(root, 'dist') + path.sep)) throw new Error('Usa un paquete generado en dist/');
 const release = JSON.parse(fs.readFileSync(path.join(releaseDir, 'release.json')));
@@ -23,12 +24,16 @@ for (const line of fs.readFileSync(path.join(releaseDir, 'SHA256SUMS'), 'utf8').
         throw new Error(`Paquete modificado: ${relative}`);
 }
 const testRoot = process.env.AUREA_TEST_ROOT;
+const migrations = release.migrations ?? {};
+validateMigrations(migrations, release.extensions);
+if (action === 'apply' && !testRoot && process.getuid?.() === 0)
+    throw new Error('Instala como usuario de la sesión GNOME, sin sudo.');
 const data = testRoot ? path.join(testRoot, 'data') : process.env.XDG_DATA_HOME ?? path.join(os.homedir(), '.local/share');
 const config = testRoot ? path.join(testRoot, 'config') : process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config');
 const themes = testRoot ? path.join(testRoot, 'themes') : path.join(os.homedir(), '.themes');
 const targets = [];
 for (const uuid of Object.values(release.extensions)) {
-    if (!/^[\w.@-]+$/.test(uuid)) throw new Error('UUID inválido');
+    if (!/^[\w.-]+@[\w.-]+$/.test(uuid)) throw new Error('UUID inválido');
     const source = path.join(releaseDir, 'extensions', uuid);
     const metadata = JSON.parse(fs.readFileSync(path.join(source, 'metadata.json')));
     if (metadata.uuid !== uuid || metadata.version !== version.integer || metadata['version-name'] !== version.name)
@@ -41,40 +46,36 @@ for (const [group, destination] of [['gtk', themes], ['icons', path.join(data, '
     }
 }
 targets.push([path.join(releaseDir, 'theme/gtk-overrides'), path.join(config, 'gtk-4.0')]);
-if (!process.argv.includes('--apply') && !process.argv.includes('--check')) {
+if (action === 'preview') {
     console.log(targets.map(([, target]) => target).join('\n'));
     console.log('Vista previa: usa --apply para instalar; --check para verificar.');
     process.exit(0);
+}
+if (action === 'apply') {
+    for (const [, target] of targets) {
+        const stat = fs.lstatSync(target, {throwIfNoEntry: false});
+        if (stat && !stat.isDirectory()) throw new Error(`Destino no es un directorio normal: ${target}`);
+    }
+    if (!testRoot) {
+        for (const command of ['gio', 'gjs', 'gsettings', 'gtk-update-icon-cache']) {
+            const available = (process.env.PATH ?? '').split(path.delimiter).some(dir => {
+                try { fs.accessSync(path.join(dir, command), fs.constants.X_OK); return true; }
+                catch { return false; }
+            });
+            if (!available) throw new Error(`Falta la herramienta: ${command}`);
+        }
+        execFileSync('gjs', ['-c', "const Gio = imports.gi.Gio; Gio.DBus.session.get_unique_name(); new Gio.Settings({schema_id: 'org.gnome.shell'}).get_strv('enabled-extensions');"], {stdio: 'pipe'});
+    }
 }
 let files = 0;
 for (const [source, target] of targets) {
     const isGtk = target === path.join(config, 'gtk-4.0');
     const ignored = isGtk ? new Set(['settings.ini']) : new Set();
-    if (process.argv.includes('--apply')) {
-        fs.mkdirSync(path.dirname(target), {recursive: true});
-        if (fs.existsSync(target) && fs.lstatSync(target).isSymbolicLink()) throw new Error(`Destino enlazado: ${target}`);
-        const stage = fs.mkdtempSync(path.join(path.dirname(target), '.aurea-install-'));
-        const next = path.join(stage, 'next'), previous = path.join(stage, 'previous');
-        if (isGtk && fs.existsSync(target)) fs.cpSync(target, next, {recursive: true, verbatimSymlinks: true});
-        fs.cpSync(source, next, {recursive: true, verbatimSymlinks: true,
-            filter: file => !(isGtk && path.basename(file) === 'settings.ini' && fs.existsSync(path.join(next, 'settings.ini')))});
-        verifyTree(source, next, ignored);
-        const exists = fs.existsSync(target);
-        if (exists) fs.renameSync(target, previous);
-        try { fs.renameSync(next, target); }
-        catch (error) { if (exists) fs.renameSync(previous, target); throw error; }
-        if (exists && testRoot) fs.rmSync(previous, {recursive: true});
-        else if (exists) execFileSync('gio', ['trash', previous]);
-        fs.rmdirSync(stage);
-    }
+    if (action === 'apply')
+        installTarget(source, target, {preserveSettings: isGtk, testMode: Boolean(testRoot)});
     files += verifyTree(source, target, ignored);
 }
-if (process.argv.includes('--apply') && !testRoot) {
-    const migrations = release.migrations ?? {};
-    for (const [oldId, newId] of Object.entries(migrations)) {
-        if (!/^[\w.@-]+$/.test(oldId) || !Object.values(release.extensions).includes(newId))
-            throw new Error('Migración de UUID inválida');
-    }
+if (action === 'apply' && !testRoot) {
     execFileSync('gjs', [path.join(root, 'tools/migrate-identities.js'), JSON.stringify(migrations)]);
     for (const oldId of Object.keys(migrations)) {
         for (const group of ['extensions', 'extension-updates']) {
@@ -90,12 +91,15 @@ if (process.argv.includes('--apply') && !testRoot) {
         const current = execFileSync('gsettings', ['get', schema, key], {encoding: 'utf8'}).trim();
         if (current.includes('WhiteSur')) execFileSync('gsettings', ['set', schema, key, current.replaceAll('WhiteSur', 'Aurea27')]);
     }
-    const schemaDir = '/usr/share/gnome-shell/extensions/user-theme@gnome-shell-extensions.gcampax.github.com/schemas';
-    if (fs.existsSync(schemaDir)) {
+    const dataDirs = [data, ...(process.env.XDG_DATA_DIRS ?? '/usr/local/share:/usr/share').split(path.delimiter)];
+    const schemaDir = dataDirs.map(dir => path.join(dir, 'gnome-shell/extensions/user-theme@gnome-shell-extensions.gcampax.github.com/schemas'))
+        .find(dir => fs.existsSync(path.join(dir, 'gschemas.compiled')));
+    if (schemaDir) {
         const args = ['--schemadir', schemaDir];
         const current = execFileSync('gsettings', [...args, 'get', 'org.gnome.shell.extensions.user-theme', 'name'], {encoding: 'utf8'}).trim();
         if (current.includes('WhiteSur')) execFileSync('gsettings', [...args, 'set', 'org.gnome.shell.extensions.user-theme', 'name', current.replaceAll('WhiteSur', 'Aurea27')]);
     }
 }
 console.log(`${files} archivos/enlaces verificados. Versión ${version.name}.`);
-if (process.argv.includes('--apply')) console.log('Copias anteriores sustituidas enviadas a la papelera. Cierra sesión para recargar las extensiones.');
+if (action === 'apply' && testRoot) console.log('Instalación de prueba: no se modificó la sesión GNOME.');
+else if (action === 'apply') console.log('Copias anteriores sustituidas enviadas a la papelera. Cierra sesión para recargar las extensiones.');

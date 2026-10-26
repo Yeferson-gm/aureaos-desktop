@@ -9,5 +9,6 @@ case "$action" in
   version) exec node tools/version.mjs "$@" ;;
   build) exec node tools/build.mjs "$@" ;;
   install) exec node tools/install.mjs "$@" ;;
-  *) printf 'Aurea 27: check | version | build | install RUTA [--apply | --check]\n' ;;
+  help|--help|-h) printf 'Aurea 27: check | version | build | install RUTA [--apply | --check]\n' ;;
+  *) printf 'Acción desconocida: %s. Usa ./aurea.sh help\n' "$action" >&2; exit 2 ;;
 esac

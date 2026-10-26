@@ -5,8 +5,22 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {installTarget} from '../tools/install-target.mjs';
 
 const root = new URL('..', import.meta.url).pathname;
+test('un fallo de preparación conserva el destino y retira el temporal', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'aurea-stage-test-'));
+    const target = path.join(directory, 'installed');
+    fs.mkdirSync(target);
+    fs.writeFileSync(path.join(target, 'original'), 'keep');
+    try {
+        assert.throws(() => installTarget(path.join(directory, 'missing'), target, {testMode: true}));
+        assert.equal(fs.readFileSync(path.join(target, 'original'), 'utf8'), 'keep');
+        assert.deepEqual(fs.readdirSync(directory), ['installed']);
+    } finally {
+        fs.rmSync(directory, {recursive: true});
+    }
+});
 test('instalar en destino aislado conserva preferencias y valida el resultado', () => {
     fs.mkdirSync(path.join(root, 'dist'), {recursive: true});
     const release = fs.mkdtempSync(path.join(root, 'dist/.install-test-'));
@@ -18,7 +32,7 @@ test('instalar en destino aislado conserva preferencias y valida el resultado', 
         'theme/gtk-overrides/gtk.css': '* {}',
         'theme/gtk-overrides/settings.ini': '[Settings]\nkeep=no\n',
     };
-    const call = action => execFileSync('node', ['tools/install.mjs', release, action], {
+    const call = (...actions) => execFileSync('node', ['tools/install.mjs', release, ...actions], {
         cwd: root, env: {...process.env, AUREA_TEST_ROOT: target}, stdio: 'pipe',
     });
     try {
@@ -30,7 +44,23 @@ test('instalar en destino aislado conserva preferencias y valida el resultado', 
             hashes.push(`${crypto.createHash('sha256').update(content).digest('hex')}  ${relative}`);
         }
         fs.writeFileSync(path.join(release, 'SHA256SUMS'), hashes.join('\n') + '\n');
+        assert.throws(() => call('--apply', '--check'));
+        assert.throws(() => call('--unknown'));
+        assert.equal(fs.existsSync(path.join(target, 'data')), false);
+        const invalid = JSON.stringify({...JSON.parse(entries['release.json']), migrations: {'../outside': 'test@aurea.local'}});
+        fs.writeFileSync(path.join(release, 'release.json'), invalid);
+        fs.writeFileSync(path.join(release, 'SHA256SUMS'), hashes.map(line => line.endsWith('  release.json')
+            ? `${crypto.createHash('sha256').update(invalid).digest('hex')}  release.json` : line).join('\n') + '\n');
+        assert.throws(() => call('--apply'));
+        assert.equal(fs.existsSync(path.join(target, 'data')), false);
+        fs.writeFileSync(path.join(release, 'release.json'), entries['release.json']);
+        fs.writeFileSync(path.join(release, 'SHA256SUMS'), hashes.join('\n') + '\n');
         const config = path.join(target, 'config/gtk-4.0');
+        fs.mkdirSync(path.dirname(config), {recursive: true});
+        fs.symlinkSync(path.join(target, 'missing-config'), config);
+        assert.throws(() => call('--apply'));
+        assert.equal(fs.existsSync(path.join(target, 'data')), false);
+        fs.unlinkSync(config);
         fs.mkdirSync(config, {recursive: true});
         fs.writeFileSync(path.join(config, 'settings.ini'), '[Settings]\nkeep=yes\n');
         fs.writeFileSync(path.join(config, 'old.css'), '* { color: red; }');
