@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {normalizeConfig, moveItem, color, DEFAULTS} from '../settings-model.js';
+import {normalizeConfig, moveItem, color, DEFAULTS, foregroundFor} from '../settings-model.js';
 const legacy = normalizeConfig({texto: 'claro', colorTexto: '#ffffff', temaMenus: 'auto'});
 assert.equal(legacy.colorTexto, '#ffffff');
 assert.deepEqual(legacy.modules, DEFAULTS.modules);
@@ -15,3 +15,9 @@ assert.deepEqual(moveItem(['wifi', 'sound'], 'sound', -1), ['sound', 'wifi']);
 assert.deepEqual(moveItem(['wifi'], 'wifi', -1), ['wifi']);
 for (const input of [null, [], 42, 'bad']) assert.equal(normalizeConfig(input).material, 'glass');
 console.log('PASS: configuración heredada, límites, colores, orden y controles recuperables');
+assert.deepEqual(normalizeConfig({modules: ['toString', '__proto__', 'wifi']}).modules, ['wifi']);
+assert.equal(color('rgba(1,2,3)'), null);
+assert.equal(color('rgb(1,2,3,0.5)'), null);
+assert.equal(foregroundFor('#ffffff'), '#000000');
+assert.equal(foregroundFor('#000000'), '#ffffff');
+assert.equal(foregroundFor('rgba(0,0,0,0)', true), '#ffffff');

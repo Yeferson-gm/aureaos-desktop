@@ -256,6 +256,22 @@ en un commit de desarrollo sin etiqueta. No mover `v0.0.1` ni sobrescribir paque
 existentes. `dist/` es generado, no entra en Git. GNOME recibe un entero calculado
 y `version-name` desde la etiqueta; todos los componentes comparten esa entrega.
 
+## Personalizar la barra superior
+
+```bash
+gnome-extensions prefs lintel-v2@local
+```
+
+También: menú de la manzana → **Personalizar Aurea…** o lápiz del Centro de
+Control. Permite editar módulos, orden, colores, vidrio/sólido, contraste,
+animación, reloj y ocultamiento. La barra puede conservar texto blanco con
+paneles claros; tu configuración existente se mantiene. «Ver» muestra los cambios
+sobre el escritorio. Las preferencias se actualizan en vivo una vez cargada la
+nueva extensión. Después de instalar código nuevo en Wayland, cerrar y volver a
+iniciar sesión carga esos módulos; no reiniciar GNOME con comandos forzados.
+
+[Controles, arquitectura, pruebas y límites de la barra](docs/topbar-experiencia.md).
+
 ## Pruebas visuales aisladas
 
 ```bash

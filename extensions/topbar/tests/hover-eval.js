@@ -1,9 +1,40 @@
 (async () => {
     if (!GLib.getenv('DI_TEST_DIR')) throw new Error('Solo se ejecuta en GNOME aislado');
     const wait = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {resolve(); return GLib.SOURCE_REMOVE;}));
+    if (GLib.getenv('AUREA_TEST_SCALE')) {
+        const call = (method, params) => new Promise((resolve, reject) => Gio.DBus.session.call('org.gnome.Mutter.DisplayConfig', '/org/gnome/Mutter/DisplayConfig', 'org.gnome.Mutter.DisplayConfig', method, params, null, Gio.DBusCallFlags.NONE, 10000, null, (connection, result) => {
+            try { resolve(connection.call_finish(result).recursiveUnpack()); } catch (error) { reject(error); }
+        }));
+        const [serial, monitors] = await call('GetCurrentState', null);
+        let x = 0;
+        const configs = monitors.map(([spec, modes], index) => {
+            const mode = modes.find(item => item[6]['is-current']) ?? modes[0];
+            const scale = index === 0 ? Number(GLib.getenv('AUREA_TEST_SCALE')) : 1;
+            if (!mode[5].includes(scale)) throw new Error('Escala no admitida en el compositor aislado: ' + scale + ' disponibles:' + mode[5]);
+            const config = [x, 0, scale, 0, index === 0, [[spec[0], mode[0], {}]]];
+            x += Math.round(mode[1] / scale); return config;
+        });
+        await call('ApplyMonitorsConfig', new GLib.Variant('(uua(iiduba(ssa{sv}))a{sv})', [serial, 1, configs, {}]));
+        await wait(800);
+    }
     const ext = Main.extensionManager.lookup('lintel-v2@local');
     if (!ext?.stateObj) throw new Error('Topbar no cargado');
     const bar = ext.stateObj;
+    if (GLib.getenv('AUREA_TEST_BENCHMARK') === '1') {
+        const read = path => new TextDecoder().decode(GLib.file_get_contents(path)[1]);
+        const measure = async () => {
+            const sample = () => {
+                const stat = read('/proc/self/stat').split(') ').at(-1).split(' ');
+                return {ticks: Number(stat[11]) + Number(stat[12]), rssKB: parseInt(read('/proc/self/status').split(String.fromCharCode(10)).find(line => line.startsWith('VmRSS:')).split(':')[1].trim(), 10), time: GLib.get_monotonic_time()};
+            };
+            const before = sample(); await wait(3000); const after = sample();
+            return {cpuPercent: (after.ticks - before.ticks) / Number(GLib.getenv('AUREA_TEST_CLK_TCK')) / ((after.time - before.time) / 1e6) * 100, rssKB: after.rssKB};
+        };
+        Main.overview.hide(); await wait(500); bar.disable(); await wait(300);
+        const baseline = await measure();
+        bar.enable(); await wait(800); const topbar = await measure();
+        Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/idle-resources.json').replace_contents(new TextEncoder().encode(JSON.stringify({baseline, topbar, secondsPerSample:3, scope:'Compositor headless, fondo estático, sin medir GPU física'})), null, false, Gio.FileCreateFlags.NONE, null);
+    }
     const bt = Main.panel.statusArea['lintel-bluetooth'];
     const model = bar._ctx.bluetooth;
     const originalPower = model.setPowered;
@@ -17,6 +48,13 @@
     bt._header.activate();
     if (requests !== 2) throw new Error('Clic de fila duplicado o ignorado');
     model.setPowered = originalPower;
+    const powered = model._powered, devices = model._devices;
+    model._powered = true;
+    model._devices = [{path:'/fixture/headset', name:'Auriculares de prueba', icon:'audio-headset', paired:true, connected:true}];
+    bt._build();
+    const rowText = bt._list._getMenuItems().flatMap(item => item.get_children?.() ?? []).filter(actor => actor instanceof (imports.gi.St.Label)).map(actor => actor.text).join('|');
+    if (!rowText.includes('Auriculares de prueba') || !rowText.includes('Conectado')) throw new Error('Bluetooth no muestra un dispositivo ya conectado');
+    model._powered = powered; model._devices = devices; bt._build();
     Main.overview.hide();
     const native = Main.panel.statusArea.keyboard?.container;
     if (native) { native.show(); if (native.visible) throw new Error('Teclado nativo duplicado'); }
@@ -41,6 +79,14 @@
         await new Shell.Screenshot().screenshot(false,stream); stream.close(null);
         cc.menu.close();
     }
+    Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/surface.json').replace_contents(new TextEncoder().encode(JSON.stringify({glassVisible: cc._surface.glass.visible, glassSize: cc._surface.glass.get_size(), blur: cc._surface.blur.radius, stackSize: cc._surface.stack.get_size(), glassPosition: cc._surface.glass.get_position()})), null, false, Gio.FileCreateFlags.NONE, null);
+    cc.menu.open(); await wait(300);
+    for (const enabled of [false, true]) {
+        cc._surface.blur.set_enabled(enabled); cc._surface.glass.queue_redraw(); await wait(300);
+        const stream = Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/blur-' + enabled + '.png').replace(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+        await new Shell.Screenshot().screenshot(false, stream); stream.close(null);
+    }
+    cc.menu.close();
     const ctx = bar._ctx;
     const controls = cc.controls;
     const originalPowerModel = ctx.powerProfiles;
@@ -56,6 +102,20 @@
     ctx.brightness = {available: true, level: .75, setLevel: v => { values.brightness = v; }};
     ctx.batteryCare = {available: true, enabled: true, label: 'Máxima vida · 80 %', modes: [], mode: 'max'};
     const oldConfig = {...bar._cfg.values};
+    const island = Main.extensionManager.lookup('dynamic-island-gnome50@local')?.stateObj;
+    if (island) {
+        bar._layout.layout(); await wait(200);
+        const [islandX] = island._pill.get_transformed_position();
+        const [islandWidth] = island._pill.get_transformed_size();
+        for (const actor of Main.panel._leftBox.get_children().filter(child => child.visible)) {
+            const [x] = actor.get_transformed_position(); const [width] = actor.get_transformed_size();
+            if (x + width > islandX) throw new Error('Un menú invade la isla');
+        }
+        for (const actor of Main.panel._rightBox.get_children().filter(child => child.visible)) {
+            const [x] = actor.get_transformed_position();
+            if (x < islandX + islandWidth) throw new Error('Un indicador invade la isla');
+        }
+    }
     bar._cfg.values.modules = ['wifi', 'bluetooth', 'brightness', 'sound', 'microphone', 'power', 'battery', 'focus', 'night', 'appearance', 'privacy', 'screenshot'];
     controls.showPage(null); await wait(200);
     controls.cards.get('sound').slider.value = .35;
@@ -69,6 +129,28 @@
     }
     ctx.sound = originalSound; ctx.brightness = originalBrightness; ctx.batteryCare = originalCare;
     bar._cfg.values = oldConfig; cc.menu.close(); await wait(250);
+    const published = ctx.published;
+    const actions = new Gio.SimpleActionGroup();
+    const action = new Gio.SimpleAction({name: 'test'});
+    let activations = 0; action.connect('activate', () => activations++); actions.add_action(action);
+    const modelMenu = new Gio.Menu(); modelMenu.append('Acción exportada', 'app.test');
+    const rootMenu = new Gio.Menu(); rootMenu.append_submenu('Aplicación', modelMenu);
+    const menuId = Gio.DBus.session.export_menu_model('/org/aurea/TestMenu', rootMenu);
+    const actionId = Gio.DBus.session.export_action_group('/org/aurea/TestActions', actions);
+    published.setWindow({get_gtk_unique_bus_name: () => Gio.DBus.session.get_unique_name(), get_gtk_menubar_object_path: () => '/org/aurea/TestMenu', get_gtk_application_object_path: () => '/org/aurea/TestActions'});
+    await wait(300);
+    if (!published.specs.length) throw new Error('No se descubrió el menú exportado');
+    let entries = [];
+    published.fill({}, published.specs[0].model, (_, options, activate) => entries.push({options, activate}));
+    await wait(150); entries = [];
+    published.fill({}, published.specs[0].model, (_, options, activate) => entries.push({options, activate}));
+    if (entries[0]?.options.disabled) throw new Error('Acción exportada habilitada aparece desactivada');
+    entries[0].activate(); await wait(100);
+    if (activations !== 1) throw new Error('La acción exportada no se ejecutó exactamente una vez');
+    action.set_enabled(false); await wait(100); entries = [];
+    published.fill({}, published.specs[0].model, (_, options, activate) => entries.push({options, activate}));
+    if (!entries[0]?.options.disabled) throw new Error('No se respeta acción exportada desactivada');
+    published.setWindow(null); Gio.DBus.session.unexport_menu_model(menuId); Gio.DBus.session.unexport_action_group(actionId);
     const baseline = Main.modalCount;
     const times = [];
     for (let i = 0; i < 100; i++) {
@@ -103,16 +185,33 @@
     await wait(220);
     if (cc.menu.isOpen) throw new Error('Escape no libera el panel');
     await click(cx + cc.width / 2, cy + cc.height / 2);
-    await click(80, 700);
+    await click(80, Math.min(700, Main.layoutManager.primaryMonitor.height - 40));
     if (cc.menu.isOpen) throw new Error('Clic exterior no cierra el panel');
-    pointer.run_dispose(); keyboard.run_dispose();
     bar._cfg.values.reducedMotion = true; bar._applyTheme();
     cc.menu.open();
     if (cc.menu.actor.opacity !== 255 || cc.menu.actor.translation_y !== 0) throw new Error('Reducir movimiento no se respeta');
     cc.menu.close();
+    await wait(50);
+    if (Main.modalCount !== baseline) throw new Error('Grab residual con movimiento reducido: ' + Main.modalCount + ' ' + Main.panel.menuManager.activeMenu?.sourceActor?.accessible_name + ' stack:' + Main.modalActorFocusStack.map(record => record.actor?.toString() ?? record.grab?.get_seat_state?.()).join(','));
+    await move(100, Main.layoutManager.primaryMonitor.height - 100);
+    bar._cfg.values.autohide = 'always'; bar._layout.layout();
+    await wait(850);
+    if (Main.layoutManager.panelBox.translation_y >= 0) throw new Error('Autohide no oculta la barra');
+    await move(Main.layoutManager.primaryMonitor.width / 2, 1); await wait(250);
+    if (Main.layoutManager.panelBox.translation_y !== 0) throw new Error('El borde no revela la barra');
+    bar._cfg.values.autohide = 'never'; bar._layout.layout();
+    bar._cfg.values.material = 'solid'; bar._applyTheme(); cc.menu.open();
+    if (cc._surface.glass.visible || cc._surface.blur.get_enabled()) throw new Error('El material sólido mantiene blur');
+    cc.menu.close();
+    bar._cfg.values.material = 'glass'; bar._cfg.values.contrast = true; bar._applyTheme(); cc.menu.open();
+    if (cc._surface.glass.visible) throw new Error('Contraste alto conserva transparencia');
+    cc.menu.close();
+    bar._cfg.values.contrast = false; bar._applyTheme();
     const orderedTimes = [...times].sort((a,b) => a-b);
     Gio.File.new_for_path(GLib.getenv('DI_TEST_DIR') + '/metrics.json').replace_contents(new TextEncoder().encode(JSON.stringify({cycles: 100, synchronousCycleMsMedian: orderedTimes[50], synchronousCycleMsP95: orderedTimes[95], modalCountBefore: baseline, modalCountAfter: Main.modalCount})), null, false, Gio.FileCreateFlags.NONE, null);
-    bar.disable(); bar.enable();
+    bar.disable();
+    pointer.run_dispose(); keyboard.run_dispose();
+    await wait(80); bar.enable();
     return 'Temas, reflujo, perfil explícito, tres deslizadores, 100 interrupciones, clic real, Escape, clic exterior, movimiento reducido y recarga';
 })().then(async result => {
     const {default: Gio} = await import('gi://Gio');

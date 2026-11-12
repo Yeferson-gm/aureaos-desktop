@@ -104,6 +104,11 @@ export default class TopbarPreferences extends ExtensionPreferences {
                     row.add_suffix(controls);
                 }
             }; build();
+            const restore = new Gtk.Button({label: 'Restaurar', tooltip_text: 'Restaurar esta sección'});
+            restore.connect('clicked', () => {
+                save(collection === 'modules' ? {modules: DEFAULTS.modules, sizes: {}} : {indicators: DEFAULTS.indicators, visibility: {}});
+                build();
+            }); g.set_header_suffix(restore);
         };
         arrange(behavior, 'indicators', INDICATORS, 'Indicadores y orden');
         arrange(page('Controles', 'preferences-system-symbolic'), 'modules', MODULES, 'Tu Centro de Control');

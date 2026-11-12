@@ -13,6 +13,6 @@ export function controlRows(ids, sizes, available = () => true) {
     if (row.length) rows.push(row);
     return rows;
 }
-export function panelSize(width, height, scale = 1) {
-    return {width: Math.max(240, Math.min(344, width / scale - 32)), height: Math.max(180, height / scale - 100)};
+export function panelSize(width, height, scale = 1, textScale = 1) {
+    return {width: Math.max(240, Math.min(344 * Math.min(1.4, Math.max(1, textScale)), width / scale - 32)), height: Math.max(180, height / scale - 100)};
 }

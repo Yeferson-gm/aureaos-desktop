@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.2.0
+
+- Centro de Control editable con subvistas de redes, Bluetooth, audio, energía,
+  batería, privacidad y No molestar temporal.
+- Material vidrio con alternativa sólida, colores independientes, contraste,
+  movimiento reducido y cierre sin retener entrada.
+- Barra adaptable al notch, indicadores ordenables, excedentes, ocultamiento y
+  reloj configurable. Menús publicados por aplicaciones y atajos de compatibilidad
+  dirigidos a la ventana original.
+- Preferencias GTK4 con vista previa, restauración y guardado atómico.
+- Monitor nativo de cámara y menos trabajo periódico. Pruebas aisladas de entrada,
+  escalas, múltiples monitores, 100 interrupciones y ciclo de vida.
+
 ## 0.1.1
 
 - Corregida la apertura de la isla dinámica al hacer clic en el notch.

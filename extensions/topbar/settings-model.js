@@ -25,10 +25,10 @@ export function color(value) {
     const v = value.trim();
     if (/^#(?:[\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/i.test(v)) return v;
     const match = v.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(0(?:\.\d+)?|1(?:\.0+)?))?\s*\)$/);
-    return match && match.slice(1, 4).every(x => Number(x) <= 255) ? v : null;
+    return match && (v.startsWith('rgba') === (match[4] !== undefined)) && match.slice(1, 4).every(x => Number(x) <= 255) ? v : null;
 }
 const ordered = (value, allowed, fallback) => Array.isArray(value)
-    ? [...new Set(value.filter(x => typeof x === 'string' && x in allowed))] : [...fallback];
+    ? [...new Set(value.filter(x => typeof x === 'string' && Object.hasOwn(allowed, x)))] : [...fallback];
 export function normalizeConfig(input = {}) {
     const raw = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
     const out = {...DEFAULTS};
@@ -61,6 +61,21 @@ export function moveItem(items, id, delta) {
     if (index >= 0 && to >= 0 && to < result.length) [result[index], result[to]] = [result[to], result[index]];
     return result;
 }
-export function availableWidth(monitorWidth, notchWidth = 0, rightWidth = 0) {
-    return Math.max(100, Math.floor((monitorWidth - notchWidth) / 2) - 20 - Math.max(0, rightWidth - monitorWidth / 2));
+export function foregroundFor(value, dark = false) {
+    let channels, alpha = 1;
+    if (value.startsWith('#')) {
+        let hex = value.slice(1);
+        if (hex.length <= 4) hex = [...hex].map(c => c + c).join('');
+        channels = [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16));
+        if (hex.length === 8) alpha = parseInt(hex.slice(6), 16) / 255;
+    } else {
+        const values = value.match(/[\d.]+/g).map(Number);
+        channels = values.slice(0, 3); alpha = values[3] ?? 1;
+    }
+    const linear = channels.map(channel => {
+        const mixed = (channel * alpha + (dark ? 30 : 245) * (1 - alpha)) / 255;
+        return mixed <= .04045 ? mixed / 12.92 : ((mixed + .055) / 1.055) ** 2.4;
+    });
+    const luminance = linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722;
+    return (luminance + .05) / .05 > 1.05 / (luminance + .05) ? '#000000' : '#ffffff';
 }

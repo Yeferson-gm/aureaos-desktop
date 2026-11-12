@@ -219,6 +219,7 @@ const PowerProfilesProxy = Gio.DBusProxy.makeProxyWrapper(`
 <node><interface name="net.hadess.PowerProfiles">
   <property name="ActiveProfile" type="s" access="readwrite"/>
   <property name="Profiles" type="aa{sv}" access="read"/>
+  <property name="PerformanceDegraded" type="s" access="read"/>
 </interface></node>`);
 
 const POWER_PROFILE_NAMES = {
@@ -243,6 +244,7 @@ class PowerProfiles extends Model {
                 if (error || this._dead)
                     return;
                 this._id = proxy.connect('g-properties-changed', () => this._emit());
+                this._ownerId = proxy.connect('notify::g-name-owner', () => this._emit());
                 this._emit();
             });
     }
@@ -255,6 +257,10 @@ class PowerProfiles extends Model {
 
     get available() {
         return this._proxy?.g_name_owner !== null && this.profiles.length > 0;
+    }
+
+    get limitation() {
+        return this._proxy?.PerformanceDegraded ?? '';
     }
 
     get active() {
@@ -288,8 +294,8 @@ class PowerProfiles extends Model {
     destroy() {
         this._dead = true;
         this._cancel?.cancel();
-        if (this._id)
-            this._proxy?.disconnect(this._id);
+        if (this._id) this._proxy?.disconnect(this._id);
+        if (this._ownerId) this._proxy?.disconnect(this._ownerId);
         this._proxy = null;
         this._cb?.clear();
     }
@@ -738,4 +744,4 @@ class Privacy extends Model {
 
 
 
-export {Sound, Brightness, PowerProfiles, BatteryCare, AirplaneMode, Bluetooth, Privacy, BT_ICONS};
+export {Sound, Brightness, PowerProfiles, BatteryCare, AirplaneMode, Bluetooth, Privacy, btIcon};

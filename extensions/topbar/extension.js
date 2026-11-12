@@ -1,4 +1,4 @@
-import {Sound, Brightness, PowerProfiles, BatteryCare, AirplaneMode, Bluetooth, Privacy, BT_ICONS} from './services.js';
+import {Sound, Brightness, PowerProfiles, BatteryCare, AirplaneMode, Bluetooth, Privacy, btIcon} from './services.js';
 import {run, busCall, settingsFor, settingsForExtension} from './platform.js';
 import {ThemeTokens} from './theme-tokens.js';
 import {PublishedMenus} from './published-menus.js';
@@ -26,24 +26,10 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 
 const AJUSTES = {
-
-    ATAJOS_ESTILO_MAC: true,
-
-    TEXTO: 'auto',
-
-    COLOR_TEXTO: null,
-    COLOR_ICONOS: null,
-
-    TEMA_MENUS: 'auto',
-
-    ANIMACION_MENU_MS: 70,
-
     INDICADORES_PRIVACIDAD: true,
-
     INDICADOR_TECLADO: true,
     SEMANA_INICIA_LUNES: true,
 };
-
 
 const CENTER = Clutter.ActorAlign.CENTER;
 const START = Clutter.ActorAlign.START;
@@ -756,6 +742,7 @@ class AppNameButton extends TextButton {
     setApp(app) {
         this._app = app;
         this._text.text = app ? app.get_name() : 'Escritorio';
+        this.accessible_name = this._text.text;
     }
 
     _workspaceWindows() {
@@ -1029,6 +1016,7 @@ class WifiButton extends LintelButton {
         super._init('Wi-Fi', 1.0);
         this._ctx = ctx;
         this._dead = false;
+        this._cancel = new Gio.Cancellable();
         this._client = null;
         this._ids = [];
         this._devIds = [];
@@ -1051,7 +1039,7 @@ class WifiButton extends LintelButton {
         this.beforeOpen(() => this._build());
         this.menu.connect('open-state-changed', (m, open) => this._onOpenChanged(open));
         this.connect('destroy', () => this._teardown());
-        NM.Client.new_async(null, (o, res) => {
+        NM.Client.new_async(this._cancel, (o, res) => {
             try {
                 const c = NM.Client.new_finish(res);
                 if (this._dead)
@@ -1117,8 +1105,16 @@ class WifiButton extends LintelButton {
     }
 
     setEnabled(v) {
-        this._client?.dbus_set_property(NM.DBUS_PATH, NM.DBUS_INTERFACE, 'WirelessEnabled',
-            GLib.Variant.new_boolean(v), -1, null, () => {});
+        if (!this._client || this._powerPending) return;
+        this._powerPending = true;
+        this._listeners.forEach(fn => fn());
+        this._client.dbus_set_property(NM.DBUS_PATH, NM.DBUS_INTERFACE, 'WirelessEnabled',
+            GLib.Variant.new_boolean(v), 10000, this._cancel, (client, result) => {
+                try { client.dbus_set_property_finish(result); }
+                catch (error) { if (!this._dead) Main.notifyError('Wi-Fi', error.message); }
+                this._powerPending = false;
+                if (!this._dead) this._listeners.forEach(fn => fn());
+            });
     }
 
     _watch() {
@@ -1167,7 +1163,9 @@ class WifiButton extends LintelButton {
         if (!this.enabled)
             return;
         try {
-            this.device?.request_scan_async(null, () => {});
+            this.device?.request_scan_async(this._cancel, (device, result) => {
+                try { device.request_scan_finish(result); } catch (error) { }
+            });
         } catch (e) {
 
         }
@@ -1305,6 +1303,7 @@ class WifiButton extends LintelButton {
         if (!this._client || !dev || this._connecting)
             return;
         this._connecting = row.ssid;
+        this._listeners.forEach(fn => fn());
         this._fillList(true);
 
         const finish = (client, res, added) => {
@@ -1319,6 +1318,7 @@ class WifiButton extends LintelButton {
                 Main.notifyError('Wi-Fi', `${row.ssid}: ${e.message}`);
             }
             this._connecting = null;
+            this._listeners.forEach(fn => fn());
             if (this.menu.isOpen)
                 this._fillList(true);
         };
@@ -1328,17 +1328,18 @@ class WifiButton extends LintelButton {
             return raw && NM.utils_ssid_to_utf8(raw.get_data()) === row.ssid;
         });
         if (known) {
-            this._client.activate_connection_async(known, dev, row.ap.get_path(), null,
+            this._client.activate_connection_async(known, dev, row.ap.get_path(), this._cancel,
                 (c, r) => finish(c, r, false));
         } else {
 
-            this._client.add_and_activate_connection_async(null, dev, row.ap.get_path(), null,
+            this._client.add_and_activate_connection_async(null, dev, row.ap.get_path(), this._cancel,
                 (c, r) => finish(c, r, true));
         }
     }
 
     _teardown() {
         this._dead = true;
+        this._cancel.cancel();
         this._ctx.cancel(this._scanId);
         this._ctx.cancel(this._rebuildId);
         this._ids.forEach(id => this._client?.disconnect(id));
@@ -1431,11 +1432,16 @@ class SearchButton extends LintelButton {
             style_class: 'system-status-icon',
             gicon: fileIcon('lintel-search-symbolic'),
         }));
-        this.connect('button-press-event', () => {
-            Main.overview.toggle();
-            return Clutter.EVENT_STOP;
+        this.connect('button-release-event', (_, event) => {
+            if (event.get_button() !== Clutter.BUTTON_PRIMARY) return Clutter.EVENT_PROPAGATE;
+            this.activate(); return Clutter.EVENT_STOP;
+        });
+        this.connect('key-press-event', (_, event) => {
+            if (![Clutter.KEY_Return, Clutter.KEY_space].includes(event.get_key_symbol())) return Clutter.EVENT_PROPAGATE;
+            this.activate(); return Clutter.EVENT_STOP;
         });
     }
+    activate() { Main.overview.toggle(); }
 });
 
 
@@ -1671,6 +1677,7 @@ class ClockButton extends LintelButton {
 
 export default class LintelV2 extends Extension {
     enable() {
+        this._alive = true;
         this._ctx = new Context(this);
         const ctx = this._ctx;
         this._signals = [];
@@ -1705,6 +1712,7 @@ export default class LintelV2 extends Extension {
         const panel = Main.panel;
         this._apple = new AppleButton(ctx);
         this._name = new AppNameButton(ctx);
+        this._name.connect('destroy', () => { this._alive = false; ctx.cancel(this._appTimer); });
         panel.addToStatusArea('lintel-apple', this._apple, 0, 'left');
         panel.addToStatusArea('lintel-app', this._name, 1, 'left');
 
@@ -1745,6 +1753,8 @@ export default class LintelV2 extends Extension {
                 ctx.published.setWindow(w);
             }
         })]);
+        ctx.win = global.display.focus_window;
+        ctx.published.setWindow(ctx.win);
         this._queueApp(true);
         this._layout = new PanelLayout(this, title => {
             const button = new TextButton('•••'); button.accessible_name = title; return button;
@@ -1755,6 +1765,7 @@ export default class LintelV2 extends Extension {
     }
 
     disable() {
+        this._alive = false;
         this._contrast?.destroy(); this._contrast = null;
         this._layoutOffs?.forEach(off => off()); this._layoutOffs = [];
         this._layout?.destroy(); this._layout = null;
@@ -1811,6 +1822,8 @@ export default class LintelV2 extends Extension {
         if (this._ifaceSettings)
             this._styleId = this._ifaceSettings.connect('changed::color-scheme', () => this._applyTheme());
         this._cfgOff = this._cfg.onChange(() => this._applyTheme());
+        const settings = St.Settings.get();
+        this._signals.push([settings, settings.connect('notify::high-contrast', () => this._applyTheme())]);
         this._applyTheme();
     }
 
@@ -1845,6 +1858,7 @@ export default class LintelV2 extends Extension {
 
 
     _queueApp(now = false) {
+        if (!this._alive) return;
         this._ctx.cancel(this._appTimer);
         this._appTimer = this._ctx.later(now ? 0 : 60, () => {
             this._appTimer = 0;
@@ -1853,6 +1867,7 @@ export default class LintelV2 extends Extension {
     }
 
     _applyApp() {
+        if (!this._alive) return;
         const app = this._tracker.focus_app;
         if (!app && Main.panel.menuManager?.activeMenu && this._appId)
             return;
@@ -1866,6 +1881,7 @@ export default class LintelV2 extends Extension {
     }
 
     _rebuildMenus(app) {
+        if (!this._alive) return;
         this._dyn.forEach(b => b.destroy());
         this._dyn = [];
         const published = this._ctx.published.specs;

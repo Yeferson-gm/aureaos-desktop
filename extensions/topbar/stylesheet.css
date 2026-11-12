@@ -642,3 +642,6 @@
 .lintel-menu .aurea-detail-row:active { background-color: #2169c0; color: white; }
 .lintel-menu-content.popup-menu-content { background-gradient-direction: none; box-shadow: 0 5px 16px 0 rgba(0,0,0,0.20); }
 .lintel-dark .lintel-menu-content.popup-menu-content { background-gradient-direction: none; box-shadow: 0 5px 16px 0 rgba(0,0,0,0.32); }
+#panel .lintel-bar-bold { max-width: 150px; }
+.lintel-menu .lintel-item-hint { min-width: 52px; text-align: right; }
+.lintel-menu .lintel-item-label { min-width: 80px; }

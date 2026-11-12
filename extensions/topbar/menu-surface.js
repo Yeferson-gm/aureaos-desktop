@@ -8,8 +8,9 @@ let lastClosed = 0;
 export class MenuSurface {
     constructor(menu, before, getTheme) {
         this.menu = menu; this.getTheme = getTheme;
+        menu.actor.set_offscreen_redirect(0);
         this.stack = new St.Widget({layout_manager: new Clutter.BinLayout()});
-        this.glass = new St.Widget({reactive: false, clip_to_allocation: true});
+        this.glass = new St.Widget({reactive: false, clip_to_allocation: true, style: 'background-color: rgba(0,0,0,0.004);'});
         this.blur = new Shell.BlurEffect({mode: Shell.BlurMode.BACKGROUND}); this.glass.add_effect(this.blur);
         const bin = menu._boxPointer.bin;
         bin.set_child(null); bin.set_child(this.stack);
@@ -18,14 +19,16 @@ export class MenuSurface {
         const open = menu.open.bind(menu), close = menu.close.bind(menu);
         menu.open = () => {
             if (menu.isOpen) return;
+            const resuming = menu.actor.visible && menu.actor.opacity > 0 && menu.actor.opacity < 255;
+            const opacity = menu.actor.opacity;
             before(); this.apply();
             menu.actor.remove_all_transitions(); menu.actor.translation_y = 0; menu.actor.scale_x = menu.actor.scale_y = 1;
             open(BoxPointer.PopupAnimation.NONE);
             const event = Clutter.get_current_event();
             const keyboard = [Clutter.EventType.KEY_PRESS, Clutter.EventType.KEY_RELEASE].includes(event?.type());
-            const duration = keyboard || GLib.get_monotonic_time() - lastClosed < 180000 ? 0 : this.duration();
+            const duration = keyboard ? 0 : resuming ? Math.min(120, this.duration()) : GLib.get_monotonic_time() - lastClosed < 180000 ? 0 : this.duration();
             if (duration) {
-                menu.actor.opacity = 0; menu.actor.translation_y = -5;
+                menu.actor.opacity = resuming ? opacity : 0; menu.actor.translation_y = resuming ? 0 : -5;
                 menu.actor.ease({opacity: 255, translation_y: 0, duration, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
             }
             this.blur.set_enabled(this.glass.visible);
@@ -54,7 +57,8 @@ export class MenuSurface {
     }
     duration() {
         const t = this.getTheme();
-        return t.reducedMotion || !St.Settings.get().enable_animations ? 0 : t.animMs;
+        if (t.reducedMotion || !St.Settings.get().enable_animations) return 0;
+        return this.menu.actor.has_style_class_name('lintel-cc-menu') ? t.animMs : Math.min(60, t.animMs);
     }
     size() {
         if (this.dead) return;

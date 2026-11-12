@@ -1,4 +1,5 @@
 import Clutter from 'gi://Clutter';
+import Atk from 'gi://Atk';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
@@ -28,6 +29,7 @@ export class ControlCenter {
             if (this.dead || error) return;
             this.signals.push([proxy, proxy.connect('g-properties-changed', () => this.sync())]); this.sync();
         });
+        this.signals.push([this.settings.appearance, this.settings.appearance.connect('changed::text-scaling-factor', () => this.showPage(this.page))]);
         this.holder = new PopupMenu.PopupBaseMenuItem({activate: false, hover: false, can_focus: false});
         this.holder.add_style_class_name('lintel-cc-holder');
         this.root = new St.BoxLayout({vertical: true, style_class: 'aurea-controls', x_expand: true});
@@ -58,7 +60,7 @@ export class ControlCenter {
         try { callback(); } catch (error) { Main.notifyError('Centro de Control', error.message); }
     }
     row(title, subtitle, callback, checked = false, enabled = true) {
-        const button = new St.Button({style_class: 'aurea-detail-row', can_focus: enabled, reactive: enabled, x_expand: true, accessible_name: `${title}. ${subtitle}`});
+        const button = new St.Button({style_class: 'aurea-detail-row', can_focus: enabled, reactive: enabled, x_expand: true, accessible_name: `${title}. ${subtitle}${checked ? '. Seleccionado' : ''}`});
         const content = new St.BoxLayout({style_class: 'aurea-detail-content'});
         const labels = new St.BoxLayout({vertical: true, x_expand: true});
         labels.add_child(new St.Label({text: title, style_class: 'aurea-detail-title'}));
@@ -74,14 +76,16 @@ export class ControlCenter {
         const monitor = Main.layoutManager.findMonitorForActor(this.button) ?? Main.layoutManager.primaryMonitor;
         if (!monitor) return;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        const size = panelSize(monitor.width, monitor.height, scale);
+        const size = panelSize(monitor.width, monitor.height, scale, this.settings.appearance.get_double('text-scaling-factor'));
         this.root.set_style(`width: ${size.width}px;`);
         if (!this.page) for (const row of this.body.get_children()) {
             const children = row.get_children();
             if (row.has_style_class_name('aurea-control-row')) for (const child of children)
                 child.set_width((size.width - 8 * (children.length - 1)) / children.length);
         }
-        this.scroll.set_style(`max-height: ${size.height - 100}px;`);
+        const headerHeight = this.header.get_preferred_height(size.width)[1];
+        const footerHeight = this.footer.get_preferred_height(size.width)[1];
+        this.scroll.set_style(`max-height: ${Math.max(120, size.height - headerHeight - footerHeight - 44)}px;`);
     }
     available(id) {
         const c = this.ctx;
@@ -93,7 +97,7 @@ export class ControlCenter {
     state(id) {
         const c = this.ctx, s = this.settings;
         switch (id) {
-        case 'wifi': return [c.wifi.enabled, c.wifi._connecting ? 'Conectando…' : c.wifi.activeSsid ?? (c.wifi.enabled ? 'Sin conexión' : 'Desactivado')];
+        case 'wifi': return [c.wifi.enabled, c.wifi._powerPending ? 'Cambiando…' : c.wifi._connecting ? 'Conectando…' : c.wifi.activeSsid ?? (c.wifi.enabled ? 'Sin conexión' : 'Desactivado')];
         case 'bluetooth': return [c.bluetooth.powered, c.bluetooth._powerPending ? 'Cambiando…' : c.bluetooth.paired.filter(d => d.connected).map(d => d.name).join(', ') || (c.bluetooth.powered ? 'Activado' : 'Desactivado')];
         case 'power': return [false, c.powerProfiles.pending ? 'Aplicando…' : c.powerProfiles.label];
         case 'battery': return [c.batteryCare.enabled, c.batteryCare.label];
@@ -102,7 +106,7 @@ export class ControlCenter {
         case 'focus': return [!s.focus.get_boolean('show-banners'), !s.focus.get_boolean('show-banners') ? (this.focusTimer ? 'Temporal' : 'Activado') : 'Desactivado'];
         case 'night': return [!!this.night?.NightLightActive, this.night?.NightLightActive ? 'Activa ahora' : s.night.get_boolean('night-light-enabled') ? 'Programada' : 'Desactivada'];
         case 'caffeine': return [s.caffeine?.get_boolean('cli-toggle'), s.caffeine?.get_boolean('cli-toggle') ? 'Pantalla activa' : 'Desactivado'];
-        case 'privacy': return [c.privacy.active, c.privacy.active ? 'Sensores en uso' : 'Permisos y actividad'];
+        case 'privacy': return [c.privacy.any, c.privacy.any ? 'Sensores en uso' : 'Permisos y actividad'];
         case 'ethernet': return [c.wifi.ethernetConnected, `${c.wifi.ethernetConnected ? 'Conectado' : 'Desconectado'} · Ajustes ↗`];
         case 'vpn': return [c.wifi.vpnActive, `${c.wifi.vpnActive ? 'Conectada' : 'Desconectada'} · Ajustes ↗`];
         case 'displays': return [false, 'Ajustes de pantallas ↗'];
@@ -142,12 +146,13 @@ export class ControlCenter {
         if (['brightness', 'sound', 'microphone'].includes(id)) return this.sliderCard(id);
         const card = new St.BoxLayout({style_class: 'aurea-control-card', x_expand: true});
         const toggle = new St.Button({style_class: 'lintel-cc-tile aurea-control-main', can_focus: true, x_expand: true, accessible_name: MODULES[id]});
-        const content = new St.BoxLayout({style_class: 'aurea-control-content'});
+        const content = new St.BoxLayout({style_class: 'aurea-control-content', x_expand: true});
         const icon = new St.Icon({icon_name: ICONS[id], icon_size: 18, style_class: 'aurea-control-icon', y_align: Clutter.ActorAlign.CENTER});
         content.add_child(icon);
         const labels = new St.BoxLayout({vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
         labels.add_child(new St.Label({text: MODULES[id], style_class: 'aurea-control-label'}));
         const status = new St.Label({style_class: 'aurea-control-status'}); labels.add_child(status); content.add_child(labels);
+        if (['wifi', 'bluetooth', 'appearance', 'focus', 'night', 'airplane', 'caffeine'].includes(id)) toggle.accessible_role = Atk.Role.TOGGLE_BUTTON;
         toggle.set_child(content); toggle.connect('clicked', () => this.perform(() => this.toggle(id))); card.add_child(toggle);
         if (['wifi', 'bluetooth', 'focus', 'night'].includes(id)) card.add_child(this.action('go-next-symbolic', `Detalles de ${MODULES[id]}`, () => this.showPage(id)));
         this.cards.set(id, {toggle, status, icon, wide}); return card;
@@ -178,7 +183,9 @@ export class ControlCenter {
         if (!id) {
             const values = this.ctx.config.values;
             this.availability = values.modules.map(x => `${x}:${this.available(x)}`).join('|');
-            for (const ids of controlRows(values.modules, values.sizes, x => this.available(x))) {
+            const sizes = this.settings.appearance.get_double('text-scaling-factor') >= 1.4
+                ? Object.fromEntries(values.modules.map(key => [key, 'wide'])) : values.sizes;
+            for (const ids of controlRows(values.modules, sizes, x => this.available(x))) {
                 const row = new St.BoxLayout({style_class: 'aurea-control-row', x_expand: true});
                 for (const key of ids) row.add_child(this.tile(key, ids.length === 1));
                 this.body.add_child(row);
@@ -196,6 +203,7 @@ export class ControlCenter {
         const c = this.ctx, s = this.settings, id = this.page;
         switch (id) {
         case 'power':
+            if (c.powerProfiles.limitation) this.detail('Rendimiento limitado', c.powerProfiles.limitation, () => {}, false, false);
             for (const profile of c.powerProfiles.profiles) this.detail(PROFILES[profile] ?? profile, profile === 'performance' ? 'Más velocidad y consumo' : profile === 'power-saver' ? 'Prioriza autonomía' : 'Equilibrio entre consumo y respuesta', () => c.powerProfiles.setProfile(profile), c.powerProfiles.active === profile, !c.powerProfiles.pending);
             break;
         case 'battery':
@@ -203,7 +211,7 @@ export class ControlCenter {
             for (const mode of c.batteryCare.modes) this.detail(mode.label, mode.description, () => c.batteryCare.setMode(mode.id), c.batteryCare.mode === mode.id);
             break;
         case 'wifi':
-            this.detail('Wi-Fi', this.state(id)[1], () => this.toggle(id), c.wifi.enabled);
+            this.detail('Wi-Fi', this.state(id)[1], () => this.toggle(id), c.wifi.enabled, !c.wifi._powerPending);
             for (const network of c.wifi.enabled ? c.wifi._networkRows() : []) this.detail(network.ssid, c.wifi._connecting === network.ssid ? 'Conectando…' : network.active ? 'Conectado' : network.secure ? 'Red protegida' : 'Red abierta', () => { c.wifi._connect(network); this.sync(); }, network.active, !c.wifi._connecting);
             this.detail('Otras redes y ajustes', 'Abrir Wi-Fi ↗', () => { this.button.menu.close(); this.run('gnome-control-center wifi'); }); break;
         case 'bluetooth':
@@ -246,6 +254,10 @@ export class ControlCenter {
                 } else {
                     const [on, text] = this.state(id); card.status.text = text;
                     card.toggle.accessible_name = `${MODULES[id]}. ${text}`;
+                    if (card.toggle.accessible_role === Atk.Role.TOGGLE_BUTTON) {
+                        if (on) card.toggle.add_accessible_state(Atk.StateType.CHECKED);
+                        else card.toggle.remove_accessible_state(Atk.StateType.CHECKED);
+                    }
                     on ? card.icon.add_style_pseudo_class('checked') : card.icon.remove_style_pseudo_class('checked');
                 }
             }
