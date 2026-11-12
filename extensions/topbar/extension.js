@@ -1,3 +1,4 @@
+import {Config} from './configuration.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -274,75 +275,6 @@ class Model {
 }
 
 
-
-const CONFIG_DIR = GLib.build_filenamev([GLib.get_user_config_dir(), 'lintel-v2']);
-const CONFIG_FILE = GLib.build_filenamev([CONFIG_DIR, 'config.json']);
-
-const COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\([0-9., %]+\))$/;
-const oneOf = (v, list, fallback) => list.includes(v) ? v : fallback;
-const asColor = v => typeof v === 'string' && COLOR_RE.test(v.trim()) ? v.trim() : null;
-
-class Config extends Model {
-    constructor() {
-        super();
-        this.values = {};
-        this._monitor = null;
-        this._monitorId = 0;
-        this._timer = 0;
-        this.load();
-        try {
-            GLib.mkdir_with_parents(CONFIG_DIR, 0o755);
-            this._monitor = Gio.File.new_for_path(CONFIG_FILE)
-                .monitor_file(Gio.FileMonitorFlags.NONE, null);
-            this._monitorId = this._monitor.connect('changed', () => this._soon());
-        } catch (e) {
-            console.error(`[Lintel] no se puede vigilar la configuración: ${e}`);
-        }
-    }
-
-    load() {
-        let raw = {};
-        try {
-            const [ok, bytes] = GLib.file_get_contents(CONFIG_FILE);
-            if (ok)
-                raw = JSON.parse(new TextDecoder().decode(bytes)) ?? {};
-        } catch (e) {
-            raw = {};
-        }
-        const modes = ['auto', 'claro', 'oscuro'];
-        this.values = {
-            texto: oneOf(raw.texto, modes, AJUSTES.TEXTO),
-            colorTexto: 'colorTexto' in raw ? asColor(raw.colorTexto) : asColor(AJUSTES.COLOR_TEXTO),
-            colorIconos: 'colorIconos' in raw ? asColor(raw.colorIconos) : asColor(AJUSTES.COLOR_ICONOS),
-            temaMenus: oneOf(raw.temaMenus, modes, AJUSTES.TEMA_MENUS),
-            animacionMs: Number.isFinite(raw.animacionMs)
-                ? clamp(raw.animacionMs, 0, 500)
-                : AJUSTES.ANIMACION_MENU_MS,
-        };
-    }
-
-    _soon() {
-        if (this._timer)
-            GLib.source_remove(this._timer);
-        this._timer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
-            this._timer = 0;
-            this.load();
-            this._emit();
-            return GLib.SOURCE_REMOVE;
-        });
-    }
-
-    destroy() {
-        if (this._timer)
-            GLib.source_remove(this._timer);
-        this._timer = 0;
-        if (this._monitorId)
-            this._monitor?.disconnect(this._monitorId);
-        this._monitor?.cancel();
-        this._monitor = null;
-        this._cb?.clear();
-    }
-}
 
 class Sound extends Model {
     constructor() {
@@ -1548,6 +1480,7 @@ class AppleButton extends LintelButton {
         menu.removeAll();
         addItem(menu, {label: 'Acerca de este equipo'}, () => run('gnome-control-center system'));
         addSep(menu);
+        addItem(menu, {label: 'Personalizar Aurea…'}, () => ctx.openPreferences());
         addItem(menu, {label: 'Configuración del Sistema…'}, () => run('gnome-control-center'));
         addItem(menu, {label: 'Tienda de aplicaciones…'}, () => run('gnome-software'));
         addSep(menu);
@@ -2842,6 +2775,8 @@ export default class LintelV2 extends Extension {
         this._appTimer = 0;
 
         this._cfg = new Config();
+        ctx.config = this._cfg;
+        ctx.openPreferences = () => this.openPreferences();
         ctx.sound = new Sound();
         ctx.brightness = new Brightness();
         ctx.powerProfiles = new PowerProfiles();

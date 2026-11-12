@@ -49,6 +49,7 @@ const tests = [
     'extensions/app-island/test-panel.mjs',
     'extensions/app-island/test-autohide.mjs',
     'extensions/app-island/test-monitor-clip.mjs',
+    'extensions/topbar/tests/settings-model.mjs',
     'extensions/topbar/tests/bluetooth-model.mjs',
     'extensions/topbar/tests/validate-control-center.mjs',
     'extensions/topbar/tests/validate-panel-style.mjs',

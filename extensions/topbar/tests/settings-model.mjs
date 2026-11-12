@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {normalizeConfig, moveItem, color, DEFAULTS} from '../settings-model.js';
+const legacy = normalizeConfig({texto: 'claro', colorTexto: '#ffffff', temaMenus: 'auto'});
+assert.equal(legacy.colorTexto, '#ffffff');
+assert.deepEqual(legacy.modules, DEFAULTS.modules);
+assert.equal(normalizeConfig({animacionMs: 900}).animacionMs, 250);
+assert.equal(normalizeConfig({opacity: -5}).opacity, 0.55);
+assert.deepEqual(normalizeConfig({modules: ['wifi', 'wifi', 'bad']}).modules, ['wifi']);
+assert.deepEqual(normalizeConfig({modules: []}).modules, []);
+assert.equal(normalizeConfig({visibility: {cc: 'never'}}).visibility.cc, 'always');
+assert.equal(color('#fff; background: red'), null);
+assert.equal(color('rgb(999,0,0)'), null);
+assert.equal(color('rgba(20, 30, 40, 0.5)'), 'rgba(20, 30, 40, 0.5)');
+assert.deepEqual(moveItem(['wifi', 'sound'], 'sound', -1), ['sound', 'wifi']);
+assert.deepEqual(moveItem(['wifi'], 'wifi', -1), ['wifi']);
+for (const input of [null, [], 42, 'bad']) assert.equal(normalizeConfig(input).material, 'glass');
+console.log('PASS: configuración heredada, límites, colores, orden y controles recuperables');
