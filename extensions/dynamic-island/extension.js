@@ -276,6 +276,7 @@ export default class DynamicIsland extends Extension {
         this._connect(Main.overview, 'hidden', () => this._syncFullscreen());
         this._connect(Main.overview, 'showing', () => this._syncFullscreen());
         this._connect(global.display, 'in-fullscreen-changed', () => this._syncFullscreen());
+        this._connect(Main.panel, 'notify::height', () => this._sizePill());
         this._connect(Main.layoutManager, 'monitors-changed', () => {
             this._shelfBridge?.close();
             this._closeIsland();
@@ -576,6 +577,7 @@ export default class DynamicIsland extends Extension {
         this._button.add_style_class_name('di-button');
         this._pill = new St.Widget({
             style_class: 'di-pill',
+            clip_to_allocation: true,
             layout_manager: new Clutter.BinLayout(),
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
@@ -762,9 +764,13 @@ export default class DynamicIsland extends Extension {
 
     _sizePill() {
 
-        this._pill?.set_height(Math.max(34, Main.panel.height || 0));
+        this._pill?.set_height(this._compactHeight());
         this._pillBackground?.queue_repaint();
         this._centerPill();
+    }
+
+    _compactHeight() {
+        return this._settings.get_string('shape') === 'floating' ? 34 : Math.max(1, Main.panel.height || 26);
     }
 
     _monitor() {
@@ -777,7 +783,9 @@ export default class DynamicIsland extends Extension {
         if (!monitor || !this._host) return;
         const floating = this._settings.get_string('shape') === 'floating';
         this._host.set_position(monitor.x, monitor.y + (floating ? 8 : 0));
-        this._host.set_size(monitor.width, Math.max(34, Main.panel.height));
+        const height = this._compactHeight();
+        if (this._pill.height !== height) this._pill.set_height(height);
+        this._host.set_size(monitor.width, height);
     }
 
     _toast(event) {

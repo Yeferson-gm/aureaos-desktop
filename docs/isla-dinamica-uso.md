@@ -39,7 +39,9 @@ propietario de Alcove o NotchNook.
 ## Opciones y dependencias
 
 El diseño predeterminado conserva el notch unido al borde, esquinas pequeñas y
-portada solo en el reproductor expandido. Ajustes permite cápsula flotante, portada
+portada solo en el reproductor expandido. El notch cerrado sigue la altura real
+de la barra para no cubrir las ventanas; la cápsula flotante conserva su altura
+independiente. Ajustes permite cápsula flotante, portada
 compacta, ancho, radio, monitor y velocidad. El vidrio utiliza un desenfoque interior
 que no alcanza las esquinas. Pantalla completa, overview y bloqueo ocultan la isla.
 

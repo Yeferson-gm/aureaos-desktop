@@ -18,3 +18,10 @@ acciones D-Bus y 100 interrupciones. Límites físicos documentados en
 - [x] Integrar los indicadores externos antes de la fecha y reservar el último puesto al reloj.
 - [x] Añadir Cafeína a los controles predeterminados sin sobrescribir listas personalizadas.
 - [x] Regresión validada en GNOME aislado y comprobación general superada; entrega por etiqueta e instalación exclusiva de topbar.
+
+## Micrófono y altura del notch
+
+- [x] Incluir micrófono en los módulos predeterminados conservando configuraciones personalizadas.
+- [x] Ajustar el notch unido al borde a la altura de la barra, conservando ancho y panel expandido.
+- [x] Comprobación general: 25 pruebas, esquemas y CSS; integración GNOME aislada con tres deslizadores y cambios de altura.
+- [x] Clic, segundo clic, clic derecho, Enter, Espacio y Escape validados en sesión aislada. El primer intento no entregó eventos del puntero virtual; la repetición independiente recibió el clic y pasó.

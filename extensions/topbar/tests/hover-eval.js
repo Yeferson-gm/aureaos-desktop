@@ -117,11 +117,23 @@
     ctx.sound = {ready: true, micReady: true, level: .55, micLevel: .3, iconName: 'audio-volume-medium-symbolic', micIconName: 'audio-input-microphone-symbolic', setLevel: v => { values.volume = v; }, setMicLevel: v => { values.mic = v; }};
     ctx.brightness = {available: true, level: .75, setLevel: v => { values.brightness = v; }};
     ctx.batteryCare = {available: true, enabled: true, label: 'Máxima vida · 80 %', modes: [], mode: 'max'};
+    controls.showPage(null);
+    if (!controls.cards.has('microphone')) throw new Error('El micrófono disponible no aparece por defecto');
     const oldConfig = {...bar._cfg.values};
     const island = Main.extensionManager.lookup('dynamic-island-gnome50@local')?.stateObj;
     if (island) {
         bar._layout.layout(); await wait(200);
-        const [islandX] = island._pill.get_transformed_position();
+        const [islandX, islandY] = island._pill.get_transformed_position();
+        const [, compactHeight] = island._pill.get_transformed_size();
+        const [, panelY] = Main.panel.get_transformed_position();
+        const [, panelHeight] = Main.panel.get_transformed_size();
+        if (islandY + compactHeight > panelY + panelHeight + 1) throw new Error('El notch invade el área de las ventanas');
+        const originalHeight = Main.panel.height;
+        Main.panel.set_height(originalHeight + 6); await wait(200);
+        if (Math.abs(island._pill.height - Main.panel.height) > 1) throw new Error('El notch no sigue los cambios de altura de la barra');
+        Main.panel.set_height(originalHeight); await wait(200);
+        island._openIsland(); await wait(400); island._closeIsland(); await wait(400);
+        if (island._grab || island._menu.isOpen) throw new Error('El notch compacto retiene el panel');
         const [islandWidth] = island._pill.get_transformed_size();
         for (const actor of Main.panel._leftBox.get_children().filter(child => child.visible)) {
             const [x] = actor.get_transformed_position(); const [width] = actor.get_transformed_size();

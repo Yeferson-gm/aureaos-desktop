@@ -20,7 +20,7 @@
 .di-pill, .di-pill:hover, .di-pill:focus, .di-pill:active {
     background-color: transparent; color: #ffffff; border-radius: 0;
     box-shadow: none; border: none; outline: none; text-shadow: none;
-    min-width: 280px; height: 34px; padding: 0; }
+    min-width: 280px; padding: 0; }
 .di-pill-content { padding: 0 14px; spacing: 11px; }
 .di-pill StIcon { color: #ffffff; icon-size: 15px; icon-shadow: none; }
 .di-bars { spacing: 2px; }

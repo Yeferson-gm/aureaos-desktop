@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.2.2
+
+- Micrófono incluido por defecto en el Centro de Control cuando existe una entrada
+  disponible, con volumen, silencio y selección de dispositivo.
+- El notch unido al borde adopta la altura real de la barra y responde a sus
+  cambios, sin invadir las ventanas. Conserva ancho, forma y panel expandido.
+- Verificación de altura y micrófono en la sesión GNOME aislada; apertura y cierre
+  de la isla con ratón y teclado sin retener la entrada.
+
 ## 0.2.1
 
 - La fecha queda al final de la barra, también después de añadir indicadores de

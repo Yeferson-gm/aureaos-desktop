@@ -15,7 +15,7 @@ export const DEFAULTS = {
     reducedMotion: false, contrast: false, adaptiveContrast: false,
     clockFormat: 'system', clockDate: true, clockSeconds: false, shortcuts: 'linux',
     autohide: 'never', menuIcons: 'selective',
-    modules: ['wifi', 'bluetooth', 'brightness', 'sound', 'power', 'battery', 'focus', 'caffeine', 'night', 'appearance', 'privacy', 'screenshot'],
+    modules: ['wifi', 'bluetooth', 'brightness', 'sound', 'microphone', 'power', 'battery', 'focus', 'caffeine', 'night', 'appearance', 'privacy', 'screenshot'],
     sizes: {}, indicators: Object.keys(INDICATORS), visibility: {},
 };
 const choices = (value, options, fallback) => options.includes(value) ? value : fallback;

@@ -24,3 +24,5 @@ assert.equal(foregroundFor('rgba(0,0,0,0)', true), '#ffffff');
 assert.ok(normalizeConfig({texto: 'claro'}).modules.includes('caffeine'));
 assert.deepEqual(normalizeConfig({modules: ['wifi']}).modules, ['wifi']);
 assert.equal(normalizeConfig({indicators: ['clock', 'wifi', 'cc']}).indicators.at(-1), 'clock');
+
+assert.ok(normalizeConfig({texto: 'claro'}).modules.includes('microphone'));

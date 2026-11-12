@@ -39,7 +39,9 @@ prioridad sobre la duración elegida.
 - Wi-Fi y Bluetooth: pulsar el control para activar/desactivar; la flecha abre
   redes o dispositivos dentro del mismo panel. «Volver» regresa a los controles.
 - Brillo, salida y entrada de audio: valor porcentual, rueda y teclado. Los
-  controles de audio incluyen silencio y selección de dispositivo.
+  controles de audio incluyen silencio y selección de dispositivo. Micrófono está
+  incluido por defecto cuando hay una entrada disponible; las listas de módulos
+  personalizadas se conservan.
 - Energía: elegir el perfil exacto publicado por el servicio; se muestra el
   perfil actual, operación pendiente y limitaciones de rendimiento disponibles.
 - Cuidado de batería: muestra los modos y umbrales de Battery Health Charging;
