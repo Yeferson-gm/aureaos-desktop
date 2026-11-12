@@ -7,7 +7,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {MODULES} from './settings-model.js';
 import {controlRows, panelSize} from './control-layout.js';
 
-const ICONS = {wifi: 'network-wireless-symbolic', bluetooth: 'bluetooth-active-symbolic', brightness: 'display-brightness-symbolic', sound: 'audio-volume-high-symbolic', microphone: 'audio-input-microphone-symbolic', power: 'power-profile-balanced-symbolic', battery: 'battery-level-80-symbolic', focus: 'notifications-disabled-symbolic', night: 'night-light-symbolic', appearance: 'weather-clear-night-symbolic', airplane: 'airplane-mode-symbolic', caffeine: 'alarm-symbolic', privacy: 'privacy-screen-symbolic', displays: 'video-display-symbolic', vpn: 'network-vpn-symbolic', ethernet: 'network-wired-symbolic', screenshot: 'camera-photo-symbolic'};
+const ICONS = {wifi: 'network-wireless-symbolic', bluetooth: 'bluetooth-active-symbolic', brightness: 'display-brightness-symbolic', sound: 'audio-volume-high-symbolic', microphone: 'audio-input-microphone-symbolic', power: 'power-profile-balanced-symbolic', battery: 'battery-level-80-symbolic', focus: 'notifications-disabled-symbolic', night: 'night-light-symbolic', appearance: 'weather-clear-night-symbolic', airplane: 'airplane-mode-symbolic', caffeine: 'alarm-symbolic', privacy: 'security-high-symbolic', displays: 'video-display-symbolic', vpn: 'network-vpn-symbolic', ethernet: 'network-wired-symbolic', screenshot: 'camera-photo-symbolic'};
 const PROFILES = {'power-saver': 'Ahorro de energía', balanced: 'Balanceado', performance: 'Rendimiento'};
 const NightProxy = Gio.DBusProxy.makeProxyWrapper('<node><interface name="org.gnome.SettingsDaemon.Color"><property name="NightLightActive" type="b" access="read"/></interface></node>');
 
@@ -45,7 +45,7 @@ export class ControlCenter {
         this.offs.push(ctx.config.onChange(() => this.showPage(this.page)));
         this.signals.push([Main.layoutManager, Main.layoutManager.connect('monitors-changed', () => this.resize())]);
         this.signals.push([button.menu, button.menu.connect('open-state-changed', (_, open) => {
-            if (open) { this.resize(); this.showPage(null); }
+            if (open) { this.resize(); if (this.page) this.showPage(null); else this.sync(); }
             else { ctx.bluetooth.stopDiscovery(); this.cancelRefresh(); }
         })]);
         this.showPage(null);
@@ -127,10 +127,11 @@ export class ControlCenter {
         this.sync();
     }
     setFocus(on, minutes = 0) {
+        const previous = this.focusTimer ? this.previousBanners : this.settings.focus.get_boolean('show-banners');
         if (this.focusTimer) GLib.source_remove(this.focusTimer);
         this.focusTimer = 0;
         if (on && minutes) {
-            this.previousBanners = this.settings.focus.get_boolean('show-banners');
+            this.previousBanners = previous;
             this.focusTimer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, minutes * 60, () => {
                 this.focusTimer = 0; this.settings.focus.set_boolean('show-banners', this.previousBanners); return GLib.SOURCE_REMOVE;
             });

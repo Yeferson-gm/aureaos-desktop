@@ -19,4 +19,7 @@ for attempt in {1..50}; do
 done
 cat "$DI_TEST_DIR/result.txt"
 rg -q '^PASS:' "$DI_TEST_DIR/result.txt"
+GI_TYPELIB_PATH=/usr/lib64/gnome-shell/girepository-1.0 gjs -m "$DI_PROJECT_DIR/tests/prefs-runtime.js" >"$DI_TEST_DIR/prefs.log" 2>&1
+cat "$DI_TEST_DIR/prefs.log"
+if rg 'CRITICAL|JS ERROR|TypeError|Error:' "$DI_TEST_DIR/prefs.log"; then exit 1; fi
 if rg 'JS ERROR|CRITICAL' "$DI_TEST_DIR/shell.log"; then exit 1; fi

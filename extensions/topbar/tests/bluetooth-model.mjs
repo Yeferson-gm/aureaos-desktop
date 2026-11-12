@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-const file=process.argv[2] ?? new URL('../extension.js',import.meta.url);
+const file=process.argv[2] ?? new URL('../services.js',import.meta.url);
 const code=fs.readFileSync(file,'utf8');
 const start=code.indexOf('class Bluetooth extends Model');
 const end=code.indexOf('\nclass Privacy extends Model',start);

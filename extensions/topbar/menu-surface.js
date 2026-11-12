@@ -37,13 +37,27 @@ export class MenuSurface {
             close(this.duration() ? BoxPointer.PopupAnimation.FADE : BoxPointer.PopupAnimation.NONE);
             this.blur.set_enabled(false);
         };
-        this.destroyId = menu.actor.connect('destroy', () => { this.dead = true; this.blur = null; });
+        const destroy = menu.destroy.bind(menu);
+        menu.destroy = () => {
+            if (this.dead) return;
+            this.dead = true;
+            menu.actor.remove_all_transitions();
+            close(BoxPointer.PopupAnimation.NONE);
+            this.stack.disconnect(this.allocation);
+            menu.actor.hide();
+            GLib.idle_add(GLib.PRIORITY_LOW, () => {
+                destroy();
+                this.blur = null;
+                return GLib.SOURCE_REMOVE;
+            });
+        };
     }
     duration() {
         const t = this.getTheme();
         return t.reducedMotion || !St.Settings.get().enable_animations ? 0 : t.animMs;
     }
     size() {
+        if (this.dead) return;
         const inset = this.menu.actor.has_style_class_name('lintel-cc-menu') ? 20 : 12;
         this.glass.set_position(inset, inset);
         this.glass.set_size(Math.max(0, this.stack.width - inset * 2), Math.max(0, this.stack.height - inset * 2));

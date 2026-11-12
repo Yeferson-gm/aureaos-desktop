@@ -23,8 +23,10 @@ export class Config {
     load() {
         try {
             const [ok, bytes] = GLib.file_get_contents(this.path);
-            this.raw = ok ? JSON.parse(new TextDecoder().decode(bytes)) : {};
-            if (!this.raw || typeof this.raw !== 'object' || Array.isArray(this.raw)) throw new Error('Configuración inválida');
+            const parsed = ok ? JSON.parse(new TextDecoder().decode(bytes)) : {};
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Configuración inválida');
+            if (this.values && JSON.stringify(parsed) === JSON.stringify(this.raw)) return false;
+            this.raw = parsed;
         } catch (error) {
             if (this.values) return false;
             this.raw = {};

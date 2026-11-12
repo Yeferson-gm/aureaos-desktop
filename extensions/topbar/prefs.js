@@ -1,3 +1,4 @@
+import Gio from 'gi://Gio';
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -7,25 +8,31 @@ import {DEFAULTS, MODULES, INDICATORS, color, moveItem} from './settings-model.j
 export default class TopbarPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const config = new Config();
+        const bindings = [];
+        let syncing = false;
         window.set_default_size(720, 760);
         window.connect('close-request', () => { config.destroy(); return false; });
         const page = (title, icon) => { const p = new Adw.PreferencesPage({title, icon_name: icon}); window.add(p); return p; };
         const group = (p, title, description = '') => { const g = new Adw.PreferencesGroup({title, description}); p.add(g); return g; };
         const save = patch => {
+            if (syncing) return;
             try { config.save(patch); }
             catch (error) { window.add_toast(new Adw.Toast({title: `No se pudo guardar: ${error.message}`})); }
         };
         const toggle = (g, key, title, subtitle = '') => {
             const row = new Adw.SwitchRow({title, subtitle, active: config.values[key]});
+            bindings.push(() => { row.active = config.values[key]; });
             row.connect('notify::active', () => save({[key]: row.active})); g.add(row);
         };
         const combo = (g, key, title, values, labels) => {
             const row = new Adw.ComboRow({title, model: Gtk.StringList.new(labels), selected: Math.max(0, values.indexOf(config.values[key]))});
+            bindings.push(() => { row.selected = Math.max(0, values.indexOf(config.values[key])); });
             row.connect('notify::selected', () => save({[key]: values[row.selected]})); g.add(row);
         };
         const spin = (g, key, title, lower, upper, step) => {
             const row = new Adw.SpinRow({title, digits: step < 1 ? 2 : 0,
                 adjustment: new Gtk.Adjustment({lower, upper, step_increment: step, page_increment: step * 2}), value: config.values[key]});
+            bindings.push(() => { row.value = config.values[key]; });
             row.connect('notify::value', () => save({[key]: row.value})); g.add(row);
         };
         const appearance = page('Apariencia', 'applications-graphics-symbolic');
@@ -33,6 +40,7 @@ export default class TopbarPreferences extends ExtensionPreferences {
         combo(visual, 'texto', 'Texto de la barra', ['auto', 'claro', 'oscuro'], ['Según el sistema', 'Blanco', 'Negro']);
         for (const [key, title] of [['colorTexto', 'Color de texto'], ['colorIconos', 'Color de iconos'], ['accent', 'Color de selección']]) {
             const row = new Adw.EntryRow({title, text: config.values[key] ?? '', show_apply_button: true});
+            bindings.push(() => { row.text = config.values[key] ?? ''; });
             row.connect('apply', () => {
                 const value = row.text.trim();
                 if (value && !color(value)) { window.add_toast(new Adw.Toast({title: 'Usa un color hexadecimal o rgb/rgba válido'})); return; }
@@ -50,12 +58,18 @@ export default class TopbarPreferences extends ExtensionPreferences {
         spin(motion, 'animacionMs', 'Entrada de paneles (ms)', 0, 250, 10);
         toggle(motion, 'reducedMotion', 'Reducir movimiento');
         const preview = group(appearance, 'Vista previa en el escritorio', 'Abre el Centro de Control para comparar tus cambios sobre tu fondo real.');
+        const show = new Adw.ActionRow({title: 'Abrir vista previa real', subtitle: 'Muestra el Centro de Control sobre el fondo actual'});
+        const showButton = new Gtk.Button({label: 'Ver', valign: Gtk.Align.CENTER});
+        showButton.connect('clicked', () => Gio.DBus.session.call('org.gnome.Shell', '/org/aurea/Topbar', 'org.aurea.Topbar', 'Preview', null, null, Gio.DBusCallFlags.NONE, 3000, null, (connection, result) => {
+            try { connection.call_finish(result); }
+            catch (error) { window.add_toast(new Adw.Toast({title: 'Activa Aurea Barra superior para ver los cambios'})); }
+        })); show.add_suffix(showButton); preview.add(show);
         const reset = new Adw.ActionRow({title: 'Restaurar apariencia', subtitle: 'Conserva módulos, orden y datos'});
         const resetButton = new Gtk.Button({label: 'Restaurar', valign: Gtk.Align.CENTER});
         resetButton.connect('clicked', () => {
             const keys = ['texto', 'colorTexto', 'colorIconos', 'temaMenus', 'material', 'blur', 'opacity', 'accent', 'spacing', 'contrast', 'adaptiveContrast', 'animacionMs', 'reducedMotion'];
             save(Object.fromEntries(keys.map(k => [k, DEFAULTS[k]])));
-            window.add_toast(new Adw.Toast({title: 'Apariencia restaurada. Reabre Ajustes para actualizar los campos.'}));
+            window.add_toast(new Adw.Toast({title: 'Apariencia restaurada'}));
         }); reset.add_suffix(resetButton); preview.add(reset);
         const behavior = page('Barra', 'view-more-symbolic');
         const clock = group(behavior, 'Comportamiento');
@@ -93,5 +107,10 @@ export default class TopbarPreferences extends ExtensionPreferences {
         };
         arrange(behavior, 'indicators', INDICATORS, 'Indicadores y orden');
         arrange(page('Controles', 'preferences-system-symbolic'), 'modules', MODULES, 'Tu Centro de Control');
+        config.onChange(() => {
+            syncing = true;
+            try { bindings.forEach(update => update()); }
+            finally { syncing = false; }
+        });
     }
 }
