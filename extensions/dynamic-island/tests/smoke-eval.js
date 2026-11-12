@@ -36,7 +36,7 @@
     try { island._closeIsland(); } catch (_) {}
     island._syncSampler = syncSampler;
     if (island._grab) throw new Error('Cierre con error deja retenida la entrada');
-    const result = {state: ext.state, pages: Object.keys(island._pages)};
+    const result = {state: ext.state, pages: Object.keys(island._builders)};
     const inspect = actor => {
         if (actor.get_text?.().startsWith('Esta sección falló')) throw new Error(actor.get_text());
         for (const child of actor.get_children()) inspect(child);

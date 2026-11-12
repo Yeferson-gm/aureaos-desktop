@@ -39,6 +39,7 @@ export default class IslandPreferences extends ExtensionPreferences {
         number(appearance, 'monitor', 'Pantalla: −1 principal; 0 primera; 1 segunda', -1, 15, 1);
         const behavior = group('Animaciones y comportamiento', 'Las animaciones respetan también la preferencia de movimiento reducido del sistema.');
         toggle(behavior, 'animations', 'Animaciones suaves');
+        toggle(behavior, 'gestures', 'Gestos locales', 'Rueda vertical: actividades; horizontal: pistas; Mayús + rueda: volumen; clic derecho: descartar aviso.');
         toggle(behavior, 'hover-open', 'Abrir al pasar el cursor');
         number(behavior, 'hover-delay', 'Espera del cursor (ms)', 200, 1500, 50);
         toggle(behavior, 'auto-close', 'Cerrar al salir de la isla', 'Solo cuando se abrió al pasar el cursor.');
@@ -50,6 +51,43 @@ export default class IslandPreferences extends ExtensionPreferences {
         toggle(navigation, 'show-home-music', 'Música en Inicio');
         toggle(navigation, 'show-home-system', 'Batería en Inicio');
         toggle(navigation, 'show-home-activities', 'Actividades en Inicio');
+        const space = group('Espacio personal', 'Hasta tres tarjetas en Inicio y dos accesos principales. Los demás módulos siguen disponibles en Más.');
+        for (const [key, title, limit] of [['home-modules', 'Tarjetas de Inicio', 3], ['pinned-modules', 'Accesos principales', 2]]) {
+            const row = new Adw.ExpanderRow({title});
+            space.add(row);
+            const modules = [['music', 'Música'], ['files', 'Archivos'], ['clip', 'Portapapeles'], ['notes', 'Notas y tareas'],
+                ['system', 'Sistema'], ['clock', 'Temporizador'], ['today', 'Calendario'], ['notifications', 'Notificaciones'],
+                ['mirror', 'Cámara'], ['tools', 'Herramientas']];
+            for (const [id, name] of modules) {
+                const item = new Adw.ActionRow({title: name});
+                const enabled = new Gtk.Switch({valign: Gtk.Align.CENTER, active: settings.get_strv(key).includes(id)});
+                const move = new Gtk.Button({icon_name: 'go-up-symbolic', valign: Gtk.Align.CENTER, tooltip_text: 'Mover al principio'});
+                const sync = () => {
+                    const list = settings.get_strv(key);
+                    enabled.active = list.includes(id);
+                    enabled.sensitive = enabled.active || list.length < limit;
+                    move.sensitive = enabled.active && list[0] !== id;
+                    item.subtitle = enabled.active ? `Posición ${list.indexOf(id) + 1}` : 'Disponible en Más';
+                };
+                enabled.connect('notify::active', () => {
+                    const list = settings.get_strv(key);
+                    if (enabled.active === list.includes(id)) return;
+                    settings.set_strv(key, enabled.active ? [...list, id].slice(0, limit) : list.filter(value => value !== id));
+                });
+                move.connect('clicked', () => settings.set_strv(key, [id, ...settings.get_strv(key).filter(value => value !== id)]));
+                const signal = settings.connect(`changed::${key}`, sync);
+                window.connect('close-request', () => { settings.disconnect(signal); return false; });
+                item.add_suffix(move);
+                item.add_suffix(enabled);
+                row.add_row(item);
+                sync();
+            }
+        }
+        const resetSpace = new Adw.ActionRow({title: 'Restaurar organización inicial'});
+        const resetButton = new Gtk.Button({label: 'Restaurar', valign: Gtk.Align.CENTER});
+        resetButton.connect('clicked', () => { settings.reset('home-modules'); settings.reset('pinned-modules'); });
+        resetSpace.add_suffix(resetButton);
+        space.add(resetSpace);
         const media = group('Multimedia', 'El selector de Música permite elegir entre los reproductores MPRIS disponibles.');
         const player = new Adw.EntryRow({title: 'Reproductor preferido (nombre MPRIS; vacío = automático)'});
         settings.bind('preferred-player', player, 'text', 0);

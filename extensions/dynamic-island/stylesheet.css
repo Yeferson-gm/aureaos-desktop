@@ -212,3 +212,25 @@
 .di-calendar-day { padding: 0; border-radius: 14px; color: #f8f8fa; font-size: 12px; text-align: center; }
 .di-calendar-day:hover, .di-calendar-day:focus { background-color: rgba(255,255,255,0.12); }
 .di-calendar-today { background-color: #97b0ff; color: #08090c; font-weight: bold; }
+
+.di-navigation-item { padding: 7px 7px; border-radius: 9px; background-color: transparent; color: #acafbc; font-size: 12px; }
+.di-navigation-item.di-tab-active { background-color: rgba(255,255,255,0.12); color: #ffffff; }
+.di-dashboard { spacing: 14px; }
+.di-dashboard-date { color: #a7abb7; font-size: 12px; }
+.di-dashboard-cards { spacing: 8px; }
+.di-dashboard-card { padding: 13px 14px; border-radius: 14px; background-color: rgba(255,255,255,0.055); color: #c2d1ff; border: 1px solid rgba(255,255,255,0.07); }
+.di-dashboard-card:hover, .di-dashboard-card:focus { background-color: rgba(255,255,255,0.10); border-color: rgba(179,199,255,0.35); }
+.di-dashboard-featured { padding: 20px 14px; background-gradient-direction: horizontal; background-gradient-start: rgba(119,145,207,0.20); background-gradient-end: rgba(86,103,154,0.07); }
+.di-dashboard-row { spacing: 12px; }
+.di-dashboard-column { spacing: 5px; }
+.di-dashboard-caption { color: #b5baca; font-size: 11px; }
+.di-dashboard-title { color: #ffffff; font-size: 17px; font-weight: 600; }
+.di-dashboard-detail { color: #f1f2f6; font-size: 13px; }
+.di-live-list { spacing: 5px; }
+.di-live-item { padding: 8px 10px; background-color: rgba(137,170,255,0.09); color: #b6ccff; }
+.di-library { spacing: 14px; }
+.di-library-list { spacing: 8px; }
+.di-library-row { spacing: 8px; }
+.di-library-tile { padding: 14px 10px; border-radius: 12px; background-color: rgba(255,255,255,0.055); font-size: 12px; }
+.di-library-tile:hover, .di-library-tile:focus { background-color: rgba(255,255,255,0.12); }
+.di-chip-row { spacing: 6px; }

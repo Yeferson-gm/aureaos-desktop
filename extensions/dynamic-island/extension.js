@@ -16,6 +16,7 @@ import {Slider} from 'resource:///org/gnome/shell/ui/slider.js';
 import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
 import {ActivityQueue, LiveActivities, springProgress} from './activities.js';
 import {IslandMotion} from './motion.js';
+import {IslandWorkspace, MODULES} from './workspace.js';
 
 
 const OCULTAR_OSD_SISTEMA = true;
@@ -230,15 +231,18 @@ export default class DynamicIsland extends Extension {
             Main.panel._centerBox.remove_child(clock);
             Main.panel._rightBox.insert_child_at_index(clock, 0);
         }
+        this._workspace = new IslandWorkspace(this);
         this._buildPill();
         this._buildCard();
 
         this._selectTab(this._settings.get_string('initial-page'));
-        this._connect(this._settings, 'changed', () => {
+        this._connect(this._settings, 'changed', (_settings, key) => {
             this._pillBackground?.queue_repaint();
             this._islandBackground?.queue_repaint();
             this._renderHome();
-            this._closeIsland();
+            if (['monitor', 'shape', 'corner-radius', 'notch-width'].includes(key)) this._closeIsland();
+            if (key === 'home-modules') this._workspace.rebuild();
+            if (key === 'pinned-modules') this._refreshNavigation();
             this._centerPill();
             this._syncFullscreen();
             if (!this._settings.get_boolean('cover-accent')) this._musicSurface.set_style('');
@@ -265,7 +269,7 @@ export default class DynamicIsland extends Extension {
         this._safe('red', () => this._setupNetwork());
         this._safe('portapapeles', () => this._setupClipboard());
         this._safe('estante', () => this._loadShelf());
-        this._safe('notas', () => this._loadNotes());
+        
         this._safe('tareas', () => this._loadTasks());
         this._safe('temporizador', () => this._restoreTimer());
         this._safe('notificaciones', () => this._setupNotifications());
@@ -579,7 +583,11 @@ export default class DynamicIsland extends Extension {
         this._pillContent.add_child(this._marquee);
 
         this._pillTimer = new St.Label({style_class: 'di-pill-timer', y_align: Clutter.ActorAlign.CENTER, visible: false});
+        this._pillTimer.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
+        this._pillTimer.width = 210;
         this._pillContent.add_child(this._pillTimer);
+        this._activityCount = new St.Label({style_class: 'di-activity-count', y_align: Clutter.ActorAlign.CENTER, visible: false});
+        this._pillContent.add_child(this._activityCount);
 
         this._hud = new St.BoxLayout({style_class: 'di-hud', y_align: Clutter.ActorAlign.CENTER, visible: false});
         this._hudIcon = new St.Icon({icon_name: 'audio-volume-high-symbolic', icon_size: 14, y_align: Clutter.ActorAlign.CENTER});
@@ -592,7 +600,7 @@ export default class DynamicIsland extends Extension {
         this._hud.add_child(this._hudLabel);
         this._pillContent.add_child(this._hud);
 
-        this._button.add_child(this._pill);
+        this._button.set_child(this._pill);
         this._host = new St.Widget({layout_manager: new Clutter.BinLayout(), clip_to_allocation: true});
         this._button.x_align = Clutter.ActorAlign.CENTER;
         this._host.add_child(this._button);
@@ -600,7 +608,9 @@ export default class DynamicIsland extends Extension {
 
 
 
-        this._connect(this._button, 'button-release-event', () => {
+        this._connect(this._button, 'scroll-event', (_actor, event) => this._onIslandScroll(event));
+        this._connect(this._button, 'button-release-event', (_actor, event) => {
+            if (event.get_button() === 3) { this._activities.dismiss(); this._presentActivity(); return Clutter.EVENT_STOP; }
             this._openedByHover = false;
             this._menu?.toggle();
             return Clutter.EVENT_STOP;
@@ -639,6 +649,30 @@ export default class DynamicIsland extends Extension {
         });
         this._sizePill();
         this._timeout(600, () => { this._sizePill(); return GLib.SOURCE_REMOVE; });
+    }
+
+    _onIslandScroll(event) {
+        if (!this._settings.get_boolean('gestures')) return Clutter.EVENT_PROPAGATE;
+        let [dx, dy] = [0, 0];
+        const direction = event.get_scroll_direction();
+        if (direction === Clutter.ScrollDirection.SMOOTH) [dx, dy] = event.get_scroll_delta();
+        else if (direction === Clutter.ScrollDirection.LEFT) dx = -1;
+        else if (direction === Clutter.ScrollDirection.RIGHT) dx = 1;
+        else dy = direction === Clutter.ScrollDirection.UP ? -1 : 1;
+        if (event.get_state() & Clutter.ModifierType.SHIFT_MASK) {
+            this._applyVolume(clamp((this._volume?.value ?? 0) - dy * 0.03));
+            return Clutter.EVENT_STOP;
+        }
+        const now = GLib.get_monotonic_time() / 1000;
+        if (now - (this._gestureAt ?? 0) < 300) return Clutter.EVENT_STOP;
+        this._gestureTravel = (this._gestureTravel ?? 0) + (Math.abs(dx) > Math.abs(dy) ? dx : dy);
+        if (Math.abs(this._gestureTravel) < 1) return Clutter.EVENT_STOP;
+        const delta = Math.sign(this._gestureTravel);
+        this._gestureTravel = 0;
+        this._gestureAt = now;
+        if (Math.abs(dx) > Math.abs(dy)) this._command(delta > 0 ? 'Next' : 'Previous');
+        else this._cycleActivity(delta);
+        return Clutter.EVENT_STOP;
     }
 
     _paintTopIsland(area) {
@@ -739,27 +773,45 @@ export default class DynamicIsland extends Extension {
         this._renderHome();
     }
 
+    _syncLive() {
+        this._live.update('music', this._name && this._status !== 'Stopped' ? {
+            text: this._title?.text ?? 'Música', icon: 'audio-x-generic-symbolic', page: 'music', priority: 10} : null);
+        this._live.update('timer', this._tm.running || this._tm.started ? {
+            text: `Temporizador · ${formatClock(this._timerLeft())}`, icon: 'alarm-symbolic', page: 'clock', priority: 30} : null);
+        this._live.update('stopwatch', this._tm.swRunning ? {
+            text: `Cronómetro · ${formatClock(this._swElapsed(), true)}`, icon: 'alarm-symbolic', page: 'clock', priority: 20} : null);
+        this._live.update('recording', this._recordingStarted ? {
+            text: `● ${formatTime((Date.now() - this._recordingStarted) / 1000)}`, icon: 'media-record-symbolic', page: 'tools', priority: 50} : null);
+        this._live.update('files', this._fileJob ? {
+            text: 'Archivos · Procesando…', icon: 'folder-symbolic', page: 'files', priority: 25} : null);
+    }
+
+    _cycleActivity(delta) {
+        this._activities.dismiss();
+        this._syncLive();
+        this._live.cycle(delta);
+        this._presentActivity();
+        this._renderHome();
+    }
+
     _updatePill() {
+        this._syncLive();
         const hud = this._hudActive;
         const active = !!this._name && this._status !== 'Stopped';
-        const playing = active && this._status === 'Playing';
+        const music = this._live.current?.key === 'music';
+        const playing = music && this._status === 'Playing';
+        const count = this._live.entries.length;
         this._pill.width = this._settings.get_int('notch-width') + (active ? 20 : 0);
         this._hud.visible = hud;
-        this._bars.visible = !hud && active;
-
-
-        this._pillContent.set_style(!hud && active ? 'padding: 0 30px 0 29px;' : null);
-        this._marquee.visible = !hud && active;
-        this._pillTimer.visible = !hud && this._clockLabelVisible;
-        if (!hud && this._fileJob && !active && !this._clockLabelVisible) {
-            this._pillTimer.set_text('Archivos · Procesando…');
-            this._pillTimer.visible = true;
-        }
-        if (!hud && this._recordingStarted) {
-            this._pillTimer.set_text(`● ${formatTime((Date.now() - this._recordingStarted) / 1000)}`);
-            this._pillTimer.visible = true;
-        }
-        if (playing && !hud && this._button.visible && this._duration(1)) {
+        this._bars.visible = !hud && music;
+        this._marquee.visible = !hud && music;
+        this._marquee.width = count > 1 ? MARQUEE - 38 : MARQUEE;
+        this._pillContent.set_style(!hud && music ? 'padding: 0 24px;' : null);
+        this._pillTimer.visible = !hud && !!this._live.current && !music;
+        if (this._pillTimer.visible) this._pillTimer.text = this._live.current.text;
+        this._activityCount.visible = !hud && count > 1;
+        this._activityCount.text = `+${count - 1}`;
+        if (playing && !hud && this._button.visible && !this._menu?.isOpen && this._duration(1)) {
             this._startBars();
             this._startMarquee();
         } else {
@@ -866,6 +918,7 @@ export default class DynamicIsland extends Extension {
 
 
         const tabs = new St.BoxLayout({style_class: 'di-tabs', width: WIDTH, y_align: Clutter.ActorAlign.CENTER});
+        this._navigation = tabs;
         tabs.reactive = true;
         this._connect(tabs, 'scroll-event', (_actor, event) => {
             const direction = event.get_scroll_direction();
@@ -876,27 +929,9 @@ export default class DynamicIsland extends Extension {
             this._selectTab(TABS[(index + (forward ? 1 : -1) + TABS.length) % TABS.length][0]);
             return Clutter.EVENT_STOP;
         });
-        for (const [id, icon] of TABS) {
-            const b = new St.Button({style_class: 'di-tab', reactive: true, can_focus: true,
-                accessible_name: TAB_NAMES[id]});
-            b.set_child(new St.Icon({icon_name: icon, icon_size: 15}));
-            b.connect('clicked', () => this._selectTab(id));
-            this._tabButtons[id] = b;
-            tabs.add_child(b);
-        }
-        tabs.add_child(new St.Widget({x_expand: true}));
-        this._playerLabel = new St.Label({
-            text: '',
-            style_class: 'di-top-player',
-            y_align: Clutter.ActorAlign.CENTER,
-            width: 44,
-        });
+        this._playerLabel = new St.Label({text: '', style_class: 'di-top-player', width: 64});
         this._playerLabel.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
-        tabs.add_child(this._iconBtn('preferences-system-symbolic', () => {
-            this._closeIsland();
-            this.openPreferences();
-        }, 'di-top-btn', 14));
-        tabs.add_child(this._iconBtn('pan-up-symbolic', () => this._menu.close(), 'di-top-btn', 12));
+        this._refreshNavigation();
         body.add_child(tabs);
         this._sectionTitle = this._label('', 'di-section-title');
         body.add_child(this._sectionTitle);
@@ -918,16 +953,10 @@ export default class DynamicIsland extends Extension {
             ['notifications', () => this._buildNotificationsPage()],
             ['mirror', () => this._buildMirrorPage()],
             ['tools', () => this._buildToolsPage()],
+            ['library', () => this._workspace.buildLibrary()],
         ];
-        for (const [id, build] of builders) {
-            try {
-                build();
-            } catch (e) {
-                console.error(`Dynamic Island: página ${id}: ${e.message}`);
-                const page = this._pages[id] ?? this._newPage(id);
-                page.add_child(this._label(`Esta sección falló: ${e.message}`, 'di-hint', {x_expand: true}));
-            }
-        }
+        this._builders = Object.fromEntries(builders);
+        for (const id of ['music', 'system', 'clock', 'home', 'notifications']) this._ensurePage(id);
 
         this._island.add_child(body);
         this._island.accessible_name = 'Aurea · Isla dinámica';
@@ -1031,6 +1060,8 @@ export default class DynamicIsland extends Extension {
 
         this._menu.isOpen = true;
         this._pillContent.opacity = 0;
+        this._stopBars();
+        this._stopMarquee();
         this._state = 'expanding';
         this._finReady = false;
         if (!this._island.visible) {
@@ -1139,18 +1170,20 @@ export default class DynamicIsland extends Extension {
             this._island?.hide();
             if (this._pillContent) this._pillContent.opacity = 255;
             this._state = this._hudActive ? 'activity' : 'closed';
+            this._updatePill();
         };
         try { this._runTween(this._p, 0, 260, easeInOutCubic, finish); }
         catch (error) { finish(); }
     }
 
     _selectTab(id) {
+        this._ensurePage(id);
         if (!this._pages[id]) id = 'home';
         const previous = this._tab;
         this._tab = id;
         for (const [k, page] of Object.entries(this._pages)) page.visible = k === id;
         this._pagesBox.set_height(this._pages[id]?._h ?? -1);
-        this._sectionTitle.set_text(TAB_NAMES[id] ?? id);
+        this._sectionTitle.set_text(id === 'library' ? 'Tu espacio' : TAB_NAMES[id] ?? id);
         const page = this._pages[id];
         page.remove_all_transitions();
         page.opacity = 255;
@@ -1250,6 +1283,8 @@ export default class DynamicIsland extends Extension {
             this._captureRequested = false;
             this._captureFiles.unshift(file.get_uri());
             this._captureFiles = this._captureFiles.slice(0, 5);
+            this._shelfAdd([file.get_uri()]);
+            if (!this._captureHistory) return;
             this._captureHistory.destroy_all_children();
             this._captureHistory.add_child(this._label('Capturas de esta sesión', 'di-h'));
             for (const uri of this._captureFiles)
@@ -1272,43 +1307,40 @@ export default class DynamicIsland extends Extension {
 
 
 
-    _buildHomePage() {
-        const page = this._newPage('home');
-        this._homeDate = this._label('', 'di-hint');
-        page.add_child(this._homeDate);
-        this._homeCards = {};
-        for (const [key, icon, target] of [['music', 'audio-x-generic-symbolic', 'music'],
-            ['system', 'battery-symbolic', 'system'], ['activities', 'alarm-symbolic', 'clock']]) {
-            const button = new St.Button({style_class: 'di-home-card', reactive: true, can_focus: true});
-            const row = new St.BoxLayout({style_class: 'di-home-row'});
-            row.add_child(new St.Icon({icon_name: icon, icon_size: 24, y_align: Clutter.ActorAlign.CENTER}));
-            const label = this._label('', 'di-home-title', {width: WIDTH - 90});
-            label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
-            row.add_child(label);
-            row.add_child(new St.Icon({icon_name: 'go-next-symbolic', icon_size: 14}));
-            button.set_child(row);
-            button.connect('clicked', () => this._selectTab(target));
-            page.add_child(button);
-            this._homeCards[key] = {button, label};
+    _buildHomePage() { this._workspace.buildHome(); }
+
+    _renderHome() { this._workspace?.refresh(); }
+
+    _refreshNavigation() {
+        if (!this._navigation) return;
+        this._navigation.destroy_all_children();
+        this._tabButtons = {};
+        const pinned = [...new Set(this._settings.get_strv('pinned-modules'))]
+            .filter(id => MODULES.some(m => m[0] === id) && id !== 'home').slice(0, 2);
+        for (const id of ['home', ...pinned, 'library']) {
+            const name = id === 'library' ? 'Más' : TAB_NAMES[id];
+            const button = this._chip(name, () => this._selectTab(id));
+            button.add_style_class_name('di-navigation-item');
+            button._label.width = 64;
+            button._label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
+            button.accessible_name = name;
+            this._tabButtons[id] = button;
+            this._navigation.add_child(button);
         }
-        const shortcuts = new St.BoxLayout({style_class: 'di-presets'});
-        for (const id of ['files', 'notes', 'today'])
-            shortcuts.add_child(this._chip(TAB_NAMES[id], () => this._selectTab(id)));
-        page.add_child(shortcuts);
+        this._navigation.add_child(new St.Widget({x_expand: true}));
+        this._navigation.add_child(this._iconBtn('window-close-symbolic', () => this._closeIsland(), 'di-top-btn', 14));
     }
 
-    _renderHome() {
-        if (!this._homeCards) return;
-        this._homeDate.set_text(cap(new Date().toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long'})));
-        const labels = {
-            music: this._name ? `${this._status === 'Playing' ? 'Reproduciendo' : 'En pausa'} · ${this._title.get_text()}` : 'Elige tu música',
-            system: this._bat ? `Batería ${this._bat.pct}% · ${[1, 5].includes(this._bat.state) ? 'Cargando' : 'En uso'}` : 'Batería no disponible',
-            activities: this._activities.current?.text ?? (this._tm.running ? `Temporizador · ${formatClock(this._timerLeft())}` :
-                this._tm.swRunning ? `Cronómetro · ${formatClock(this._swElapsed(), true)}` : 'Sin actividades en curso'),
-        };
-        for (const [key, {button, label}] of Object.entries(this._homeCards)) {
-            button.visible = this._settings.get_boolean(`show-home-${key}`);
-            label.set_text(labels[key]);
+    _ensurePage(id) {
+        if (this._pages[id] || !this._builders[id]) return;
+        try {
+            this._builders[id]();
+            if (id === 'notes') { this._loadNotes(); this._renderTasks(); }
+            if (id === 'today') this._renderWeather();
+        } catch (error) {
+            console.error(`Isla: ${id}: ${error.message}`);
+            const page = this._pages[id] ?? this._newPage(id);
+            page.add_child(this._label(`No se pudo abrir esta sección: ${error.message}`, 'di-hint'));
         }
     }
 
@@ -2135,8 +2167,9 @@ export default class DynamicIsland extends Extension {
     }
 
     _renderTasks() {
+        if (!this._taskList) return;
         this._taskList.destroy_all_children();
-        for (const task of this._tasks) {
+        for (const task of this._tasks ?? []) {
             const row = new St.BoxLayout({style_class: 'di-row'});
             const toggle = this._chip(task.done ? '✓' : '○', () => {
                 task.done = !task.done;
@@ -2156,7 +2189,7 @@ export default class DynamicIsland extends Extension {
             }));
             this._taskList.add_child(row);
         }
-        if (!this._tasks.length) this._taskList.add_child(this._label('Sin tareas pendientes', 'di-hint'));
+        if (!this._tasks?.length) this._taskList.add_child(this._label('Sin tareas pendientes', 'di-hint'));
     }
 
     _notesFile() { return GLib.build_filenamev([this._dataDir, 'notas.txt']); }
@@ -3029,10 +3062,8 @@ export default class DynamicIsland extends Extension {
         else if (t.swRunning || t.swStarted) text = formatClock(this._swElapsed(), true);
         const visible = !!text;
         if (text) this._pillTimer.set_text(text);
-        if (visible !== this._clockLabelVisible) {
-            this._clockLabelVisible = visible;
-            this._updatePill();
-        }
+        this._clockLabelVisible = visible;
+        this._updatePill();
         if (this._menu?.isOpen && this._tab === 'home') this._renderHome();
     }
 
