@@ -10,7 +10,7 @@ import {parseInstallOptions, validateMigrations} from './install-options.mjs';
 import {installTarget} from './install-target.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const {folder, action} = parseInstallOptions(process.argv.slice(2));
+const {folder, action, component} = parseInstallOptions(process.argv.slice(2));
 const releaseDir = fs.realpathSync(folder);
 if (!releaseDir.startsWith(path.join(root, 'dist') + path.sep)) throw new Error('Usa un paquete generado en dist/');
 const release = JSON.parse(fs.readFileSync(path.join(releaseDir, 'release.json')));
@@ -32,7 +32,9 @@ const data = testRoot ? path.join(testRoot, 'data') : process.env.XDG_DATA_HOME 
 const config = testRoot ? path.join(testRoot, 'config') : process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config');
 const themes = testRoot ? path.join(testRoot, 'themes') : path.join(os.homedir(), '.themes');
 const targets = [];
-for (const uuid of Object.values(release.extensions)) {
+if (component && !Object.hasOwn(release.extensions, component)) throw new Error(`Componente desconocido: ${component}`);
+const selectedExtensions = component ? {[component]: release.extensions[component]} : release.extensions;
+for (const uuid of Object.values(selectedExtensions)) {
     if (!/^[\w.-]+@[\w.-]+$/.test(uuid)) throw new Error('UUID inválido');
     const source = path.join(releaseDir, 'extensions', uuid);
     const metadata = JSON.parse(fs.readFileSync(path.join(source, 'metadata.json')));
@@ -40,12 +42,12 @@ for (const uuid of Object.values(release.extensions)) {
         throw new Error(`Metadatos inconsistentes: ${uuid}`);
     targets.push([source, path.join(data, 'gnome-shell/extensions', uuid)]);
 }
-for (const [group, destination] of [['gtk', themes], ['icons', path.join(data, 'icons')], ['cursors', path.join(data, 'icons')]]) {
+if (!component) for (const [group, destination] of [['gtk', themes], ['icons', path.join(data, 'icons')], ['cursors', path.join(data, 'icons')]]) {
     for (const entry of fs.readdirSync(path.join(releaseDir, 'theme', group), {withFileTypes: true})) {
         if (entry.isDirectory()) targets.push([path.join(releaseDir, 'theme', group, entry.name), path.join(destination, entry.name)]);
     }
 }
-targets.push([path.join(releaseDir, 'theme/gtk-overrides'), path.join(config, 'gtk-4.0')]);
+if (!component) targets.push([path.join(releaseDir, 'theme/gtk-overrides'), path.join(config, 'gtk-4.0')]);
 if (action === 'preview') {
     console.log(targets.map(([, target]) => target).join('\n'));
     console.log('Vista previa: usa --apply para instalar; --check para verificar.');
@@ -75,7 +77,7 @@ for (const [source, target] of targets) {
         installTarget(source, target, {preserveSettings: isGtk, testMode: Boolean(testRoot)});
     files += verifyTree(source, target, ignored);
 }
-if (action === 'apply' && !testRoot) {
+if (action === 'apply' && !testRoot && !component) {
     execFileSync('gjs', [path.join(root, 'tools/migrate-identities.js'), JSON.stringify(migrations)]);
     for (const oldId of Object.keys(migrations)) {
         for (const group of ['extensions', 'extension-updates']) {

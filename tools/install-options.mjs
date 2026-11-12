@@ -1,9 +1,13 @@
 export function parseInstallOptions(args) {
     const folders = args.filter(arg => !arg.startsWith('--'));
     const flags = args.filter(arg => arg.startsWith('--'));
-    if (folders.length !== 1 || flags.length > 1 || flags.some(flag => !['--apply', '--check'].includes(flag)))
-        throw new Error('Uso: aurea.sh install RUTA [--apply | --check]');
-    return {folder: folders[0], action: flags[0]?.slice(2) ?? 'preview'};
+    const actions = flags.filter(flag => ['--apply', '--check'].includes(flag));
+    const components = flags.filter(flag => flag.startsWith('--component='));
+    if (folders.length !== 1 || actions.length > 1 || components.length > 1 || flags.length !== actions.length + components.length)
+        throw new Error('Uso: aurea.sh install RUTA [--apply | --check] [--component=NOMBRE]');
+    const component = components[0]?.slice('--component='.length) ?? null;
+    if (component !== null && !/^[a-z][a-z0-9-]*$/.test(component)) throw new Error('Componente inválido');
+    return {folder: folders[0], action: actions[0]?.slice(2) ?? 'preview', component};
 }
 
 export function validateMigrations(migrations, extensions) {

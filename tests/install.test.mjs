@@ -5,7 +5,15 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {parseInstallOptions} from '../tools/install-options.mjs';
 import {installTarget} from '../tools/install-target.mjs';
+
+test('selección explícita de componente valida argumentos', () => {
+    assert.deepEqual(parseInstallOptions(['dist/release', '--apply', '--component=dynamic-island']),
+        {folder: 'dist/release', action: 'apply', component: 'dynamic-island'});
+    for (const args of [['x', '--component='], ['x', '--component=../outside'], ['x', '--component=a', '--component=b']])
+        assert.throws(() => parseInstallOptions(args));
+});
 
 const root = new URL('..', import.meta.url).pathname;
 test('un fallo de preparación conserva el destino y retira el temporal', () => {
@@ -55,11 +63,15 @@ test('instalar en destino aislado conserva preferencias y valida el resultado', 
         assert.equal(fs.existsSync(path.join(target, 'data')), false);
         fs.writeFileSync(path.join(release, 'release.json'), entries['release.json']);
         fs.writeFileSync(path.join(release, 'SHA256SUMS'), hashes.join('\n') + '\n');
+        assert.throws(() => call('--apply', '--component=missing'));
+        call('--apply', '--component=test');
+        call('--check', '--component=test');
+        assert.equal(fs.existsSync(path.join(target, 'config')), false);
         const config = path.join(target, 'config/gtk-4.0');
         fs.mkdirSync(path.dirname(config), {recursive: true});
         fs.symlinkSync(path.join(target, 'missing-config'), config);
         assert.throws(() => call('--apply'));
-        assert.equal(fs.existsSync(path.join(target, 'data')), false);
+        assert.equal(fs.readFileSync(path.join(target, 'data/gnome-shell/extensions/test@aurea.local/extension.js'), 'utf8'), entries['extensions/test@aurea.local/extension.js']);
         fs.unlinkSync(config);
         fs.mkdirSync(config, {recursive: true});
         fs.writeFileSync(path.join(config, 'settings.ini'), '[Settings]\nkeep=yes\n');

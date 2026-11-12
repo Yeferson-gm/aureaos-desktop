@@ -13,7 +13,7 @@ const target = path.join(parent, `aurea-27-${version.name}`);
 if (fs.existsSync(target)) throw new Error(`El paquete ya existe: ${target}. No se sobrescribe.`);
 fs.mkdirSync(parent, {recursive: true});
 const staging = fs.mkdtempSync(path.join(parent, '.build-'));
-const excluded = new Set(['tests', 'tools', '.git', 'gschemas.compiled', 'icon-theme.cache']);
+const excluded = new Set(['tests', 'tools', '.git', '__pycache__', 'node_modules', 'gschemas.compiled', 'icon-theme.cache']);
 const sources = {};
 for (const name of Object.keys(stack.extensions)) {
     const source = path.join(root, 'extensions', name, name === 'widgets' ? 'source' : '');
