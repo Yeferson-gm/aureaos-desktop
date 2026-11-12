@@ -1,14 +1,8 @@
-# Consolidación Aurea 27
+# Barra superior Aurea
 
-- [x] Inventario y comparación de fuentes completas.
-- [x] Importación recuperable y conservación de procedencia/licencias.
-- [x] Tema completo integrado y renombrado.
-- [x] Herramientas comunes de versión, construcción y validación.
-- [x] Comentarios explicativos trasladados a Markdown.
-- [x] Pruebas y enlaces validados; límites registrados en verificación.
-- [x] Instalador probado en destino aislado.
-
-La etiqueta Git y el paquete generado identifican la entrega. La aplicación al
-escritorio se realiza explícitamente con el instalador; no es necesaria para
-empezar a desarrollar en este repositorio. No editar esta lista para registrar
-cada instalación local: los despliegues no cambian la versión del código.
+- [ ] Configuración y preferencias (1, 5, 7, 9, 12, 16, 28, 45).
+- [ ] Materiales y movimiento (10–27, 47).
+- [ ] Controles y detalles (29–38, 46, 48, 50).
+- [ ] Barra, menús y rendimiento (2–8, 39–44, 49, 51, 56).
+- [ ] Matriz de pruebas y revisión (52–54).
+- [ ] Documentación, Git, paquete e instalación comprobada (55).
