@@ -447,234 +447,6 @@
 
 
 
-.popup-menu-boxpointer.lintel-cc-menu {
-    -arrow-rise: 0px;
-    -arrow-base: 0px;
-    -arrow-border-width: 0;
-    -arrow-background-color: transparent;
-    -arrow-border-color: transparent;
-    box-shadow: none;
-}
-
-.lintel-cc-menu-content.popup-menu-content {
-    min-width: 0;
-    padding: 0;
-    background-color: rgba(214, 226, 242, 0.88);
-    background-gradient-direction: vertical;
-    background-gradient-start: rgba(224, 234, 247, 0.90);
-    background-gradient-end: rgba(192, 208, 230, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.70);
-    border-radius: 24px;
-    box-shadow: none;
-}
-
-.lintel-cc-menu-content .lintel-cc-holder,
-.lintel-cc-menu-content .lintel-cc-holder:hover,
-.lintel-cc-menu-content .lintel-cc-holder:focus {
-    padding: 0;
-    background-color: transparent;
-}
-
-
-.lintel-cc-content {
-    spacing: 8px;
-    padding: 10px;
-    width: 280px;
-    color: #17212d;
-    font-family: 'Adwaita Sans', Cantarell, sans-serif;
-}
-
-.lintel-cc-primary,
-.lintel-cc-utility-row {
-    spacing: 8px;
-}
-
-
-.lintel-cc-group {
-    width: 156px;
-    min-height: 152px;
-    padding: 6px;
-    spacing: 2px;
-    background-color: rgba(255, 255, 255, 0.52);
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 20px;
-    box-shadow: none;
-}
-
-
-.lintel-cc-features {
-    width: 102px;
-    spacing: 8px;
-}
-
-
-.lintel-cc-tile {
-    color: #17212d;
-    background-color: rgba(255, 255, 255, 0.52);
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 20px;
-    box-shadow: none;
-    transition-duration: 120ms;
-}
-
-.lintel-cc-tile:hover {
-    background-color: rgba(255, 255, 255, 0.72);
-}
-
-.lintel-cc-tile:focus {
-    border-color: rgba(79, 135, 245, 0.85);
-}
-
-
-.lintel-cc-tile.lintel-cc-row {
-    width: 142px;
-    min-height: 32px;
-    padding: 3px 6px;
-    background-color: transparent;
-    border: 1px solid transparent;
-    border-radius: 14px;
-    box-shadow: none;
-}
-
-.lintel-cc-tile.lintel-cc-row:hover {
-    background-color: rgba(255, 255, 255, 0.50);
-}
-
-.lintel-cc-tile.lintel-cc-vtile {
-    width: 84px;
-    min-height: 72px;
-    padding: 8px;
-}
-
-.lintel-cc-tile.lintel-cc-wtile {
-    width: 118px;
-    min-height: 50px;
-    padding: 6px 8px;
-}
-
-.lintel-cc-tile-box {
-    spacing: 8px;
-}
-
-.lintel-cc-tile-vbox {
-    spacing: 5px;
-}
-
-
-.lintel-cc-tile-icon-shell {
-    width: 28px;
-    height: 28px;
-    color: #243040;
-    background-color: rgba(70, 85, 110, 0.16);
-    border-radius: 999px;
-}
-
-.lintel-cc-row .lintel-cc-tile-icon-shell {
-    width: 26px;
-    height: 26px;
-}
-
-.lintel-cc-tile-icon {
-    icon-size: 15px;
-    color: #243040;
-}
-
-
-.lintel-cc-tile-icon-shell:checked {
-    background-color: #0a84ff;
-}
-
-.lintel-cc-tile-icon-shell:checked .lintel-cc-tile-icon {
-    color: #ffffff;
-}
-
-.lintel-cc-tile-icon-shell.lintel-accent-orange:checked {
-    background-color: #ff9f0a;
-}
-
-.lintel-cc-tile-icon-shell.lintel-accent-purple:checked {
-    background-color: #5e5ce6;
-}
-
-.lintel-cc-tile-icon-shell.lintel-accent-green:checked {
-    background-color: #30a46c;
-}
-
-.lintel-cc-tile-title {
-    color: #17212d;
-    font-size: 9pt;
-    font-weight: 600;
-    text-shadow: none;
-}
-
-.lintel-cc-tile-status {
-    color: rgba(23, 33, 45, 0.62);
-    font-size: 7.75pt;
-    text-shadow: none;
-}
-
-
-.lintel-cc-slider {
-    width: 254px;
-    padding: 9px 12px 10px 12px;
-    spacing: 6px;
-    background-color: rgba(255, 255, 255, 0.52);
-    border: 1px solid rgba(255, 255, 255, 0.78);
-    border-radius: 20px;
-    box-shadow: none;
-}
-
-.lintel-cc-slider-title {
-    color: #17212d;
-    font-size: 9pt;
-    font-weight: 600;
-    text-shadow: none;
-}
-
-.lintel-cc-slider-stack {
-    height: 24px;
-}
-
-
-.lintel-cc-slider-icon {
-    padding-left: 9px;
-    icon-size: 14px;
-    color: #2a3340;
-}
-
-.lintel-cc-track {
-    height: 24px;
-    color: #ffffff;
-    -barlevel-height: 24px;
-    -barlevel-background-color: rgba(60, 75, 100, 0.22);
-    -barlevel-active-background-color: #ffffff;
-    -barlevel-overdrive-color: #ffffff;
-    -barlevel-border-width: 0;
-    -barlevel-active-border-width: 0;
-    -barlevel-overdrive-separator-width: 0;
-    -slider-handle-radius: 0;
-}
-
-.lintel-cc-pill {
-    padding: 5px 14px;
-    color: rgba(23, 33, 45, 0.70);
-    background-color: transparent;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    font-size: 8.75pt;
-    text-shadow: none;
-}
-
-.lintel-cc-pill:hover,
-.lintel-cc-pill:focus {
-    color: #17212d;
-    background-color: rgba(255, 255, 255, 0.50);
-}
-
-
-
-
-
 .lintel-dark .lintel-menu-content.popup-menu-content {
     color: #f2f4f7;
     background-color: rgba(38, 40, 46, 0.92);
@@ -821,125 +593,52 @@
 }
 
 
-.lintel-dark .lintel-cc-menu-content.popup-menu-content {
-    background-color: rgba(30, 33, 40, 0.92);
-    background-gradient-direction: vertical;
-    background-gradient-start: rgba(40, 44, 52, 0.94);
-    background-gradient-end: rgba(24, 27, 33, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-}
 
-.lintel-dark .lintel-cc-content {
-    color: #f2f4f7;
-}
-
-.lintel-dark .lintel-cc-group,
-.lintel-dark .lintel-cc-slider {
-    background-color: rgba(255, 255, 255, 0.09);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-}
-
-.lintel-dark .lintel-cc-tile {
-    color: #f2f4f7;
-    background-color: rgba(255, 255, 255, 0.09);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-}
-
-.lintel-dark .lintel-cc-tile:hover {
-    background-color: rgba(255, 255, 255, 0.16);
-}
-
-.lintel-dark .lintel-cc-tile:focus {
-    border-color: rgba(59, 130, 246, 0.90);
-}
-
-.lintel-dark .lintel-cc-tile.lintel-cc-row {
-    background-color: transparent;
-    border: 1px solid transparent;
-}
-
-.lintel-dark .lintel-cc-tile.lintel-cc-row:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-}
-
-.lintel-dark .lintel-cc-tile-icon-shell {
-    color: #f2f4f7;
-    background-color: rgba(255, 255, 255, 0.16);
-}
-
-.lintel-dark .lintel-cc-tile-icon {
-    color: #f2f4f7;
-}
-
-.lintel-dark .lintel-cc-tile-icon-shell:checked {
-    background-color: #0a84ff;
-}
-
-.lintel-dark .lintel-cc-tile-icon-shell:checked .lintel-cc-tile-icon {
-    color: #ffffff;
-}
-
-.lintel-dark .lintel-cc-tile-icon-shell.lintel-accent-orange:checked {
-    background-color: #ff9f0a;
-}
-
-.lintel-dark .lintel-cc-tile-icon-shell.lintel-accent-purple:checked {
-    background-color: #5e5ce6;
-}
-
-.lintel-dark .lintel-cc-tile-icon-shell.lintel-accent-green:checked {
-    background-color: #30a46c;
-}
-
-.lintel-dark .lintel-cc-tile-title,
-.lintel-dark .lintel-cc-slider-title {
-    color: #f2f4f7;
-}
-
-.lintel-dark .lintel-cc-tile-status {
-    color: rgba(242, 244, 247, 0.62);
-}
-
-.lintel-dark .lintel-cc-slider-icon {
-    color: #4b5563;
-}
-
-.lintel-dark .lintel-cc-track {
-    color: #e5e7eb;
-    -barlevel-background-color: rgba(255, 255, 255, 0.18);
-    -barlevel-active-background-color: #e5e7eb;
-    -barlevel-overdrive-color: #e5e7eb;
-}
-
-.lintel-dark .lintel-cc-pill {
-    color: rgba(242, 244, 247, 0.72);
-}
-
-.lintel-dark .lintel-cc-pill:hover,
-.lintel-dark .lintel-cc-pill:focus {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.12);
-}
-
-
+.lintel-cc-menu-content.popup-menu-content { min-width: 0; padding: 12px; border-radius: 22px; }
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder,
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:hover,
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:focus,
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:selected,
 .lintel-menu .lintel-cc-menu-content .popup-menu-item.lintel-cc-holder:active {
-    background-color: transparent;
-    box-shadow: none;
+    background-color: transparent; padding: 0; margin: 0; color: inherit;
 }
-
-.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:hover,
-.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:focus,
-.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:active {
-    background-color: #3584e4;
-    border-color: #3584e4;
-    color: #ffffff;
+.aurea-controls { spacing: 10px; color: #20242b; }
+.lintel-dark .aurea-controls { color: #f4f5f7; }
+.aurea-controls-header { spacing: 6px; padding: 0 2px 4px; }
+.aurea-controls-title { font-size: 11pt; font-weight: 700; }
+.aurea-controls-body, .aurea-control-row { spacing: 8px; }
+.aurea-control-card, .aurea-slider-card {
+    border-radius: 14px; background-color: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.42);
 }
-.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:hover StLabel,
-.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:focus StLabel,
-.lintel-menu .lintel-cc-menu-content .lintel-cc-tile:active StLabel {
-    color: #ffffff;
+.lintel-dark .aurea-control-card, .lintel-dark .aurea-slider-card {
+    background-color: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.09);
 }
+.aurea-control-main { padding: 10px 8px; border-radius: 13px; min-height: 40px; }
+.aurea-control-content { spacing: 7px; }
+.aurea-control-icon { border-radius: 16px; padding: 6px; background-color: rgba(127,127,127,0.12); }
+.aurea-control-icon:checked { background-color: #3584e4; color: white; }
+.aurea-control-label { font-size: 9.5pt; font-weight: 600; }
+.aurea-control-status { font-size: 8.5pt; color: #5d6570; }
+.lintel-dark .aurea-control-status { color: #bec4cd; }
+.aurea-icon-action { padding: 6px; border-radius: 9px; color: inherit; }
+.aurea-control-card > .aurea-icon-action { padding: 3px; border-radius: 0 13px 13px 0; }
+.aurea-slider-card { padding: 9px 12px; spacing: 6px; }
+.aurea-slider-row { spacing: 8px; min-height: 24px; }
+.aurea-detail-row { padding: 9px 10px; border-radius: 10px; color: inherit; }
+.aurea-detail-content { spacing: 8px; }
+.aurea-detail-title { font-size: 10pt; }
+.aurea-detail-subtitle { color: #5d6570; font-size: 9pt; }
+.lintel-dark .aurea-detail-subtitle { color: #bec4cd; }
+.aurea-detail-row:insensitive { opacity: 180; }
+.lintel-menu .lintel-cc-tile:hover, .lintel-menu .lintel-cc-tile:focus,
+.lintel-menu .aurea-icon-action:hover, .lintel-menu .aurea-icon-action:focus,
+.lintel-menu .aurea-detail-row:hover, .lintel-menu .aurea-detail-row:focus {
+    background-color: #3584e4; color: #ffffff;
+}
+.lintel-menu .lintel-cc-tile:hover StLabel, .lintel-menu .lintel-cc-tile:focus StLabel,
+.lintel-menu .aurea-detail-row:hover StLabel, .lintel-menu .aurea-detail-row:focus StLabel { color: #ffffff; }
+.lintel-menu .lintel-cc-tile:active, .lintel-menu .aurea-icon-action:active,
+.lintel-menu .aurea-detail-row:active { background-color: #2169c0; color: white; }
+.lintel-menu-content.popup-menu-content { background-gradient-direction: none; box-shadow: 0 5px 16px 0 rgba(0,0,0,0.20); }
+.lintel-dark .lintel-menu-content.popup-menu-content { background-gradient-direction: none; box-shadow: 0 5px 16px 0 rgba(0,0,0,0.32); }

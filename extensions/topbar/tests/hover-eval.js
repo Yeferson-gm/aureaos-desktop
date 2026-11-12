@@ -22,13 +22,13 @@
     const cc = Main.panel.statusArea['lintel-cc'];
     const holder = cc.menu._getMenuItems()[0];
     const find = a => a.has_style_class_name?.('lintel-cc-tile') ? a : a.get_children().map(find).find(Boolean);
-    const tile = find(holder);
-    if (!tile) throw new Error('No hay controles');
     const {default: Shell} = await import('gi://Shell');
     for (const mode of ['claro', 'oscuro']) {
         bar._cfg.values.temaMenus = mode;
         bar._applyTheme();
         cc.menu.open();
+        const tile = find(holder);
+        if (!tile) throw new Error('No hay controles');
         holder.add_style_pseudo_class('hover');
         tile.add_style_pseudo_class('hover');
         await wait(300);

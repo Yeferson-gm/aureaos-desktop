@@ -1,3 +1,5 @@
+import {MenuSurface} from './menu-surface.js';
+import {ControlCenter} from './control-center.js';
 import {Config} from './configuration.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
@@ -188,7 +190,7 @@ function keyval(name) {
 function hintOf(combo) {
     const {key, mods} = parseCombo(combo);
     const k = KEY_GLYPH[key] ?? (key.length === 1 ? key.toUpperCase() : key);
-    if (AJUSTES.ATAJOS_ESTILO_MAC)
+    if (theme.shortcuts === 'mac')
         return mods.map(m => MODS[m][0]).join('') + k;
     return [...mods.map(cap), k].join('+');
 }
@@ -527,21 +529,24 @@ class PowerProfiles extends Model {
     }
 
     setProfile(profile) {
-        if (this._proxy && this.profiles.includes(profile))
-            this._proxy.ActiveProfile = profile;
-    }
-
-    cycle() {
-        const order = ['power-saver', 'balanced', 'performance']
-            .filter(profile => this.profiles.includes(profile));
-        if (!order.length)
-            return;
-        const index = order.indexOf(this.active);
-        this.setProfile(order[(index + 1 + order.length) % order.length]);
+        if (!this.available || !this.profiles.includes(profile) || this.pending) return;
+        this.pending = true;
+        this._emit();
+        this._cancel ??= new Gio.Cancellable();
+        Gio.DBus.system.call('net.hadess.PowerProfiles', '/net/hadess/PowerProfiles',
+            'org.freedesktop.DBus.Properties', 'Set',
+            new GLib.Variant('(ssv)', ['net.hadess.PowerProfiles', 'ActiveProfile', new GLib.Variant('s', profile)]),
+            null, Gio.DBusCallFlags.NONE, 10000, this._cancel, (connection, result) => {
+                try { connection.call_finish(result); }
+                catch (error) { if (!this._dead) Main.notifyError('Energía', error.message); }
+                this.pending = false;
+                if (!this._dead) this._emit();
+            });
     }
 
     destroy() {
         this._dead = true;
+        this._cancel?.cancel();
         if (this._id)
             this._proxy?.disconnect(this._id);
         this._proxy = null;
@@ -601,6 +606,25 @@ class BatteryCare extends Model {
             pending.push(...(actor?.get_children?.() ?? []));
         }
         return null;
+    }
+
+    get modes() {
+        const toggle = this._findChargeLimitToggle();
+        const candidates = [
+            ['ful', '_menuItemFul', 'Carga completa'], ['bal', '_menuItemBal', 'Equilibrado'],
+            ['max', '_menuItemMax', 'Máxima vida útil'], ['adv', '_menuItemAdv', 'Adaptativo'],
+            ['exp', '_menuItemExp', 'Carga rápida'],
+        ];
+        return candidates.filter(([, field]) => toggle?.[field]?.visible).map(([id, field, label]) => ({
+            id, field, label, description: ['ful', 'bal', 'max'].includes(id)
+                ? `Límite configurado: ${this._settings.get_int(`current-${id}-end-threshold`)} %` : 'Gestionado por el equipo',
+        }));
+    }
+
+    setMode(id) {
+        const mode = this.modes.find(item => item.id === id);
+        if (!mode) throw new Error('Este modo no está disponible en el equipo');
+        this._findChargeLimitToggle()[mode.field].emit('activate', null);
     }
 
     toggle() {
@@ -842,7 +866,7 @@ class Bluetooth extends Model {
         const finish = error => {
             this._busy.delete(device.path);
             if (error)
-                console.error(`[Lintel] Bluetooth ${device.name}: ${error.message}`);
+                !this._dead && Main.notifyError('Bluetooth', `${device.name}: ${error.message}`);
             if (!this._dead) {
                 this.refresh();
                 this._emit();
@@ -947,37 +971,16 @@ class Privacy extends Model {
     }
 
     _pollCamera() {
-        if (this._dead)
-            return;
-        const next = () => {
-            if (!this._dead)
-                this._timer = this._ctx.later(4000, () => this._pollCamera());
-        };
-        if (!GLib.file_test('/dev/video0', GLib.FileTest.EXISTS)) {
-            this._setCamera(false);
-            next();
-            return;
-        }
-        try {
-            const proc = Gio.Subprocess.new(
-                ['sh', '-c', 'find /proc/[0-9]*/fd -lname "/dev/video*" -print -quit 2>/dev/null'],
-                Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE);
-            proc.communicate_utf8_async(null, null, (p, res) => {
-                try {
-                    const [, out] = p.communicate_utf8_finish(res);
-                    this._setCamera(!!out?.trim());
-                } catch (e) {
-                    this._setCamera(false);
-                }
-                next();
-            });
-        } catch (e) {
-            next();
-        }
+        this._cameraMonitor = new Shell.CameraMonitor();
+        this._cameraId = this._cameraMonitor.connect('notify::cameras-in-use', () =>
+            this._setCamera(this._cameraMonitor.cameras_in_use));
+        this._setCamera(this._cameraMonitor.cameras_in_use);
     }
 
     destroy() {
         this._dead = true;
+        if (this._cameraId) this._cameraMonitor.disconnect(this._cameraId);
+        this._cameraMonitor = null;
         this._ctx.cancel(this._timer);
         this._offSound?.();
         if (this._ctlId)
@@ -1092,7 +1095,7 @@ const LintelToggleItem = GObject.registerClass({
 
 function addItem(menu, opts, cb) {
     if (opts.icon === undefined && !opts.gicon && !opts.checked && !opts.info)
-        opts = {...opts, icon: iconFor(opts.label)};
+        opts = {...opts, icon: theme.menuIcons === 'none' ? null : /^(Apagar|Reiniciar|Suspender|Bloquear|Captura|Personalizar)/.test(opts.label) ? iconFor(opts.label) : null};
     const item = new LintelItem(opts);
     if (cb) {
         if (opts.keepOpen)
@@ -1136,31 +1139,12 @@ class LintelButton extends PanelMenu.Button {
 
 
     _wrapMenu() {
-        const menu = this.menu;
-        const open = menu.open.bind(menu);
-        const close = menu.close.bind(menu);
-        menu.open = () => {
-            try {
-                this._before?.();
-            } catch (e) {
-                console.error(`[Lintel] menú: ${e}`);
-            }
-            open(BoxPointer.PopupAnimation.NONE);
-            if (theme.animMs > 0) {
-                const actor = menu.actor;
-                actor.remove_all_transitions();
-                actor.opacity = 0;
-                actor.ease({
-                    opacity: 255,
-                    duration: theme.animMs,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                });
-            }
-        };
-        menu.close = () => close(BoxPointer.PopupAnimation.NONE);
-        menu.connect('open-state-changed', (m, isOpen) => this.retint(isOpen));
+        this._surface = new MenuSurface(this.menu, () => {
+            try { this._before?.(); }
+            catch (error) { console.error(`[Aurea] menú: ${error}`); }
+        }, () => theme);
+        this.menu.connect('open-state-changed', (_, open) => this.retint(open));
     }
-
 
     beforeOpen(fn) {
         this._before = fn;
@@ -1173,6 +1157,7 @@ class LintelButton extends PanelMenu.Button {
             else
                 this.menu.actor.remove_style_class_name('lintel-dark');
         }
+        this._surface?.apply();
         this.retint(this._hasMenu && this.menu.isOpen);
     }
 
@@ -2087,7 +2072,7 @@ class WifiButton extends LintelButton {
                 else
                     client.activate_connection_finish(res);
             } catch (e) {
-                console.error(`[Lintel] Wi-Fi ${row.ssid}: ${e.message}`);
+                Main.notifyError('Wi-Fi', `${row.ssid}: ${e.message}`);
             }
             this._connecting = null;
             if (this.menu.isOpen)
@@ -2301,350 +2286,17 @@ class KeyboardButton extends LintelButton {
 
 
 
-const TILE_BOX = {row: 142, vertical: 84, wide: 118};
-
 const ControlCenterButton = GObject.registerClass(
 class ControlCenterButton extends LintelButton {
     _init(ctx) {
-        super._init('Centro de control', 1.0);
-        this._ctx = ctx;
-        this._offs = [];
-        this._settings = [];
+        super._init('Centro de Control', 1.0);
         this.menu.actor.add_style_class_name('lintel-cc-menu');
         this.menu.box.add_style_class_name('lintel-cc-menu-content');
-        this.add_child(new St.Icon({
-            gicon: ctx.icon('lintel-controls-symbolic'),
-            style_class: 'system-status-icon',
-        }));
-
-        const holder = new PopupMenu.PopupBaseMenuItem({activate: false, hover: false, can_focus: false});
-        holder.add_style_class_name('lintel-cc-holder');
-        const col = new St.BoxLayout({vertical: true, x_expand: true, style_class: 'lintel-cc-content'});
-        holder.add_child(col);
-        this.menu.addMenuItem(holder);
-
-        const interfaceS = settingsFor('org.gnome.desktop.interface');
-        const colorS = settingsFor('org.gnome.settings-daemon.plugins.color');
-        const notifS = settingsFor('org.gnome.desktop.notifications');
-        const privacyS = settingsFor('org.gnome.desktop.privacy');
-        const locationS = settingsFor('org.gnome.system.location');
-        const caffeineS = settingsForExtension(
-            'org.gnome.shell.extensions.caffeine', 'caffeine@patapon.info');
-        this._settings = [interfaceS, colorS, notifS, privacyS, locationS, caffeineS].filter(Boolean);
-
-        const connectivityTiles = [];
-        const featureTiles = [];
-        const utilityTiles = [];
-
-
-        const wifiTile = this._tile('lintel-wifi-3-symbolic', 'Wi-Fi',
-            () => ctx.wifi.setEnabled(!ctx.wifi.enabled), {variant: 'row'});
-        wifiTile.update = () => wifiTile.set(ctx.wifi.enabled,
-            ctx.wifi.enabled ? (ctx.wifi.activeSsid ?? 'Sin conexión') : 'Desactivado');
-        this._offs.push(ctx.wifi.onChange(wifiTile.update));
-        connectivityTiles.push(wifiTile);
-
-        const btTile = this._tile('lintel-bluetooth-on-symbolic', 'Bluetooth',
-            () => ctx.bluetooth.setPowered(!ctx.bluetooth.powered), {variant: 'row'});
-        btTile.update = () => {
-            btTile.btn.visible = ctx.bluetooth.available;
-            const connected = ctx.bluetooth.paired.filter(device => device.connected);
-            btTile.set(ctx.bluetooth.powered, !ctx.bluetooth.powered ? 'Desactivado'
-                : connected.length ? connected.map(device => device.name).join(', ') : 'Activado');
-        };
-        this._offs.push(ctx.bluetooth.onChange(btTile.update));
-        connectivityTiles.push(btTile);
-
-        const ethernetTile = this._tile('network-wired-symbolic', 'Ethernet', () => {
-            this.menu.close();
-            run('gnome-control-center network');
-        }, {variant: 'row'});
-        ethernetTile.update = () => {
-            ethernetTile.btn.visible = ctx.wifi.ethernetAvailable;
-            ethernetTile.set(ctx.wifi.ethernetConnected,
-                ctx.wifi.ethernetConnected ? (ctx.wifi.ethernetName ?? 'Conectado') : 'Desconectado');
-        };
-        this._offs.push(ctx.wifi.onChange(ethernetTile.update));
-        connectivityTiles.push(ethernetTile);
-
-        const vpnTile = this._tile('network-vpn-symbolic', 'VPN', () => {
-            this.menu.close();
-            run('gnome-control-center network');
-        }, {variant: 'row'});
-        vpnTile.update = () => vpnTile.set(ctx.wifi.vpnActive,
-            ctx.wifi.vpnActive ? 'Conectada' : ctx.wifi.vpnAvailable ? 'Disponible' : 'Sin configurar');
-        this._offs.push(ctx.wifi.onChange(vpnTile.update));
-        connectivityTiles.push(vpnTile);
-
-
-        if (interfaceS) {
-            const dark = this._tile('weather-clear-night-symbolic', 'Aspecto', () => {
-                const isDark = interfaceS.get_string('color-scheme') === 'prefer-dark';
-                interfaceS.set_string('color-scheme', isDark ? 'default' : 'prefer-dark');
-            }, {variant: 'vertical', accent: 'blue'});
-            dark.update = () => {
-                const isDark = interfaceS.get_string('color-scheme') === 'prefer-dark';
-                dark.set(isDark, isDark ? 'Oscuro' : 'Claro');
-            };
-            interfaceS.connect('changed::color-scheme', dark.update);
-            featureTiles.push(dark);
-        }
-        if (notifS) {
-            const dnd = this._tile('notifications-disabled-symbolic', 'No molestar',
-                () => notifS.set_boolean('show-banners', !notifS.get_boolean('show-banners')),
-                {variant: 'vertical', accent: 'purple'});
-            dnd.update = () => {
-                const on = !notifS.get_boolean('show-banners');
-                dnd.set(on, on ? 'Activado' : 'Desactivado');
-            };
-            notifS.connect('changed::show-banners', dnd.update);
-            featureTiles.push(dnd);
-        }
-
-
-        if (colorS) {
-            const night = this._tile('night-light-symbolic', 'Luz nocturna',
-                () => colorS.set_boolean('night-light-enabled', !colorS.get_boolean('night-light-enabled')),
-                {variant: 'wide', accent: 'orange'});
-            night.update = () => {
-                const on = colorS.get_boolean('night-light-enabled');
-                night.set(on, on ? 'Activada' : 'Desactivada');
-            };
-            colorS.connect('changed::night-light-enabled', night.update);
-            utilityTiles.push(night);
-        }
-
-        const displays = this._tile('video-display-symbolic', 'Pantallas', () => {
-            this.menu.close();
-            run('gnome-control-center display');
-        });
-        displays.update = () => displays.set(false, 'Configurar');
-        utilityTiles.push(displays);
-
-        const power = this._tile('power-profile-balanced-symbolic', 'Energía', () =>
-            ctx.powerProfiles.cycle(), {accent: 'orange'});
-        power.update = () => {
-            power.btn.visible = ctx.powerProfiles.available;
-            power.icon.icon_name = ctx.powerProfiles.iconName;
-            power.set(ctx.powerProfiles.active !== 'balanced', ctx.powerProfiles.label);
-        };
-        this._offs.push(ctx.powerProfiles.onChange(power.update));
-        utilityTiles.push(power);
-
-        const screenshot = this._tile('camera-photo-symbolic', 'Captura', () => {
-            this.menu.close();
-            Main.screenshotUI.open();
-        });
-        screenshot.update = () => screenshot.set(false, 'Pantalla o área');
-        utilityTiles.push(screenshot);
-
-
-        if (caffeineS) {
-            const caffeine = this._tile('alarm-symbolic', 'Caffeine', () => {
-                caffeineS.set_boolean('cli-toggle', !caffeineS.get_boolean('cli-toggle'));
-            }, {variant: 'wide', accent: 'orange'});
-            caffeine.update = () => {
-                const on = caffeineS.get_boolean('cli-toggle');
-                caffeine.set(on, on ? 'Pantalla activa' : 'Desactivado');
-            };
-            caffeineS.connect('changed::cli-toggle', caffeine.update);
-            utilityTiles.push(caffeine);
-        }
-
-
-        if (privacyS && locationS) {
-            const privacy = this._tile('lintel-privacy-symbolic', 'Privacidad', () => {
-                const anyAllowed = locationS.get_boolean('enabled') ||
-                    !privacyS.get_boolean('disable-camera') ||
-                    !privacyS.get_boolean('disable-microphone');
-                locationS.set_boolean('enabled', !anyAllowed);
-                privacyS.set_boolean('disable-camera', anyAllowed);
-                privacyS.set_boolean('disable-microphone', anyAllowed);
-            }, {variant: 'wide', accent: 'purple'});
-            privacy.update = () => {
-                const allowed = Number(locationS.get_boolean('enabled')) +
-                    Number(!privacyS.get_boolean('disable-camera')) +
-                    Number(!privacyS.get_boolean('disable-microphone'));
-                privacy.set(allowed === 0, allowed === 0 ? 'Protegida' : `${allowed} permitidos`);
-            };
-            locationS.connect('changed::enabled', privacy.update);
-            privacyS.connect('changed::disable-camera', privacy.update);
-            privacyS.connect('changed::disable-microphone', privacy.update);
-            utilityTiles.push(privacy);
-        }
-
-        const batteryCare = this._tile('battery-level-80-symbolic', 'Cuidado batería', () =>
-            ctx.batteryCare.toggle(), {variant: 'wide', accent: 'green'});
-        batteryCare.update = () => {
-            batteryCare.btn.visible = ctx.batteryCare.available;
-            batteryCare.set(ctx.batteryCare.enabled, ctx.batteryCare.label);
-        };
-        this._offs.push(ctx.batteryCare.onChange(batteryCare.update));
-        utilityTiles.push(batteryCare);
-
-        const airplane = this._tile('airplane-mode-symbolic', 'Modo avión', () =>
-            ctx.airplaneMode.toggle(), {variant: 'wide', accent: 'blue'});
-        airplane.update = () => {
-            airplane.btn.visible = ctx.airplaneMode.available;
-            airplane.set(ctx.airplaneMode.enabled,
-                ctx.airplaneMode.enabled ? 'Activado' : 'Desactivado');
-        };
-        this._offs.push(ctx.airplaneMode.onChange(airplane.update));
-        utilityTiles.push(airplane);
-
-
-        const primary = new St.BoxLayout({style_class: 'lintel-cc-primary'});
-        const connectivity = new St.BoxLayout({vertical: true, style_class: 'lintel-cc-group'});
-        for (const tile of connectivityTiles)
-            connectivity.add_child(tile.btn);
-        primary.add_child(connectivity);
-
-        const features = new St.BoxLayout({vertical: true, style_class: 'lintel-cc-features'});
-        for (const tile of featureTiles) {
-            tile.btn.y_expand = true;
-            features.add_child(tile.btn);
-        }
-        primary.add_child(features);
-        col.add_child(primary);
-
-        for (let i = 0; i < utilityTiles.length; i += 2) {
-            const row = new St.BoxLayout({style_class: 'lintel-cc-utility-row'});
-            for (const tile of utilityTiles.slice(i, i + 2))
-                row.add_child(tile.btn);
-            col.add_child(row);
-        }
-
-        [...connectivityTiles, ...featureTiles, ...utilityTiles].forEach(tile => tile.update());
-
-
-        this._brightRow = this._sliderCard('Brillo', 'display-brightness-symbolic',
-            v => ctx.brightness.setLevel(v));
-        col.add_child(this._brightRow.box);
-        const syncBright = () => {
-            this._brightRow.box.visible = ctx.brightness.available;
-            this._brightRow.slider.setSilently(ctx.brightness.level);
-        };
-        this._offs.push(ctx.brightness.onChange(syncBright));
-        syncBright();
-
-
-        this._soundRow = this._sliderCard('Sonido', 'lintel-sound-medium-symbolic',
-            v => ctx.sound.setLevel(v));
-        col.add_child(this._soundRow.box);
-        const syncSound = () => {
-            this._soundRow.box.visible = ctx.sound.ready;
-            this._soundRow.icon.gicon = fileIcon(ctx.sound.iconFile);
-            this._soundRow.slider.setSilently(ctx.sound.level);
-        };
-        this._offs.push(ctx.sound.onChange(syncSound));
-        syncSound();
-
-
-        this._micRow = this._sliderCard('Micrófono', 'audio-input-microphone-symbolic',
-            v => ctx.sound.setMicLevel(v));
-        col.add_child(this._micRow.box);
-        const syncMic = () => {
-            this._micRow.box.visible = ctx.sound.micReady;
-            this._micRow.icon.icon_name = ctx.sound.micIconName;
-            this._micRow.slider.setSilently(ctx.sound.micLevel);
-        };
-        this._offs.push(ctx.sound.onChange(syncMic));
-        syncMic();
-
-        const settings = new St.Button({label: 'Ajustes del Sistema…', style_class: 'lintel-cc-pill', can_focus: true,
-            x_align: CENTER});
-        settings.connect('clicked', () => {
-            this.menu.close();
-            run('gnome-control-center');
-        });
-        col.add_child(settings);
-
-        this.connect('destroy', () => {
-            this._offs.forEach(f => f());
-            this._settings.forEach(s => s.run_dispose?.());
-        });
-    }
-
-
-
-    _tile(iconName, title, onClick, {variant = 'wide', accent = 'blue'} = {}) {
-        const vertical = variant === 'vertical';
-        const styleVariant = variant === 'row' ? 'lintel-cc-row' : vertical ? 'lintel-cc-vtile' : 'lintel-cc-wtile';
-        const btn = new St.Button({style_class: `lintel-cc-tile ${styleVariant}`, can_focus: true});
-        const boxWidth = TILE_BOX[variant];
-        const shellSize = variant === 'row' ? 26 : 28;
-
-        const box = new St.BoxLayout({
-            vertical,
-            style_class: vertical ? 'lintel-cc-tile-box lintel-cc-tile-vbox' : 'lintel-cc-tile-box',
-            width: boxWidth,
-            x_align: START,
-            y_align: CENTER,
-        });
-        const shell = new St.Widget({
-            style_class: `lintel-cc-tile-icon-shell lintel-accent-${accent}`,
-            layout_manager: new Clutter.BinLayout(),
-            x_align: vertical ? START : CENTER,
-            y_align: vertical ? START : CENTER,
-        });
-        const tileIcon = new St.Icon({
-            ...iconProps(iconName),
-            style_class: 'lintel-cc-tile-icon',
-            icon_size: 15,
-            x_align: CENTER,
-            y_align: CENTER,
-        });
-        shell.add_child(tileIcon);
-
-        const labels = new St.BoxLayout({vertical: true, y_align: CENTER, x_align: START});
-        labels.set_width(vertical ? boxWidth : boxWidth - shellSize - 8);
-        const titleLabel = new St.Label({text: title, style_class: 'lintel-cc-tile-title'});
-        const status = new St.Label({style_class: 'lintel-cc-tile-status'});
-        labels.add_child(titleLabel);
-        labels.add_child(status);
-
-        box.add_child(shell);
-        box.add_child(labels);
-        btn.set_child(box);
-        btn.connect('clicked', onClick);
-        return {
-            btn,
-            icon: tileIcon,
-            set(on, text) {
-                if (on)
-                    shell.add_style_pseudo_class('checked');
-                else
-                    shell.remove_style_pseudo_class('checked');
-                status.text = text;
-            },
-        };
-    }
-
-
-    _sliderCard(title, iconName, onChange) {
-        const box = new St.BoxLayout({vertical: true, style_class: 'lintel-cc-slider'});
-        box.add_child(new St.Label({text: title, style_class: 'lintel-cc-slider-title'}));
-        const stack = new St.Widget({
-            style_class: 'lintel-cc-slider-stack',
-            layout_manager: new Clutter.BinLayout(),
-            x_expand: true,
-        });
-        const slider = makeSlider(0, onChange, 'lintel-cc-track');
-        const icon = new St.Icon({
-            ...iconProps(iconName),
-            style_class: 'lintel-cc-slider-icon',
-            icon_size: 14,
-            x_align: START,
-            y_align: CENTER,
-            reactive: false,
-        });
-        stack.add_child(slider);
-        stack.add_child(icon);
-        box.add_child(stack);
-        return {box, icon, slider};
+        this.add_child(new St.Icon({gicon: ctx.icon('lintel-controls-symbolic'), style_class: 'system-status-icon'}));
+        this.controls = new ControlCenter(this, ctx, {settingsFor, settingsForExtension, makeSlider, run});
+        this.connect('destroy', () => this.controls.destroy());
     }
 });
-
 
 const ClockButton = GObject.registerClass(
 class ClockButton extends LintelButton {
@@ -2897,6 +2549,7 @@ export default class LintelV2 extends Extension {
         theme.iconColor = c.colorIconos;
         theme.menuDark = c.temaMenus === 'oscuro' || (c.temaMenus === 'auto' && dark);
         theme.animMs = c.animacionMs;
+        for (const key of ['material', 'blur', 'opacity', 'contrast', 'reducedMotion', 'accent', 'shortcuts', 'menuIcons']) theme[key] = c[key];
         refreshTheme();
     }
 
