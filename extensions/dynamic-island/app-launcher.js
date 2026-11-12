@@ -5,7 +5,7 @@ import Pango from 'gi://Pango';
 
 export function buildAppLauncher(island) {
     const page = island._newPage('applications');
-    const hint = island._label('Lanzador opcional. Puedes ocultarlo en Ajustes para usar solo el centro de aplicaciones.', 'di-hint', {width: 370});
+    const hint = island._label('Busca y abre una aplicación.', 'di-hint', {width: 370});
     hint.clutter_text.set_line_wrap(true);
     page.add_child(hint);
     const search = new St.Entry({style_class: 'di-search', hint_text: 'Buscar aplicación…', can_focus: true});
