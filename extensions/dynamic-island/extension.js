@@ -14,7 +14,8 @@ import * as Volume from 'resource:///org/gnome/shell/ui/status/volume.js';
 import * as Screenshot from 'resource:///org/gnome/shell/ui/screenshot.js';
 import {Slider} from 'resource:///org/gnome/shell/ui/slider.js';
 import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
-import {ActivityQueue, springProgress} from './activities.js';
+import {ActivityQueue, LiveActivities, springProgress} from './activities.js';
+import {IslandMotion} from './motion.js';
 
 
 const OCULTAR_OSD_SISTEMA = true;
@@ -117,6 +118,7 @@ export default class DynamicIsland extends Extension {
         this._http = null;
         this._settings = this.getSettings();
         this._activities = new ActivityQueue();
+        this._live = new LiveActivities();
         this._state = 'closed';
         this._hoverTimer = 0;
         this._leaveTimer = 0;
@@ -236,11 +238,16 @@ export default class DynamicIsland extends Extension {
             this._pillBackground?.queue_repaint();
             this._islandBackground?.queue_repaint();
             this._renderHome();
+            this._closeIsland();
+            this._centerPill();
             this._syncFullscreen();
             if (!this._settings.get_boolean('cover-accent')) this._musicSurface.set_style('');
         });
         Main.wm.addKeybinding('toggle-island', this._settings, Meta.KeyBindingFlags.NONE,
             Shell.ActionMode.NORMAL | Shell.ActionMode.POPUP, () => this._menu.toggle());
+        this._connect(Main.sessionMode, 'updated', () => this._syncFullscreen());
+        this._connect(Main.overview, 'hidden', () => this._syncFullscreen());
+        this._connect(Main.overview, 'showing', () => this._syncFullscreen());
         this._connect(global.display, 'in-fullscreen-changed', () => this._syncFullscreen());
         this._connect(Main.layoutManager, 'monitors-changed', () => {
             this._closeIsland();
@@ -286,6 +293,9 @@ export default class DynamicIsland extends Extension {
         this._bannerOverrides = null;
         Main.wm.removeKeybinding('toggle-island');
         this._activities?.clear();
+        this._live?.clear();
+        this._motion?.destroy();
+        this._motion = null;
         this._generation++;
         this._requestGeneration++;
 
@@ -339,6 +349,8 @@ export default class DynamicIsland extends Extension {
             this._island = null;
         }
         this._menu = null;
+        this._host?.destroy();
+        this._host = null;
         this._button?.destroy();
         this._button = null;
         if (this._movedClock?.actor.get_parent() === Main.panel._rightBox) {
@@ -364,11 +376,13 @@ export default class DynamicIsland extends Extension {
     }
 
     _syncFullscreen() {
-        const mon = Main.layoutManager.primaryMonitor;
-        const hide = this._settings.get_boolean('hide-fullscreen') && mon &&
-            global.display.get_monitor_in_fullscreen(mon.index);
+        const mon = this._monitor();
+        const hide = Main.sessionMode.isLocked || Main.overview.visible ||
+            (this._settings.get_boolean('hide-fullscreen') && mon &&
+            global.display.get_monitor_in_fullscreen(mon.index));
         if (hide) this._closeIsland();
         this._button.visible = !hide;
+        if (this._host) this._host.visible = !hide;
         this._updatePill();
     }
 
@@ -514,7 +528,7 @@ export default class DynamicIsland extends Extension {
 
 
     _buildPill() {
-        this._button = new PanelMenu.Button(0.5, 'Dynamic Island', true);
+        this._button = new St.Button({reactive: true, can_focus: true, accessible_name: 'Abrir isla dinámica'});
         this._button.add_style_class_name('di-button');
         this._pill = new St.Widget({
             style_class: 'di-pill',
@@ -579,7 +593,10 @@ export default class DynamicIsland extends Extension {
         this._pillContent.add_child(this._hud);
 
         this._button.add_child(this._pill);
-        Main.panel.addToStatusArea('dynamic-island-native', this._button, 0, 'center');
+        this._host = new St.Widget({layout_manager: new Clutter.BinLayout(), clip_to_allocation: true});
+        this._button.x_align = Clutter.ActorAlign.CENTER;
+        this._host.add_child(this._button);
+        Main.layoutManager.addTopChrome(this._host);
 
 
 
@@ -634,8 +651,9 @@ export default class DynamicIsland extends Extension {
 
 
 
-        const shoulder = Math.max(1, Math.min(8, height / 3, width / 4));
-        const radius = Math.max(1, Math.min(ISLAND_R,
+        const floating = this._settings.get_string('shape') === 'floating';
+        const shoulder = floating ? 0 : Math.max(1, Math.min(8, height / 3, width / 4));
+        const radius = Math.max(1, Math.min(this._settings.get_int('corner-radius'),
             height - shoulder, (width - shoulder * 2) / 2));
         context.newPath();
         context.moveTo(0, 0);
@@ -667,13 +685,17 @@ export default class DynamicIsland extends Extension {
         this._centerPill();
     }
 
+    _monitor() {
+        const index = this._settings.get_int('monitor');
+        return Main.layoutManager.monitors[index] ?? Main.layoutManager.primaryMonitor;
+    }
+
     _centerPill() {
-        const monitor = Main.layoutManager.primaryMonitor;
-        if (!monitor || !this._button?.has_allocation()) return;
-        const [x] = this._button.get_transformed_position();
-        const [width] = this._button.get_transformed_size();
-        const unshiftedX = x - this._button.translation_x;
-        this._button.translation_x = Math.round(monitor.x + (monitor.width - width) / 2 - unshiftedX);
+        const monitor = this._monitor();
+        if (!monitor || !this._host) return;
+        const floating = this._settings.get_string('shape') === 'floating';
+        this._host.set_position(monitor.x, monitor.y + (floating ? 8 : 0));
+        this._host.set_size(monitor.width, Math.max(34, Main.panel.height));
     }
 
     _toast(event) {
@@ -721,6 +743,7 @@ export default class DynamicIsland extends Extension {
         const hud = this._hudActive;
         const active = !!this._name && this._status !== 'Stopped';
         const playing = active && this._status === 'Playing';
+        this._pill.width = this._settings.get_int('notch-width') + (active ? 20 : 0);
         this._hud.visible = hud;
         this._bars.visible = !hud && active;
 
@@ -907,6 +930,7 @@ export default class DynamicIsland extends Extension {
         }
 
         this._island.add_child(body);
+        this._island.accessible_name = 'Aurea · Isla dinámica';
         Main.layoutManager.addTopChrome(this._island);
 
         this._connect(this._island, 'key-press-event', (_a, event) => {
@@ -961,37 +985,20 @@ export default class DynamicIsland extends Extension {
         const h = Math.round(lerp(n.h, f.h));
         this._island.set_position(Math.round(lerp(n.x, f.x)), Math.round(lerp(n.y, f.y)));
         this._island.set_size(w, h);
-        this._syncIslandBackground();
         this._content.set_position(Math.round((w - ISLAND_W) / 2), 0);
         this._content.opacity = Math.round(255 * clamp((p - 0.25) / 0.6));
     }
 
     _runTween(from, to, duration, ease, done) {
-        this._clear(this._tweenSource);
-        this._tweenSource = 0;
         this._island.remove_all_transitions();
-        duration = this._duration(duration);
-        if (!duration) {
-            this._applyIsland(to);
-            done?.();
-            return;
-        }
-        const start = GLib.get_monotonic_time();
-        this._applyIsland(from);
-        this._tweenSource = this._timeout(16, () => {
-            const t = clamp((GLib.get_monotonic_time() - start) / 1000 / duration);
-            this._applyIsland(from + (to - from) * ease(t));
-            if (t >= 1) {
-                this._tweenSource = 0;
-                done?.();
-                return GLib.SOURCE_REMOVE;
-            }
-            return GLib.SOURCE_CONTINUE;
-        });
+        this._motion ??= new IslandMotion(this._island);
+        const span = Math.max(0.25, Math.abs(to - from));
+        this._motion.run(from, to, this._duration(duration * span), ease,
+            value => this._applyIsland(value), done);
     }
 
     _updateFinal() {
-        const mon = Main.layoutManager.primaryMonitor;
+        const mon = this._monitor();
         const available = Math.max(80, mon.height - this._topSpacer.height - 130);
         this._pageViewport.set_height(Math.min(available, Math.ceil(this._pagesBox.get_preferred_height(WIDTH)[1]) + 2));
         const cx = this._notch.x + this._notch.w / 2;
@@ -1002,20 +1009,20 @@ export default class DynamicIsland extends Extension {
 
     _resizeIsland() {
         if (!this._menu?.isOpen || !this._finReady || !this._island) return;
-        const mon = Main.layoutManager.primaryMonitor;
+        const mon = this._monitor();
         this._pageViewport.set_height(Math.min(Math.max(80, mon.height - this._topSpacer.height - 130),
             Math.ceil(this._pagesBox.get_preferred_height(WIDTH)[1]) + 2));
         const h = Math.ceil(this._content.get_preferred_height(ISLAND_W)[1]);
         if (h === this._fin.h) return;
         this._fin.h = h;
-        if (this._tweenSource) return;
+        if (this._motion?.timeline) return;
         this._island.remove_all_transitions();
         this._island.ease({height: h, duration: this._duration(240), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
     }
 
     _openIsland() {
         if (!this._alive || !this._island || this._menu.isOpen) return;
-        if (!Main.layoutManager.primaryMonitor) return;
+        if (!this._monitor() || Main.sessionMode.isLocked) return;
         this._centerPill();
         const [nx, ny] = this._pill.get_transformed_position();
         const [nw, nh] = this._pill.get_transformed_size();
@@ -3323,7 +3330,7 @@ export default class DynamicIsland extends Extension {
             state.win = win;
             const place = () => {
                 try {
-                    const mon = Main.layoutManager.primaryMonitor;
+                    const mon = this._monitor();
                     const r = win.get_frame_rect();
                     win.make_above();
                     win.stick();

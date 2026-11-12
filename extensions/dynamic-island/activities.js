@@ -28,6 +28,40 @@ export class ActivityQueue {
     }
 
     clear() { this._entries = []; }
+
+    dismiss(key = this.current?.key) {
+        this._entries = this._entries.filter(entry => entry.key !== key);
+        return this.current;
+    }
+}
+
+export class LiveActivities {
+    constructor() {
+        this.items = new Map();
+        this.selected = null;
+    }
+
+    update(key, value) {
+        if (value) this.items.set(key, {...value, key});
+        else this.items.delete(key);
+        if (!this.items.has(this.selected)) this.selected = this.entries[0]?.key ?? null;
+    }
+
+    get entries() {
+        return [...this.items.values()].sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+    }
+
+    get current() { return this.items.get(this.selected) ?? this.entries[0] ?? null; }
+
+    cycle(delta = 1) {
+        const entries = this.entries;
+        if (!entries.length) return null;
+        const index = entries.findIndex(item => item.key === this.selected);
+        this.selected = entries[(index + delta + entries.length) % entries.length].key;
+        return this.current;
+    }
+
+    clear() { this.items.clear(); this.selected = null; }
 }
 
 export function springProgress(t) {

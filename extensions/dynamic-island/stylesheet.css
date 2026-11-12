@@ -1,3 +1,4 @@
+.di-button, .di-button:hover, .di-button:focus, .di-button:active { padding: 0; margin: 0; background-color: transparent; border: none; box-shadow: none; }
 
 #panel .panel-button.di-button,
 #panel .panel-button.di-button:hover,

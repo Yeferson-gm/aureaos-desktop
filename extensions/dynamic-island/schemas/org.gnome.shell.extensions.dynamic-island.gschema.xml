@@ -19,5 +19,9 @@
     <key name="show-home-system" type="b"><default>true</default><summary>Mostrar batería en Inicio</summary></key>
     <key name="show-home-activities" type="b"><default>true</default><summary>Mostrar actividades en Inicio</summary></key>
     <key name="toggle-island" type="as"><default>['&lt;Super&gt;&lt;Shift&gt;space']</default><summary>Abrir o cerrar la isla</summary></key>
+  <key name="monitor" type="i"><default>-1</default><range min="-1" max="15"/><summary>Pantalla (-1 = principal)</summary></key>
+    <key name="shape" type="s"><default>'attached'</default><choices><choice value="attached"/><choice value="floating"/></choices><summary>Forma de la isla</summary></key>
+    <key name="corner-radius" type="i"><default>8</default><range min="4" max="32"/><summary>Radio de esquinas</summary></key>
+  <key name="notch-width" type="i"><default>280</default><range min="240" max="420"/><summary>Ancho compacto</summary></key>
   </schema>
 </schemalist>

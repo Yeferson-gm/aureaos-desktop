@@ -33,6 +33,10 @@ export default class IslandPreferences extends ExtensionPreferences {
         const appearance = group('Apariencia', 'Superficie nativa, tipografía del sistema y escalado de GNOME.');
         choices(appearance, 'theme', 'Tema', ['dark', 'glass'], ['Apple Dark', 'Apple Glass']);
         number(appearance, 'opacity', 'Opacidad', 0.65, 1, 0.05);
+        choices(appearance, 'shape', 'Contorno', ['attached', 'floating'], ['Unido al borde', 'Cápsula flotante']);
+        number(appearance, 'corner-radius', 'Radio de las esquinas', 4, 32, 1);
+        number(appearance, 'notch-width', 'Ancho compacto', 240, 420, 10);
+        number(appearance, 'monitor', 'Pantalla: −1 principal; 0 primera; 1 segunda', -1, 15, 1);
         const behavior = group('Animaciones y comportamiento', 'Las animaciones respetan también la preferencia de movimiento reducido del sistema.');
         toggle(behavior, 'animations', 'Animaciones suaves');
         toggle(behavior, 'hover-open', 'Abrir al pasar el cursor');
