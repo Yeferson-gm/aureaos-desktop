@@ -85,10 +85,10 @@ export default class TopbarPreferences extends ExtensionPreferences {
                 rows.forEach(r => g.remove(r)); rows = [];
                 const order = [...config.values[collection], ...Object.keys(names).filter(id => !config.values[collection].includes(id))];
                 for (const id of order) {
-                    const row = new Adw.ActionRow({title: names[id]}); rows.push(row); g.add(row);
+                    const row = new Adw.ActionRow({title: names[id], subtitle: collection === 'indicators' && id === 'clock' ? 'Último indicador de la barra' : ''}); rows.push(row); g.add(row);
                     const controls = new Gtk.Box({spacing: 4, valign: Gtk.Align.CENTER});
                     for (const [icon, delta, tip] of [['go-up-symbolic', -1, 'Mover arriba'], ['go-down-symbolic', 1, 'Mover abajo']]) {
-                        const button = new Gtk.Button({icon_name: icon, tooltip_text: tip});
+                        const button = new Gtk.Button({icon_name: icon, tooltip_text: tip, sensitive: collection !== 'indicators' || id !== 'clock'});
                         button.connect('clicked', () => { save({[collection]: moveItem(config.values[collection], id, delta)}); build(); }); controls.append(button);
                     }
                     if (collection === 'modules') {

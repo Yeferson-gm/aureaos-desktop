@@ -2,7 +2,7 @@ export const MODULES = {
     wifi: 'Wi-Fi', bluetooth: 'Bluetooth', brightness: 'Brillo', sound: 'Sonido',
     microphone: 'Micrófono', power: 'Energía', battery: 'Cuidado de batería',
     focus: 'No molestar', night: 'Luz nocturna', appearance: 'Aspecto',
-    airplane: 'Modo avión', caffeine: 'Mantener despierto', privacy: 'Privacidad',
+    airplane: 'Modo avión', caffeine: 'Cafeína', privacy: 'Privacidad',
     displays: 'Pantallas', vpn: 'VPN', ethernet: 'Ethernet', screenshot: 'Captura',
 };
 export const INDICATORS = {
@@ -15,7 +15,7 @@ export const DEFAULTS = {
     reducedMotion: false, contrast: false, adaptiveContrast: false,
     clockFormat: 'system', clockDate: true, clockSeconds: false, shortcuts: 'linux',
     autohide: 'never', menuIcons: 'selective',
-    modules: ['wifi', 'bluetooth', 'brightness', 'sound', 'power', 'battery', 'focus', 'night', 'appearance', 'privacy', 'screenshot'],
+    modules: ['wifi', 'bluetooth', 'brightness', 'sound', 'power', 'battery', 'focus', 'caffeine', 'night', 'appearance', 'privacy', 'screenshot'],
     sizes: {}, indicators: Object.keys(INDICATORS), visibility: {},
 };
 const choices = (value, options, fallback) => options.includes(value) ? value : fallback;
@@ -49,6 +49,7 @@ export function normalizeConfig(input = {}) {
     out.modules = ordered(raw.modules, MODULES, DEFAULTS.modules);
     out.indicators = ordered(raw.indicators, INDICATORS, DEFAULTS.indicators);
     for (const id of Object.keys(INDICATORS)) if (!out.indicators.includes(id)) out.indicators.push(id);
+    out.indicators = [...out.indicators.filter(id => id !== 'clock'), 'clock'];
     out.visibility = {};
     for (const id of Object.keys(INDICATORS)) out.visibility[id] = choices(raw.visibility?.[id], ['always', 'active', 'never'], 'always');
     out.visibility.cc = 'always';

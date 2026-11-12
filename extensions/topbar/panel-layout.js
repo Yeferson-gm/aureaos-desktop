@@ -13,7 +13,8 @@ export class PanelLayout {
         this.addEntry = addEntry;
         this.leftMore.beforeOpen(() => this.fill(this.leftMore, this.hiddenLeft));
         this.rightMore.beforeOpen(() => this.fill(this.rightMore, this.hiddenRight));
-        for (const [object, event] of [[Main.layoutManager, 'monitors-changed'], [Main.panel, 'notify::allocation'], [Main.extensionManager, 'extension-state-changed'],
+        for (const [object, event] of [[Main.layoutManager, 'monitors-changed'], [Main.panel, 'notify::allocation'],
+            [Main.panel._rightBox, 'child-added'], [Main.panel._rightBox, 'child-removed'], [Main.extensionManager, 'extension-state-changed'],
             [global.display, 'in-fullscreen-changed'], [Main.overview, 'showing'], [Main.overview, 'hidden']])
             this.signals.push([object, object.connect(event, () => this.queue())]);
         this.edge = new St.Widget({reactive: true, visible: false});
@@ -89,12 +90,15 @@ export class PanelLayout {
         this.leftMore.container.visible = this.hiddenLeft.length > 0;
         const order = [...this.ext._right].sort((a, b) => values.indicators.indexOf(a[0].slice(7)) - values.indicators.indexOf(b[0].slice(7)));
         const rightBox = Main.panel._rightBox;
-        order.forEach(([, button], index) => {
+        const own = new Set([...order.map(([, button]) => button.container), this.rightMore.container]);
+        const external = rightBox.get_children().filter(child => !own.has(child));
+        for (const [, button] of order)
             button.set_style(`-natural-hpadding: ${values.spacing}px; -minimum-hpadding: 3px;`);
-            if (rightBox.get_children().indexOf(button.container) !== index + 1) rightBox.set_child_at_index(button.container, index + 1);
+        const arranged = [...external, this.rightMore.container, ...order.map(([, button]) => button.container)];
+        arranged.forEach((actor, index) => {
+            if (rightBox.get_children().indexOf(actor) !== index) rightBox.set_child_at_index(actor, index);
         });
-        const own = new Set([...order.map(([, b]) => b.container), this.rightMore.container]);
-        used = rightBox.get_children().filter(child => !own.has(child) && child.visible).reduce((total, child) => total + child.get_preferred_width(-1)[1], 0);
+        used = external.filter(child => child.visible).reduce((total, child) => total + child.get_preferred_width(-1)[1], 0);
         const visible = order.filter(([role, b]) => this.visible(role.slice(7), b));
         const keep = new Set(visible.map(([, b]) => b));
         used += visible.reduce((total, [, b]) => total + width(b), 0);

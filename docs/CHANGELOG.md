@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.2.1
+
+- La fecha queda al final de la barra, también después de añadir indicadores de
+  otras extensiones. Se conserva el orden relativo de esos indicadores.
+- Cafeína aparece por defecto en el Centro de Control cuando está disponible su
+  proveedor instalado. Conserva el interruptor y estado real mediante `cli-toggle`.
+- Pruebas aisladas para indicadores añadidos después de iniciar la barra y para
+  la presencia, activación y cambios externos de Cafeína.
+
 ## 0.2.0
 
 - Centro de Control editable con subvistas de redes, Bluetooth, audio, energía,

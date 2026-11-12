@@ -12,3 +12,9 @@ monitores con escalas mixtas, texto 150/200 %, 720p, isla real, entrada virtual,
 acciones D-Bus y 100 interrupciones. Límites físicos documentados en
 `docs/topbar-experiencia.md`. La entrega se construye desde etiqueta y se instala con `--component=topbar`;
 `--check` compara el destino con el paquete, sin modificar otros componentes.
+
+## Corrección del orden y Cafeína
+
+- [x] Integrar los indicadores externos antes de la fecha y reservar el último puesto al reloj.
+- [x] Añadir Cafeína a los controles predeterminados sin sobrescribir listas personalizadas.
+- [x] Regresión validada en GNOME aislado y comprobación general superada; entrega por etiqueta e instalación exclusiva de topbar.

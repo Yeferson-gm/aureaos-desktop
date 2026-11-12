@@ -53,13 +53,17 @@ prioridad sobre la duración elegida.
 - Privacidad distingue actividad detectada y permisos de cámara, micrófono y
   ubicación. Las preferencias de GNOME no garantizan el bloqueo de aplicaciones
   que no las respeten. La cámara usa `Shell.CameraMonitor`, sin recorrer `/proc`.
-- Cafeína y modo avión utilizan sus proveedores. Pantallas, VPN y Ethernet
+- Cafeína se incluye por defecto cuando está instalado su proveedor; su
+  interruptor refleja también los cambios externos. Modo avión utiliza el
+  proveedor de GNOME. Pantallas, VPN y Ethernet
   identifican explícitamente su acceso a Ajustes con ↗.
 - Captura abre el selector nativo. No añade reproductores ni avisos paralelos
   a los que ya gestiona la isla dinámica.
 
 ## Barra y menús
 
+La fecha permanece al extremo derecho, después de los indicadores de Aurea y
+de otras extensiones. Los indicadores externos conservan su orden relativo.
 Indicadores reordenables, visibilidad permanente/activa/oculta y excedentes en
 «•••». El Centro de Control permanece accesible. Se reserva el espacio real
 ocupado por el notch sin modificar sus dimensiones. Se limita el nombre de la

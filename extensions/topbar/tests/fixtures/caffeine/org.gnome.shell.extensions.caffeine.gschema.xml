@@ -1,0 +1,5 @@
+<schemalist>
+  <schema id="org.gnome.shell.extensions.caffeine" path="/org/gnome/shell/extensions/caffeine/">
+    <key name="cli-toggle" type="b"><default>false</default></key>
+  </schema>
+</schemalist>

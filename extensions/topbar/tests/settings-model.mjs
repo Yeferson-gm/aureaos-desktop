@@ -21,3 +21,6 @@ assert.equal(color('rgb(1,2,3,0.5)'), null);
 assert.equal(foregroundFor('#ffffff'), '#000000');
 assert.equal(foregroundFor('#000000'), '#ffffff');
 assert.equal(foregroundFor('rgba(0,0,0,0)', true), '#ffffff');
+assert.ok(normalizeConfig({texto: 'claro'}).modules.includes('caffeine'));
+assert.deepEqual(normalizeConfig({modules: ['wifi']}).modules, ['wifi']);
+assert.equal(normalizeConfig({indicators: ['clock', 'wifi', 'cc']}).indicators.at(-1), 'clock');

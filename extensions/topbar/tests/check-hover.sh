@@ -14,5 +14,11 @@ if [[ "${AUREA_TEST_ISLAND:-0}" == 1 ]]; then
     cp -a "$DI_PROJECT_DIR/../dynamic-island" "$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local"
     glib-compile-schemas "$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local/schemas"
 fi
+mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions/caffeine@patapon.info/schemas"
+cp "$DI_PROJECT_DIR/tests/fixtures/caffeine/"*.xml "$XDG_DATA_HOME/gnome-shell/extensions/caffeine@patapon.info/schemas/"
+glib-compile-schemas "$XDG_DATA_HOME/gnome-shell/extensions/caffeine@patapon.info/schemas"
+cat > "$XDG_DATA_HOME/gnome-shell/extensions/caffeine@patapon.info/metadata.json" <<'JSON'
+{"uuid":"caffeine@patapon.info","name":"Aurea test: caffeine schema","description":"Isolated test fixture, never installed","shell-version":["50","51"]}
+JSON
 echo "$DI_TEST_DIR"
 dbus-run-session -- bash "$DI_PROJECT_DIR/tests/hover-session.sh"
