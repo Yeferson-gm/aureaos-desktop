@@ -26,5 +26,23 @@
   <key name="home-modules" type="as"><default>['music', 'clock', 'today']</default><summary>Tarjetas de Inicio ordenadas</summary></key>
     <key name="pinned-modules" type="as"><default>['music', 'files']</default><summary>Accesos principales ordenados</summary></key>
   <key name="gestures" type="b"><default>true</default><summary>Gestos locales en la isla</summary></key>
+  <key name="muted-apps" type="as"><default>[]</default><summary>Aplicaciones sin avisos</summary></key>
+    <key name="focus-minutes" type="i"><default>25</default><range min="1" max="180"/><summary>Duración de concentración</summary></key>
+    <key name="break-minutes" type="i"><default>5</default><range min="1" max="60"/><summary>Duración de descanso</summary></key>
+  <key name="lyrics-enabled" type="b"><default>false</default><summary>Consultar letras en LRCLIB</summary></key>
+  <key name="compact-cover" type="b"><default>false</default><summary>Portada en vista compacta</summary></key>
+    <key name="audio-visualizer" type="b"><default>false</default><summary>Medidor de amplitud real del audio de salida</summary></key>
+    <key name="agent-events" type="b"><default>false</default><summary>Integraciones de tareas locales</summary></key>
+    <key name="dictation-model" type="s"><default>''</default><summary>Ruta a modelo local de whisper.cpp</summary></key>
+    <key name="prompter-speed" type="i"><default>100</default><range min="30" max="240"/><summary>Teleprompter: palabras por minuto</summary></key>
+    <key name="motion-speed" type="d"><default>1.0</default><range min="0.5" max="1.5"/><summary>Duración relativa de animaciones</summary></key>
+    <key name="watch-downloads" type="b"><default>false</default><summary>Añadir cambios de Descargas al estante</summary></key>
+    <key name="camera-device" type="s"><default>'/dev/video0'</default><summary>Dispositivo de vídeo</summary></key>
+    <key name="glass-blur" type="i"><default>20</default><range min="0" max="40"/><summary>Desenfoque del vidrio</summary></key>
+    <key name="notification-policies" type="s"><default>'{}'</default><summary>Privacidad y duración por aplicación</summary></key>
+    <key name="app-launcher" type="b"><default>false</default><summary>Lanzador de aplicaciones opcional</summary></key>
+    <key name="show-mascot" type="b"><default>false</default><summary>Mascota compacta</summary></key>
+    <key name="celebration-effects" type="b"><default>false</default><summary>Celebraciones breves</summary></key>
+    <key name="timer-presets" type="ai"><default>[1, 5, 10, 25]</default><summary>Hasta cuatro duraciones rápidas en minutos</summary></key>
   </schema>
 </schemalist>

@@ -42,6 +42,8 @@ const tests = [
     'tests/files.test.mjs',
     'tests/install.test.mjs',
     'extensions/dynamic-island/tests/activities.mjs',
+    'extensions/dynamic-island/tests/content-models.mjs',
+    'extensions/dynamic-island/tests/studio-lifecycle.mjs',
     'extensions/dynamic-island/tests/native-banners.mjs',
     'extensions/dynamic-island/tests/validate-notifications.mjs',
     'extensions/app-island/test-panel.mjs',

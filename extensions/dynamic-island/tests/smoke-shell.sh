@@ -14,7 +14,7 @@ export GTK_A11Y=none
 unset DISPLAY
 test_extension="$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local"
 mkdir -p "$test_extension"
-cp "$project_dir/"{extension.js,activities.js,motion.js,workspace.js,prefs.js,file-tools.py,hardware-metrics.py,metadata.json,stylesheet.css} "$test_extension/"
+cp "$project_dir/"{extension.js,activities.js,motion.js,workspace.js,content-models.js,media-extras.js,studio.js,agent-bridge.js,aurea-task.py,audio-meter.js,audio-tools.py,shelf-bridge.js,shelf-window.py,file-services.js,ornaments.js,app-launcher.js,prefs.js,file-tools.py,hardware-metrics.py,metadata.json,stylesheet.css} "$test_extension/"
 cp -a "$project_dir/schemas" "$test_extension/"
 cp -a "$project_dir/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
 if [[ -n "${DI_SIDE_DOCK_DIR:-}" ]]; then

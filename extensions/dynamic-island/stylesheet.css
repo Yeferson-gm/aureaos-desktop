@@ -234,3 +234,9 @@
 .di-library-tile { padding: 14px 10px; border-radius: 12px; background-color: rgba(255,255,255,0.055); font-size: 12px; }
 .di-library-tile:hover, .di-library-tile:focus { background-color: rgba(255,255,255,0.12); }
 .di-chip-row { spacing: 6px; }
+.di-activity-count { color: #b6ccff; font-size: 10px; font-weight: bold; padding: 2px 4px; background-color: rgba(137,170,255,0.15); border-radius: 6px; }
+.di-notification-actions { spacing: 6px; padding: 0 4px 8px; }
+.di-lyrics { spacing: 12px; padding: 14px 10px; border-radius: 14px; background-color: rgba(255,255,255,0.04); }
+.di-lyric-current { font-size: 18px; font-weight: 600; color: #ffffff; }
+.di-prompter { font-size: 24px; color: #ffffff; }
+.di-agent-card { spacing: 8px; padding: 12px; border-radius: 12px; background-color: rgba(255,255,255,0.06); }

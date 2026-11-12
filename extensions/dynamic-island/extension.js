@@ -8,7 +8,6 @@ import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Volume from 'resource:///org/gnome/shell/ui/status/volume.js';
 import * as Screenshot from 'resource:///org/gnome/shell/ui/screenshot.js';
@@ -17,6 +16,15 @@ import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extension
 import {ActivityQueue, LiveActivities, springProgress} from './activities.js';
 import {IslandMotion} from './motion.js';
 import {IslandWorkspace, MODULES} from './workspace.js';
+import {ShelfBridge} from './shelf-bridge.js';
+import {MediaExtras} from './media-extras.js';
+import {IslandStudio} from './studio.js';
+import {AgentBridge} from './agent-bridge.js';
+import {AudioMeter} from './audio-meter.js';
+import {IslandOrnaments} from './ornaments.js';
+import {buildAppLauncher} from './app-launcher.js';
+import {IslandFiles} from './file-services.js';
+import {meetingLink} from './content-models.js';
 
 
 const OCULTAR_OSD_SISTEMA = true;
@@ -39,7 +47,6 @@ const PAD = 46;
 const PAGE_H = 160;
 const PAGE_CLIP_LIST = 190;
 const ISLAND_W = WIDTH + PAD * 2;
-const ISLAND_R = 8;
 const ART = 96;
 const GAP = 16;
 const RIGHT = WIDTH - ART - GAP;
@@ -58,11 +65,13 @@ const TABS = [
     ['notifications', 'preferences-system-notifications-symbolic'],
     ['mirror', 'camera-web-symbolic'],
     ['tools', 'applications-utilities-symbolic'],
+    ['studio', 'audio-input-microphone-symbolic'],
+    ['agents', 'utilities-terminal-symbolic'],
 ];
 
 const TAB_NAMES = {home: 'Inicio', music: 'Música', files: 'Archivos', clip: 'Portapapeles',
     notes: 'Notas y tareas', system: 'Sistema', clock: 'Temporizador', today: 'Calendario',
-    notifications: 'Notificaciones', mirror: 'Cámara', tools: 'Herramientas'};
+    notifications: 'Notificaciones', mirror: 'Cámara', tools: 'Herramientas', studio: 'Estudio', agents: 'Tareas locales', applications: 'Aplicaciones'};
 
 const dec = new TextDecoder();
 const enc = new TextEncoder();
@@ -111,6 +120,8 @@ export default class DynamicIsland extends Extension {
 
     enable() {
         this._alive = true;
+        this._epoch = (this._epoch ?? 0) + 1;
+        for (const key of ['_taskList', '_eventsBox', '_clipList', '_shelfList', '_noteEntry', '_captureHistory', '_wTemp', '_clipSearch', '_shareChoices', '_mirrorBtn']) this[key] = null;
         this._sources = new Set();
         this._signals = [];
         this._subs = [];
@@ -187,6 +198,7 @@ export default class DynamicIsland extends Extension {
         this._pages = {};
         this._tabButtons = {};
         this._shelf = [];
+        this._shelfPins = new Set();
         this._shelfSelection = new Set();
         this._fileJob = null;
         this._clips = [];
@@ -231,7 +243,12 @@ export default class DynamicIsland extends Extension {
             Main.panel._centerBox.remove_child(clock);
             Main.panel._rightBox.insert_child_at_index(clock, 0);
         }
+        this._ornaments = new IslandOrnaments(this);
         this._workspace = new IslandWorkspace(this);
+        this._mediaExtras = new MediaExtras(this);
+        this._studio = new IslandStudio(this);
+        this._agents = new AgentBridge(this);
+        this._audioMeter = new AudioMeter(this);
         this._buildPill();
         this._buildCard();
 
@@ -239,10 +256,16 @@ export default class DynamicIsland extends Extension {
         this._connect(this._settings, 'changed', (_settings, key) => {
             this._pillBackground?.queue_repaint();
             this._islandBackground?.queue_repaint();
+            if (['theme', 'glass-blur', 'corner-radius'].includes(key)) this._syncGlass();
             this._renderHome();
             if (['monitor', 'shape', 'corner-radius', 'notch-width'].includes(key)) this._closeIsland();
+            if (key === 'timer-presets') this._renderTimerPresets();
             if (key === 'home-modules') this._workspace.rebuild();
             if (key === 'pinned-modules') this._refreshNavigation();
+            if (key === 'audio-visualizer') { this._stopBars(); this._audioMeter.failed = false; }
+            if (key === 'lyrics-enabled') { this._mediaExtras.key = null; if (this._mediaExtras.box?.visible) this._mediaExtras.load(); }
+            if (key === 'watch-downloads') this._fileServices?.syncDownloads();
+            if (key === 'agent-events') this._agents.syncEnabled();
             this._centerPill();
             this._syncFullscreen();
             if (!this._settings.get_boolean('cover-accent')) this._musicSurface.set_style('');
@@ -254,6 +277,7 @@ export default class DynamicIsland extends Extension {
         this._connect(Main.overview, 'showing', () => this._syncFullscreen());
         this._connect(global.display, 'in-fullscreen-changed', () => this._syncFullscreen());
         this._connect(Main.layoutManager, 'monitors-changed', () => {
+            this._shelfBridge?.close();
             this._closeIsland();
             this._sizePill();
         });
@@ -268,8 +292,8 @@ export default class DynamicIsland extends Extension {
         this._safe('bluetooth', () => this._setupBluetooth());
         this._safe('red', () => this._setupNetwork());
         this._safe('portapapeles', () => this._setupClipboard());
-        this._safe('estante', () => this._loadShelf());
-        
+        this._safe('estante', () => { this._loadShelf(); this._fileServices = new IslandFiles(this); this._fileServices.syncShelf(); this._shelfBridge = new ShelfBridge(this); });
+
         this._safe('tareas', () => this._loadTasks());
         this._safe('temporizador', () => this._restoreTimer());
         this._safe('notificaciones', () => this._setupNotifications());
@@ -298,6 +322,10 @@ export default class DynamicIsland extends Extension {
         Main.wm.removeKeybinding('toggle-island');
         this._activities?.clear();
         this._live?.clear();
+        this._ornaments?.clear();
+        this._studio?.destroy();
+        this._agents?.destroy();
+        this._audioMeter?.stop();
         this._motion?.destroy();
         this._motion = null;
         this._generation++;
@@ -311,6 +339,10 @@ export default class DynamicIsland extends Extension {
             } catch (e) {            }
         }
         this._closeMirror();
+        this._shelfBridge?.close();
+        this._shelfBridge = null;
+        this._fileServices?.destroy();
+        this._fileServices = null;
         this._fileJob?.send_signal(15);
         this._fileJob = null;
         this._saveTimer();
@@ -351,11 +383,13 @@ export default class DynamicIsland extends Extension {
             try { Main.layoutManager.removeChrome(this._island); } catch (e) {            }
             this._island.destroy();
             this._island = null;
+            this._glass = null;
+            this._glassEffect = null;
         }
         this._menu = null;
-        this._host?.destroy();
+        if (this._host) this._host.destroy();
+        else this._button?.destroy();
         this._host = null;
-        this._button?.destroy();
         this._button = null;
         if (this._movedClock?.actor.get_parent() === Main.panel._rightBox) {
             Main.panel._rightBox.remove_child(this._movedClock.actor);
@@ -366,6 +400,7 @@ export default class DynamicIsland extends Extension {
         this._name = null;
         this._nm = null;
         this._settings = null;
+        for (const key of ['_taskList', '_eventsBox', '_clipList', '_shelfList', '_noteEntry', '_captureHistory', '_wTemp', '_shareChoices', '_mirrorBtn']) this[key] = null;
     }
 
 
@@ -376,7 +411,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _duration(ms) {
-        return this._settings.get_boolean('animations') && St.Settings.get().enable_animations ? ms : 0;
+        return this._settings.get_boolean('animations') && St.Settings.get().enable_animations ? Math.round(ms * this._settings.get_double('motion-speed')) : 0;
     }
 
     _syncFullscreen() {
@@ -384,9 +419,9 @@ export default class DynamicIsland extends Extension {
         const hide = Main.sessionMode.isLocked || Main.overview.visible ||
             (this._settings.get_boolean('hide-fullscreen') && mon &&
             global.display.get_monitor_in_fullscreen(mon.index));
-        if (hide) this._closeIsland();
+        if (hide) { this._closeIsland(); this._shelfBridge?.close(); this._closeMirror(); }
         this._button.visible = !hide;
-        if (this._host) this._host.visible = !hide;
+        if (this._host) this._host.visible = !hide && !this._shelfBridge?.window;
         this._updatePill();
     }
 
@@ -394,7 +429,7 @@ export default class DynamicIsland extends Extension {
         const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
             if (!this._alive) { this._sources.delete(id); return GLib.SOURCE_REMOVE; }
             let result = GLib.SOURCE_REMOVE;
-            try { result = fn(); } catch (e) { console.error(`Dynamic Island timer: ${e.message}`); }
+            try { result = fn(); } catch (e) { console.error(`Dynamic Island timer: ${e.message}\n${e.stack}`); }
             if (result !== GLib.SOURCE_CONTINUE) this._sources.delete(id);
             return result === GLib.SOURCE_CONTINUE ? GLib.SOURCE_CONTINUE : GLib.SOURCE_REMOVE;
         });
@@ -454,11 +489,14 @@ export default class DynamicIsland extends Extension {
             this._http ??= new Soup.Session({timeout: 10});
             const msg = Soup.Message.new('GET', url);
             if (!msg) { cb(null); return; }
-            this._http.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, this._cancel, (session, res) => {
-                if (!this._alive) return;
+            msg.request_headers.replace('User-Agent', 'AureaDesktop (https://github.com/Yeferson-gm/aureaos-desktop)');
+            const cancel = this._cancel;
+            this._http.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, cancel, (session, res) => {
+                if (!this._alive || cancel.is_cancelled()) return;
                 try {
                     const bytes = session.send_and_read_finish(res);
                     if (msg.get_status() !== Soup.Status.OK) { cb(null); return; }
+                    if (bytes.get_size() > 2 * 1024 * 1024) { cb(null); return; }
                     cb(JSON.parse(dec.decode(bytes.get_data())));
                 } catch (e) { cb(null); }
             });
@@ -497,7 +535,8 @@ export default class DynamicIsland extends Extension {
         const b = new St.Button({style_class: 'di-chip', reactive: true, can_focus: true, y_align: Clutter.ActorAlign.CENTER});
         const row = new St.BoxLayout({style_class: 'di-chip-row'});
         if (icon) row.add_child(new St.Icon({icon_name: icon, icon_size: 12, y_align: Clutter.ActorAlign.CENTER}));
-        const label = new St.Label({text, y_align: Clutter.ActorAlign.CENTER});
+        const label = new St.Label({text, y_align: Clutter.ActorAlign.CENTER, x_expand: true});
+        label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
         row.add_child(label);
         b.set_child(row);
         b.connect('clicked', cb);
@@ -565,6 +604,10 @@ export default class DynamicIsland extends Extension {
             this._barItems.push(bar);
             this._bars.add_child(bar);
         }
+        this._compactArt = new St.Icon({icon_name: 'audio-x-generic-symbolic', icon_size: 22, visible: false, style_class: 'di-compact-art'});
+        this._mascot = this._ornaments.buildMascot();
+        this._pillContent.add_child(this._mascot);
+        this._pillContent.add_child(this._compactArt);
         this._pillContent.add_child(this._bars);
 
         this._marquee = new St.Widget({
@@ -604,6 +647,7 @@ export default class DynamicIsland extends Extension {
         this._host = new St.Widget({layout_manager: new Clutter.BinLayout(), clip_to_allocation: true});
         this._button.x_align = Clutter.ActorAlign.CENTER;
         this._host.add_child(this._button);
+        this._connect(this._host, 'notify::mapped', () => this._updatePill());
         Main.layoutManager.addTopChrome(this._host);
 
 
@@ -611,8 +655,7 @@ export default class DynamicIsland extends Extension {
         this._connect(this._button, 'scroll-event', (_actor, event) => this._onIslandScroll(event));
         this._connect(this._button, 'button-release-event', (_actor, event) => {
             if (event.get_button() === 3) { this._activities.dismiss(); this._presentActivity(); return Clutter.EVENT_STOP; }
-            this._openedByHover = false;
-            this._menu?.toggle();
+            this._activatePill();
             return Clutter.EVENT_STOP;
         });
         this._connect(this._button, 'enter-event', () => {
@@ -635,20 +678,27 @@ export default class DynamicIsland extends Extension {
         this._connect(this._button, 'touch-event', (_actor, event) => {
             if (event.type() !== Clutter.EventType.TOUCH_END)
                 return Clutter.EVENT_PROPAGATE;
-            this._menu?.toggle();
+            this._activatePill();
             return Clutter.EVENT_STOP;
         });
         this._connect(this._button, 'key-press-event', (_actor, event) => {
             const key = event.get_key_symbol();
             if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter ||
                 key === Clutter.KEY_space) {
-                this._menu?.toggle();
+                this._activatePill();
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
         });
         this._sizePill();
         this._timeout(600, () => { this._sizePill(); return GLib.SOURCE_REMOVE; });
+    }
+
+    _activatePill() {
+        this._clear(this._hoverTimer);
+        this._hoverTimer = 0;
+        this._openedByHover = false;
+        this._menu?.toggle();
     }
 
     _onIslandScroll(event) {
@@ -702,6 +752,15 @@ export default class DynamicIsland extends Extension {
         context.arc(width, shoulder, shoulder, Math.PI, Math.PI * 1.5);
 
 
+        if (floating) {
+            const r = Math.min(radius, height / 2);
+            context.newPath();
+            context.arc(width - r, r, r, -Math.PI / 2, 0);
+            context.arc(width - r, height - r, r, 0, Math.PI / 2);
+            context.arc(r, height - r, r, Math.PI / 2, Math.PI);
+            context.arc(r, r, r, Math.PI, Math.PI * 1.5);
+            context.closePath();
+        }
         const glass = this._settings.get_string('theme') === 'glass';
         context.setSourceRGBA(glass ? 0.10 : 0.031, glass ? 0.13 : 0.035,
             glass ? 0.18 : 0.047, this._settings.get_double('opacity'));
@@ -805,13 +864,15 @@ export default class DynamicIsland extends Extension {
         this._hud.visible = hud;
         this._bars.visible = !hud && music;
         this._marquee.visible = !hud && music;
-        this._marquee.width = count > 1 ? MARQUEE - 38 : MARQUEE;
+        this._compactArt.visible = !hud && music && this._settings.get_boolean('compact-cover');
+        this._mascot.visible = !hud && this._settings.get_boolean('show-mascot');
+        this._marquee.width = MARQUEE - (this._mascot.visible ? 28 : 0) - (count > 1 ? 38 : 0) - (this._compactArt.visible ? 33 : 0);
         this._pillContent.set_style(!hud && music ? 'padding: 0 24px;' : null);
         this._pillTimer.visible = !hud && !!this._live.current && !music;
         if (this._pillTimer.visible) this._pillTimer.text = this._live.current.text;
         this._activityCount.visible = !hud && count > 1;
         this._activityCount.text = `+${count - 1}`;
-        if (playing && !hud && this._button.visible && !this._menu?.isOpen && this._duration(1)) {
+        if (playing && !hud && this._host?.visible && this._button.mapped && !this._menu?.isOpen && this._duration(1)) {
             this._startBars();
             this._startMarquee();
         } else {
@@ -821,6 +882,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _startBars() {
+        if (this._settings.get_boolean('audio-visualizer')) { this._audioMeter.start(); return; }
         if (this._barsTimer) return;
 
         let phase = 0;
@@ -837,11 +899,13 @@ export default class DynamicIsland extends Extension {
     }
 
     _stopBars() {
+        this._audioMeter?.stop();
+        if (!this._barsTimer) return;
         this._clear(this._barsTimer);
         this._barsTimer = 0;
         for (const bar of this._barItems) {
             bar.remove_all_transitions();
-            bar.ease({height: 4, duration: 200, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
+            bar.ease({height: 4, duration: this._duration(200), mode: Clutter.AnimationMode.EASE_OUT_QUAD});
         }
     }
 
@@ -866,6 +930,7 @@ export default class DynamicIsland extends Extension {
         this._marqueeOn = true;
         const run = () => {
             if (!this._alive || !this._marqueeOn) return;
+            if (!this._marqueeRow.mapped || !this._duration(1)) { this._marqueeOn = false; return; }
             const width = this._m1.get_preferred_width(-1)[1];
             if (!width || width <= 0) return;
             this._marqueeRow.translation_x = 0;
@@ -905,6 +970,11 @@ export default class DynamicIsland extends Extension {
             reactive: true, visible: false, clip_to_allocation: true,
             layout_manager: new Clutter.FixedLayout(),
         });
+        this._glass = new St.Widget({reactive: false, clip_to_allocation: true});
+        this._island.add_child(this._glass);
+        this._glassEffect = new Shell.BlurEffect({mode: Shell.BlurMode.BACKGROUND});
+        this._glass.add_effect(this._glassEffect);
+        this._syncGlass();
         this._islandBackground = new St.DrawingArea();
         this._connect(this._islandBackground, 'repaint', area => this._paintTopIsland(area));
         this._connect(this._island, 'notify::width', () => this._syncIslandBackground());
@@ -954,6 +1024,9 @@ export default class DynamicIsland extends Extension {
             ['mirror', () => this._buildMirrorPage()],
             ['tools', () => this._buildToolsPage()],
             ['library', () => this._workspace.buildLibrary()],
+            ['studio', () => this._studio.build()],
+            ['agents', () => this._agents.build()],
+            ['applications', () => buildAppLauncher(this)],
         ];
         this._builders = Object.fromEntries(builders);
         for (const id of ['music', 'system', 'clock', 'home', 'notifications']) this._ensurePage(id);
@@ -994,10 +1067,23 @@ export default class DynamicIsland extends Extension {
         this._connect(Main.overview, 'showing', () => this._closeIsland());
     }
 
+    _syncGlass() {
+        if (!this._glass) return;
+        const enabled = this._settings.get_string('theme') === 'glass' && this._settings.get_int('glass-blur') > 0;
+        this._glass.visible = enabled;
+        this._glassEffect.set_enabled(enabled);
+        if ('sigma' in this._glassEffect) this._glassEffect.sigma = this._settings.get_int('glass-blur');
+        else this._glassEffect.radius = this._settings.get_int('glass-blur') * 2;
+        this._glassEffect.brightness = 0.7;
+    }
+
     _syncIslandBackground() {
         if (!this._island || !this._islandBackground) return;
         const width = Math.max(0, Math.round(this._island.width));
         const height = Math.max(0, Math.round(this._island.height));
+        const inset = this._settings.get_int('corner-radius') + 8;
+        this._glass.set_position(inset, inset);
+        this._glass.set_size(Math.max(0, width - inset * 2), Math.max(0, height - inset * 2));
         this._islandBackground.set_position(0, 0);
         this._islandBackground.set_size(width, height);
         this._islandBackground.queue_repaint();
@@ -1051,10 +1137,11 @@ export default class DynamicIsland extends Extension {
 
     _openIsland() {
         if (!this._alive || !this._island || this._menu.isOpen) return;
-        if (!this._monitor() || Main.sessionMode.isLocked) return;
+        if (!this._monitor() || Main.sessionMode.isLocked || Main.overview.visible || this._shelfBridge?.process) return;
         this._centerPill();
         const [nx, ny] = this._pill.get_transformed_position();
         const [nw, nh] = this._pill.get_transformed_size();
+        if (![nx, ny, nw, nh].every(Number.isFinite) || nw <= 0 || nh <= 0) return;
         this._notch = {x: Math.round(nx), y: Math.round(ny), w: Math.round(nw), h: Math.round(nh)};
         this._topSpacer.set_height(Math.max(22, this._notch.h - 8));
 
@@ -1158,6 +1245,9 @@ export default class DynamicIsland extends Extension {
 
 
         this._releaseInteraction();
+        this._ornaments?.clear();
+        this._studio?.stopMotion();
+        if (this._studio?.recording) this._studio.recording.send_signal(15);
         if (!this._menu?.isOpen || !this._island) return;
         this._menu.isOpen = false;
         this._state = 'collapsing';
@@ -1180,6 +1270,7 @@ export default class DynamicIsland extends Extension {
         this._ensurePage(id);
         if (!this._pages[id]) id = 'home';
         const previous = this._tab;
+        if (previous === 'studio' && id !== 'studio') this._studio.stopMotion();
         this._tab = id;
         for (const [k, page] of Object.entries(this._pages)) page.visible = k === id;
         this._pagesBox.set_height(this._pages[id]?._h ?? -1);
@@ -1191,7 +1282,7 @@ export default class DynamicIsland extends Extension {
         if (this._menu.isOpen && previous !== id && this._duration(1)) {
             page.opacity = 0;
             page.translation_y = 6;
-            page.ease({opacity: 255, translation_y: 0, duration: 200, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+            page.ease({opacity: 255, translation_y: 0, duration: this._duration(200), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
         }
         for (const [k, b] of Object.entries(this._tabButtons)) {
             if (k === id) b.add_style_class_name('di-tab-active');
@@ -1456,6 +1547,7 @@ export default class DynamicIsland extends Extension {
             this._resizeIsland();
         }));
         page.add_child(audioTools);
+        this._mediaExtras.build(page);
         this._appAudio = new St.BoxLayout({vertical: true, style_class: 'di-list', visible: false});
         page.add_child(this._appAudio);
     }
@@ -1497,6 +1589,7 @@ export default class DynamicIsland extends Extension {
         this._shelfScroll = this._scroll(PAGE_H - 34);
         this._shelfScroll.add_child(this._shelfList);
         page.add_child(this._shelfScroll);
+        page.add_child(this._chip('Arrastrar y previsualizar archivos', () => this._shelfBridge?.open(), 'view-grid-symbolic'));
         const tools = new St.BoxLayout({style_class: 'di-head'});
         for (const [operation, label] of [['zip', 'ZIP'], ['extract', 'Extraer'], ['png', 'PNG'], ['ocr', 'OCR']])
             tools.add_child(this._chip(label, () => this._runFileTool(operation)));
@@ -1511,6 +1604,12 @@ export default class DynamicIsland extends Extension {
         this._fileJobLabel = this._label('Selecciona archivos para procesarlos.', 'di-hint', {width: WIDTH});
         this._fileJobLabel.clutter_text.set_line_wrap(true);
         page.add_child(this._fileJobLabel);
+        this._fileCancel = this._chip('Cancelar operación', () => {
+            this._fileCancelled = true;
+            this._fileJob?.send_signal(15);
+        }, 'process-stop-symbolic');
+        this._fileCancel.visible = false;
+        page.add_child(this._fileCancel);
         this._fileResult = this._chip('Abrir resultado', () => this._openUri(GLib.filename_to_uri(this._fileResultPath, null)));
         this._fileResult.visible = false;
         page.add_child(this._fileResult);
@@ -1535,6 +1634,8 @@ export default class DynamicIsland extends Extension {
             return;
         }
         this._fileJob = process;
+        this._fileCancelled = false;
+        this._fileCancel.visible = true;
         this._toast({key: 'files', icon: 'folder-symbolic', text: 'Operación de archivos en curso', priority: 30});
         process.communicate_utf8_async(null, null, (proc, result) => {
             let output;
@@ -1542,6 +1643,11 @@ export default class DynamicIsland extends Extension {
             catch (error) { if (this._alive) this._fileJobLabel.set_text(error.message); }
             if (!this._alive || this._fileJob !== proc) return;
             this._fileJob = null;
+            this._fileCancel.visible = false;
+            if (this._fileCancelled) {
+                this._fileJobLabel.text = 'Operación cancelada. Originales conservados.';
+                this._activities.dismiss('files'); this._presentActivity(); this._resizeIsland(); return;
+            }
             try {
                 const data = JSON.parse(output?.[1] || '{}');
                 if (!proc.get_successful() || data.error || !data.path) throw new Error(data.error || 'La operación no pudo terminar');
@@ -1562,12 +1668,17 @@ export default class DynamicIsland extends Extension {
     _loadShelf() {
         try {
             const [ok, data] = GLib.file_get_contents(this._shelfFile());
-            if (ok) this._shelf = (JSON.parse(dec.decode(data)).files ?? []).filter(p => GLib.file_test(p, GLib.FileTest.EXISTS));
+            if (ok) {
+                const state = JSON.parse(dec.decode(data));
+                this._shelf = (state.files ?? []).filter(p => typeof p === 'string' && GLib.path_is_absolute(p) && GLib.file_test(p, GLib.FileTest.EXISTS)).slice(0, 50);
+                this._shelfPins = new Set((state.pins ?? []).filter(p => this._shelf.includes(p)));
+            }
         } catch (e) { this._shelf = []; }
     }
 
     _saveShelf() {
-        try { GLib.file_set_contents(this._shelfFile(), JSON.stringify({files: this._shelf})); } catch (e) {            }
+        this._fileServices?.syncShelf();
+        try { GLib.file_set_contents(this._shelfFile(), JSON.stringify({files: this._shelf, pins: [...this._shelfPins]})); } catch (e) {            }
     }
 
     _shelfAddFromClipboard() {
@@ -1598,16 +1709,17 @@ export default class DynamicIsland extends Extension {
         for (const uri of uris) {
             try {
                 const path = GLib.filename_from_uri(uri)[0];
-                if (GLib.file_test(path, GLib.FileTest.EXISTS) && !this._shelf.includes(path)) { this._shelf.push(path); added++; }
+                if (this._shelf.length < 50 && GLib.file_test(path, GLib.FileTest.EXISTS) && !this._shelf.includes(path)) { this._shelf.push(path); added++; }
             } catch (e) {            }
         }
+        this._shelf = this._shelf.slice(0, 50);
         this._saveShelf();
         this._renderShelf();
         this._toast({icon: 'folder-symbolic', text: added ? `${added} en el estante` : 'Ya estaban en el estante', ms: 1800});
     }
 
     _shelfClear() {
-        this._shelf = [];
+        this._shelf = this._shelf.filter(path => this._shelfPins.has(path));
         this._shelfSelection.clear();
         this._saveShelf();
         this._renderShelf();
@@ -1615,6 +1727,8 @@ export default class DynamicIsland extends Extension {
 
     _renderShelf() {
         if (!this._shelfList) return;
+        const valid = this._shelf.filter(path => GLib.file_test(path, GLib.FileTest.EXISTS));
+        if (valid.length !== this._shelf.length) { this._shelf = valid; this._saveShelf(); }
         this._shelfList.destroy_all_children();
         if (!this._shelf.length) {
             const hint = this._label('Copia archivos en tu gestor (Ctrl+C) y pulsa «Añadir copiados». Luego pégalos donde quieras o envíalos.', 'di-hint');
@@ -1645,10 +1759,17 @@ export default class DynamicIsland extends Extension {
             open.connect('clicked', () => { this._openUri(uri); });
             row.add_child(open);
             row.add_child(this._iconBtn('edit-copy-symbolic', () => this._copyFile(uri)));
-            row.add_child(this._iconBtn('folder-open-symbolic', () => this._openUri(GLib.filename_to_uri(GLib.path_get_dirname(path), null))));
+            const pin = this._iconBtn(this._shelfPins.has(path) ? 'starred-symbolic' : 'non-starred-symbolic', () => {
+                if (this._shelfPins.has(path)) this._shelfPins.delete(path); else this._shelfPins.add(path);
+                this._saveShelf(); this._renderShelf();
+            });
+            pin.accessible_name = this._shelfPins.has(path) ? 'Desfijar archivo' : 'Fijar archivo';
+            row.add_child(pin);
             row.add_child(this._iconBtn('send-to-symbolic', () => this._sendFile(path, uri)));
             row.add_child(this._iconBtn('window-close-symbolic', () => {
                 this._shelf = this._shelf.filter(p => p !== path);
+                this._shelfPins.delete(path);
+                this._shelfSelection.delete(path);
                 this._saveShelf();
                 this._renderShelf();
             }));
@@ -1680,15 +1801,24 @@ export default class DynamicIsland extends Extension {
     }
 
     _sendFile(path, uri) {
-        if (GLib.find_program_in_path('localsend') && this._spawn(['localsend', path])) return;
-
-        if (GLib.find_program_in_path('kdeconnect-handler') && this._spawn(['kdeconnect-handler', uri])) return;
-        if (GLib.find_program_in_path('bluetooth-sendto') && this._spawn(['bluetooth-sendto', path])) return;
-        this._toast({icon: 'dialog-information-symbolic', text: 'Instala LocalSend, KDE Connect o bluetooth-sendto', ms: 3200, warn: true});
+        this._shareChoices?.destroy();
+        this._shareChoices = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._pages.files.add_child(this._shareChoices);
+        this._shareChoices.add_child(this._label('Elige una herramienta; el destino se selecciona en ella.', 'di-hint'));
+        let count = 0;
+        for (const [binary, label, argument] of [['localsend', 'LocalSend', path], ['kdeconnect-handler', 'KDE Connect', uri], ['bluetooth-sendto', 'Bluetooth', path]]) {
+            if (!GLib.find_program_in_path(binary)) continue;
+            count++;
+            this._shareChoices.add_child(this._chip(label, () => {
+                if (this._spawn([binary, argument])) {
+                    this._toast({text: `${label} abierto. Confirma allí el envío.`, icon: 'send-to-symbolic'});
+                    this._closeIsland();
+                }
+            }));
+        }
+        if (!count) this._shareChoices.add_child(this._label('Instala LocalSend, KDE Connect o bluetooth-sendto.', 'di-hint'));
+        this._resizeIsland();
     }
-
-
-
 
     _clipFile() { return GLib.build_filenamev([this._dataDir, 'portapapeles.json']); }
     _clipDir() { return GLib.build_filenamev([this._dataDir, 'clips']); }
@@ -1897,7 +2027,7 @@ export default class DynamicIsland extends Extension {
         const dy = to.get_transformed_position()[1] - from.get_transformed_position()[1];
         from.remove_all_transitions();
         from.ease({
-            translation_y: dy, duration: 420, mode: Clutter.AnimationMode.EASE_OUT_BACK,
+            translation_y: dy, duration: this._duration(420), mode: Clutter.AnimationMode.EASE_OUT_BACK,
             onComplete: () => done(),
         });
     }
@@ -1967,6 +2097,11 @@ export default class DynamicIsland extends Extension {
         }, 'di-mini-btn', 16);
         searchRow.add_child(this._clipFavBtn);
         page.add_child(searchRow);
+        this._clipFilter = 'all';
+        const filters = new St.BoxLayout({style_class: 'di-presets'});
+        for (const [value, name] of [['all', 'Todo'], ['text', 'Texto'], ['link', 'Enlaces'], ['image', 'Imágenes']])
+            filters.add_child(this._chip(name, () => { this._clipFilter = value; this._renderClips(); }));
+        page.add_child(filters);
 
         this._clipList = new St.BoxLayout({vertical: true, style_class: 'di-list'});
         this._clipScroll = this._scroll(PAGE_CLIP_LIST);
@@ -2001,6 +2136,9 @@ export default class DynamicIsland extends Extension {
 
         const query = (this._clipSearch?.get_text() ?? '').trim().toLowerCase();
         let list = [...this._clips.filter(e => e.pinned), ...this._clips.filter(e => !e.pinned)];
+        if (this._clipFilter === 'image') list = list.filter(e => e.type === 'image');
+        else if (this._clipFilter === 'link') list = list.filter(e => e.type === 'text' && /^https?:\/\//i.test(e.text));
+        else if (this._clipFilter === 'text') list = list.filter(e => e.type === 'text');
         if (this._clipFavOnly) list = list.filter(e => e.fav);
         if (query) {
             list = list.filter(e => e.type === 'text'
@@ -2023,7 +2161,7 @@ export default class DynamicIsland extends Extension {
                 slot.dot.set_scale(0, 0);
                 this._timeout(40, () => {
                     try {
-                        slot.dot.ease({scale_x: 1, scale_y: 1, duration: 320, mode: Clutter.AnimationMode.EASE_OUT_BACK});
+                        slot.dot.ease({scale_x: 1, scale_y: 1, duration: this._duration(320), mode: Clutter.AnimationMode.EASE_OUT_BACK});
                     } catch (err) {                            }
                     return GLib.SOURCE_REMOVE;
                 });
@@ -2280,11 +2418,13 @@ export default class DynamicIsland extends Extension {
                 if (!this._notificationSeen.has(notification)) {
                     this._notificationSeen.add(notification);
                     if (this._notificationPrimed && this._settings.get_boolean('notification-events') &&
-                        this._notificationSettings.get_boolean('show-banners')) {
-                        const text = this._settings.get_boolean('private-previews')
+                        this._notificationSettings.get_boolean('show-banners') &&
+                        !this._settings.get_strv('muted-apps').includes(source.title ?? 'Aplicación')) {
+                        const policy = this._notificationPolicy(source.title ?? 'Aplicación');
+                        const text = policy.private
                             ? `${source.title ?? 'Aplicación'} · Nueva notificación`
                             : String(notification.title ?? 'Nueva notificación');
-                        this._toast({key: 'notification', icon: 'preferences-system-notifications-symbolic', text, priority: 40});
+                        this._toast({key: 'notification', icon: 'preferences-system-notifications-symbolic', text, priority: 40, ms: policy.duration});
                     }
                 }
                 try { this._watchNotificationObject(notification, ['notify::acknowledged']); }
@@ -2302,6 +2442,23 @@ export default class DynamicIsland extends Extension {
             this._bindNotificationSources();
             return GLib.SOURCE_REMOVE;
         });
+    }
+
+    _notificationPolicy(app) {
+        let policies = {};
+        try { policies = JSON.parse(this._settings.get_string('notification-policies')); } catch {}
+        const stored = policies && typeof policies === 'object' && Object.hasOwn(policies, app) ? policies[app] : {};
+        return {private: typeof stored.private === 'boolean' ? stored.private : this._settings.get_boolean('private-previews'),
+            duration: Number.isFinite(stored.duration) ? clamp(stored.duration, 1000, 8000) : this._settings.get_int('event-duration')};
+    }
+
+    _setNotificationPolicy(app, update) {
+        let policies = {};
+        try { policies = JSON.parse(this._settings.get_string('notification-policies')); } catch {}
+        if (!policies || typeof policies !== 'object' || Array.isArray(policies)) policies = {};
+        const entries = Object.entries(policies).filter(([key]) => key !== app).slice(-99);
+        this._settings.set_string('notification-policies', JSON.stringify(Object.fromEntries([...entries, [app, {...this._notificationPolicy(app), ...update}]])));
+        this._scheduleNotificationsRender();
     }
 
     _notificationEntries() {
@@ -2347,7 +2504,20 @@ export default class DynamicIsland extends Extension {
             return;
         }
 
-        for (const {source, notification} of entries.slice(0, MAX_VISIBLE_NOTIFICATIONS)) {
+        const grouped = [...entries].sort((a, b) => String(a.source.title).localeCompare(String(b.source.title)));
+        let previousApp = null;
+        for (const {source, notification} of grouped.slice(0, MAX_VISIBLE_NOTIFICATIONS)) {
+            const appName = source.title ?? 'Aplicación';
+            if (appName !== previousApp) {
+                const count = entries.filter(entry => entry.source === source).length;
+                this._notificationList.add_child(this._label(`${appName} · ${count}`, 'di-dashboard-caption'));
+                const policy = this._notificationPolicy(appName);
+                const controls = new St.BoxLayout({style_class: 'di-presets'});
+                controls.add_child(this._chip(policy.private ? 'Título oculto' : 'Mostrar título', () => this._setNotificationPolicy(appName, {private: !policy.private})));
+                controls.add_child(this._chip(`${policy.duration / 1000} s`, () => this._setNotificationPolicy(appName, {duration: policy.duration >= 8000 ? 2000 : policy.duration + 2000})));
+                this._notificationList.add_child(controls);
+                previousApp = appName;
+            }
             const button = new St.Button({
                 style_class: 'di-notification-row',
                 reactive: true,
@@ -2384,6 +2554,25 @@ export default class DynamicIsland extends Extension {
                 this._closeIsland();
             });
             this._notificationList.add_child(button);
+            const actions = new St.BoxLayout({vertical: true, style_class: 'di-notification-actions'});
+            for (const action of (notification.actions ?? []).slice(0, 3)) {
+                actions.add_child(this._chip(action.label, () => {
+                    try { action.activate(); } catch { this._toast({text: 'Esta acción ya no está disponible', warn: true}); }
+                    this._scheduleNotificationsRender();
+                }));
+            }
+            actions.add_child(this._iconBtn('window-close-symbolic', () => {
+                notification.destroy(); this._scheduleNotificationsRender();
+            }));
+            const app = source.title ?? 'Aplicación';
+            const muted = this._settings.get_strv('muted-apps');
+            const mute = this._iconBtn(muted.includes(app) ? 'notifications-symbolic' : 'notifications-disabled-symbolic', () => {
+                this._settings.set_strv('muted-apps', muted.includes(app) ? muted.filter(name => name !== app) : [...muted, app]);
+                this._scheduleNotificationsRender();
+            });
+            mute.accessible_name = `${muted.includes(app) ? 'Activar' : 'Silenciar'} avisos de ${app}`;
+            actions.add_child(mute);
+            this._notificationList.add_child(actions);
         }
     }
 
@@ -2653,9 +2842,21 @@ export default class DynamicIsland extends Extension {
         this._mixer = Volume.getMixerControl();
         this._mixerSignals = [
             this._mixer.connect('default-sink-changed', () => this._bindSink()),
-            this._mixer.connect('state-changed', () => this._bindSink()),
+            this._mixer.connect('state-changed', () => { this._bindSink(); this._syncMicrophone(); }),
+            this._mixer.connect('stream-added', () => this._syncMicrophone()),
+            this._mixer.connect('stream-removed', () => this._syncMicrophone()),
         ];
         this._bindSink();
+    }
+
+    _syncMicrophone() {
+        if (!this._alive || !this._mixer) return;
+        const applications = (this._mixer.get_source_outputs?.() ?? []).filter(stream => !stream.is_virtual && stream.get_name?.() !== 'AureaOutputMeter').map(stream => stream.get_name?.() ?? 'Aplicación');
+        this._live.update('microphone', applications.length ? {
+            text: `Micrófono en uso · ${[...new Set(applications)].join(', ')}`,
+            icon: 'audio-input-microphone-symbolic', page: 'system', priority: 40,
+        } : null);
+        this._updatePill();
     }
 
     _bindSink() {
@@ -2917,7 +3118,7 @@ export default class DynamicIsland extends Extension {
             this._tm.running = false;
             this._tm.started = false;
             this._pomodoro = 'work';
-            this._tm.left = this._tm.total = 25 * 60000;
+            this._tm.left = this._tm.total = this._settings.get_int('focus-minutes') * 60000;
             this._clockToggle();
         }, 'focus-windows-symbolic'));
         page.add_child(modes);
@@ -2926,8 +3127,33 @@ export default class DynamicIsland extends Extension {
         page.add_child(this._clockBig);
 
         this._presets = new St.BoxLayout({style_class: 'di-presets', x_align: Clutter.ActorAlign.CENTER, x_expand: true});
-        for (const m of [1, 5, 10, 25]) this._presets.add_child(this._chip(`+${m} min`, () => this._timerAdd(m)));
+        this._renderTimerPresets();
         page.add_child(this._presets);
+        const duration = new St.Entry({style_class: 'di-search', hint_text: 'Minutos exactos · Enter', can_focus: true});
+        duration.clutter_text.connect('activate', () => {
+            const minutes = Number(duration.text);
+            if (!Number.isFinite(minutes) || minutes < 1 || minutes > 1440) {
+                this._toast({text: 'Usa entre 1 y 1440 minutos', icon: 'alarm-symbolic', warn: true}); return;
+            }
+            this._clockReset();
+            this._tm.mode = 'timer';
+            this._timerAdd(minutes);
+            this._clockToggle();
+        });
+        page.add_child(duration);
+        const adjust = new Slider(24 / 119);
+        adjust.accessible_name = 'Duración: de 1 a 120 minutos';
+        const adjustLabel = this._label('Arrastra para ajustar: 25 min', 'di-hint');
+        adjust.connect('notify::value', () => { adjustLabel.text = `Duración: ${1 + Math.round(adjust.value * 119)} min`; });
+        const applyDuration = () => {
+            this._clockReset();
+            this._tm.mode = 'timer';
+            this._timerAdd(1 + Math.round(adjust.value * 119));
+        };
+        adjust.connect('drag-end', applyDuration);
+        adjust.connect('key-release-event', () => { applyDuration(); return Clutter.EVENT_PROPAGATE; });
+        page.add_child(adjustLabel);
+        page.add_child(adjust);
 
         const ctl = new St.BoxLayout({style_class: 'di-clock-ctl', x_align: Clutter.ActorAlign.CENTER, x_expand: true});
         this._clockPlay = new St.Icon({icon_name: 'media-playback-start-symbolic', icon_size: 22});
@@ -2957,6 +3183,13 @@ export default class DynamicIsland extends Extension {
         this._worldClock = this._label('', 'di-hint', {width: WIDTH});
         this._worldClock.clutter_text.set_line_wrap(true);
         page.add_child(this._worldClock);
+    }
+
+    _renderTimerPresets() {
+        if (!this._presets) return;
+        this._presets.destroy_all_children();
+        const values = this._settings.get_value('timer-presets').deepUnpack().filter(value => value >= 1 && value <= 1440).slice(0, 4);
+        for (const minutes of values) this._presets.add_child(this._chip(`+${minutes} min`, () => this._timerAdd(minutes)));
     }
 
     _setClockMode(mode) {
@@ -3022,6 +3255,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _timerFinished() {
+        this._ornaments.celebrate();
         const t = this._tm;
         t.running = false;
         t.started = false;
@@ -3029,12 +3263,12 @@ export default class DynamicIsland extends Extension {
         t.total = 0;
         if (this._pomodoro) {
             this._pomodoro = this._pomodoro === 'work' ? 'break' : 'work';
-            t.left = t.total = (this._pomodoro === 'break' ? 5 : 25) * 60000;
+            t.left = t.total = this._settings.get_int(this._pomodoro === 'break' ? 'break-minutes' : 'focus-minutes') * 60000;
         }
         this._saveTimer();
         this._toast({icon: 'alarm-symbolic', text: 'Tiempo terminado', warn: true, ms: 6000});
         Main.notify('Temporizador', this._pomodoro ?
-            `${this._pomodoro === 'break' ? 'Descanso de 5 minutos' : 'Concentración de 25 minutos'} preparado. Pulsa reproducir para continuar.` : '¡Se acabó el tiempo!');
+            `${this._pomodoro === 'break' ? 'Descanso' : 'Concentración'} preparado. Pulsa reproducir para continuar.` : '¡Se acabó el tiempo!');
         if (!this._settings.get_boolean('timer-sound')) return;
         try { global.display.get_sound_player().play_from_theme('alarm-clock-elapsed', 'Temporizador', null); } catch (e) {
             try { global.display.get_sound_player().play_from_theme('complete', 'Temporizador', null); } catch (e2) {            }
@@ -3206,13 +3440,15 @@ export default class DynamicIsland extends Extension {
     }
 
     _setupCalendar() {
+        const epoch = this._epoch;
         import('resource:///org/gnome/shell/ui/calendar.js').then(mod => {
-            if (!this._alive) return;
+            if (!this._alive || epoch !== this._epoch) return;
             if (!mod.DBusEventSource) throw new Error('DBusEventSource no disponible');
             this._events = new mod.DBusEventSource();
             this._eventsSig = this._events.connect('changed', () => this._renderEvents());
             this._requestEvents();
         }).catch(e => {
+            if (!this._alive || epoch !== this._epoch) return;
             console.debug(`Dynamic Island: eventos del calendario no disponibles: ${e.message}`);
             this._events = null;
             this._renderEvents();
@@ -3222,7 +3458,7 @@ export default class DynamicIsland extends Extension {
     _eventRange() {
         const begin = this._selectedDate ? new Date(this._selectedDate) : new Date();
         begin.setHours(0, 0, 0, 0);
-        const end = new Date(begin.getTime() + 2 * 86400000);
+        const end = new Date(begin.getTime() + 14 * 86400000);
         return [begin, end];
     }
 
@@ -3236,9 +3472,9 @@ export default class DynamicIsland extends Extension {
     }
 
     _renderEvents() {
-        if (!this._eventsBox) return;
-        this._eventsBox.destroy_all_children();
+        this._eventsBox?.destroy_all_children();
         if (!this._events) {
+            if (!this._eventsBox) return;
             this._eventsBox.add_child(this._label('Eventos no disponibles (abre Calendario de GNOME y agrega una cuenta).', 'di-hint', {width: WIDTH}));
             return;
         }
@@ -3251,6 +3487,9 @@ export default class DynamicIsland extends Extension {
                 .sort((a, b) => a.date - b.date)
                 .slice(0, 3);
         } catch (e) { list = []; }
+        this._nextMeeting = list.find(event => !event.allDay && event.date >= new Date()) ?? null;
+        this._renderHome();
+        if (!this._eventsBox) return;
         if (!list.length) {
             this._eventsBox.add_child(this._label('Sin eventos en el intervalo seleccionado', 'di-hint'));
             return;
@@ -3259,12 +3498,14 @@ export default class DynamicIsland extends Extension {
         for (const ev of list) {
             const row = new St.BoxLayout({style_class: 'di-event'});
             const when = ev.allDay ? 'Todo el día'
-                : `${ev.date.toDateString() === today ? '' : 'Mañana '}${ev.date.toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'})}`;
+                : `${ev.date.toDateString() === today ? '' : `${ev.date.toLocaleDateString('es', {day: 'numeric', month: 'short'})} `}${ev.date.toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'})}`;
             row.add_child(this._label(when, 'di-event-time', {width: 96}));
             const title = this._label(String(ev.summary ?? ''), 'di-event-title', {width: WIDTH - 110});
             title.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
             row.add_child(title);
             this._eventsBox.add_child(row);
+            const url = meetingLink(ev);
+            if (url) this._eventsBox.add_child(this._chip('Unirse a la reunión', () => this._openUri(url), 'camera-web-symbolic'));
         }
     }
 
@@ -3340,11 +3581,12 @@ export default class DynamicIsland extends Extension {
             this._toast({icon: 'dialog-warning-symbolic', text: 'Falta gst-launch-1.0 (GStreamer)', warn: true, ms: 3000});
             return;
         }
-        if (!GLib.file_test('/dev/video0', GLib.FileTest.EXISTS)) {
+        const device = this._settings.get_string('camera-device');
+        if (!/^\/dev\/video\d+$/.test(device) || !GLib.file_test(device, GLib.FileTest.EXISTS)) {
             this._toast({icon: 'dialog-warning-symbolic', text: 'No se encontró la cámara', warn: true, ms: 3000});
             return;
         }
-        const argv = ['gst-launch-1.0', '-q', 'v4l2src', '!', 'videoconvert', '!', 'videoflip', 'method=horizontal-flip',
+        const argv = ['gst-launch-1.0', '-q', 'v4l2src', `device=${device}`, '!', 'videoconvert', '!', 'videoflip', 'method=horizontal-flip',
             '!', 'videoscale', '!', 'video/x-raw,width=320,height=240', '!', 'autovideosink'];
         let proc;
         try {
@@ -3550,7 +3792,8 @@ export default class DynamicIsland extends Extension {
                 const msg = Soup.Message.new('GET', url);
                 if (!msg) return;
                 this._http ??= new Soup.Session({timeout: 10});
-                this._http.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, this._cancel, (session, res) => {
+                const cancel = this._cancel;
+            this._http.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, cancel, (session, res) => {
                     if (!this._alive) return;
                     try {
                         const bytes = session.send_and_read_finish(res);
@@ -3571,6 +3814,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _showArt(path) {
+        if (this._compactArt) this._compactArt.gicon = path ? Gio.FileIcon.new(Gio.File.new_for_path(path)) : Gio.ThemedIcon.new('audio-x-generic-symbolic');
         this._artPath = path;
         if (this._largeArt) this._largeArt.set_style(path ?
             `background-image: url("${GLib.filename_to_uri(path, null)}"); background-size: contain;` : '');
@@ -3614,6 +3858,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _updateProgress() {
+        this._mediaExtras?.refresh();
         const ratio = this._length > 0 ? clamp(this._position / this._length) : 0;
         if (!this._seekDrag) {
             this._seek.value = ratio;
@@ -3635,6 +3880,7 @@ export default class DynamicIsland extends Extension {
             if (this._tab === 'music' && this._status === 'Playing' && !this._seekDrag) this._readPosition();
             if (this._tab === 'today') this._renderToday();
             if (this._tab === 'clock') this._renderClock();
+            if (this._tab === 'home') this._workspace.refresh();
             return GLib.SOURCE_CONTINUE;
         });
     }

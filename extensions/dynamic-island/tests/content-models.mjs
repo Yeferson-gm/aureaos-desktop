@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {parseLyrics, currentLyric, meetingLink, validateActivity} from '../content-models.js';
+const lines = parseLyrics('[ar:Prueba]\n[00:01.5][00:04.00]Uno\n[00:03]Dos');
+assert.deepEqual(lines.map(l => l.time), [1.5, 3, 4]);
+assert.equal(currentLyric(lines, 0).current, '');
+assert.equal(currentLyric(lines, 3.2).current, 'Dos');
+assert.equal(currentLyric(lines, 99).current, 'Uno');
+assert.equal(meetingLink({summary: 'https://meet.google.com/abc-defg-hij'}), 'https://meet.google.com/abc-defg-hij');
+assert.equal(meetingLink({url: 'https://meet.google.com.evil.test/foo'}), null);
+assert.equal(meetingLink({url: 'javascript:alert(1)'}), null);
+assert.equal(validateActivity({id: '../../path', state: 'running'}), null);
+assert.equal(validateActivity({id: 'build', state: 'running', progress: 7}).progress, 1);
+assert.equal(validateActivity({id: 'build', state: 'execute'}), null);
+console.log('Contenido: letras, tiempos, enlaces de reunión y actividades externas verificados.');

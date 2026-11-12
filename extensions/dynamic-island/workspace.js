@@ -14,6 +14,9 @@ export const MODULES = [
     ['notifications', 'Notificaciones', 'preferences-system-notifications-symbolic'],
     ['mirror', 'Cámara', 'camera-web-symbolic'],
     ['tools', 'Herramientas', 'applications-utilities-symbolic'],
+    ['studio', 'Estudio', 'audio-input-microphone-symbolic'],
+    ['agents', 'Tareas locales', 'utilities-terminal-symbolic'],
+    ['applications', 'Aplicaciones', 'view-app-grid-symbolic'],
 ];
 
 export class IslandWorkspace {
@@ -76,13 +79,15 @@ export class IslandWorkspace {
             clip: `${e._clips.length} elementos · ${e._cfg.private ? 'Captura pausada' : 'Historial local'}`,
             notes: `${(e._tasks ?? []).filter(t => !t.done).length} tareas pendientes`,
             notifications: `${e._notificationEntries().length} notificaciones`,
-            today: e._nextMeeting?.summary ?? 'Tu agenda y el tiempo',
+            today: e._nextMeeting ? `${e._nextMeeting.summary} · ${e._nextMeeting.allDay ? 'Todo el día' : `en ${Math.max(0, Math.ceil((e._nextMeeting.date - Date.now()) / 60000))} min`}` : 'Tu agenda y el tiempo',
+            studio: 'Dictado local y teleprompter',
+            agents: `${e._agents?.items.size ?? 0} tareas locales`,
             mirror: 'Comprueba tu cámara cuando lo necesites',
             tools: 'Acciones rápidas y utilidades',
         };
         for (const {id, title} of this.cards) title.text = details[id] ?? 'Abrir';
         this.liveBox.destroy_all_children();
-        for (const activity of e._live.entries.slice(0, 3)) {
+        for (const activity of e._live.entries.filter(item => !this.cards.some(card => card.id === item.page)).slice(0, 3)) {
             const button = e._chip(activity.text, () => e._selectTab(activity.page), activity.icon);
             button.add_style_class_name('di-live-item');
             this.liveBox.add_child(button);
@@ -102,10 +107,12 @@ export class IslandWorkspace {
             const query = search.text.toLocaleLowerCase('es');
             let row;
             let index = 0;
-            for (const [id, name, icon] of MODULES.filter(m => m[0] !== 'home' && m[1].toLocaleLowerCase('es').includes(query))) {
+            for (const [id, name, icon] of MODULES.filter(m => m[0] !== 'home' && (m[0] !== 'applications' || e._settings.get_boolean('app-launcher')) && m[1].toLocaleLowerCase('es').includes(query))) {
                 if (index++ % 2 === 0) { row = new St.BoxLayout({style_class: 'di-library-row'}); list.add_child(row); }
                 const button = e._chip(name, () => e._selectTab(id), icon);
                 button.width = 182;
+                button._label.width = 134;
+                button._label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
                 button.add_style_class_name('di-library-tile');
                 row.add_child(button);
             }
@@ -113,6 +120,7 @@ export class IslandWorkspace {
             e._resizeIsland();
         };
         search.clutter_text.connect('text-changed', render);
+        e._connect(e._settings, 'changed::app-launcher', render);
         page.add_child(e._chip('Personalizar este espacio', () => { e._closeIsland(); e.openPreferences(); }, 'preferences-system-symbolic'));
         render();
     }
