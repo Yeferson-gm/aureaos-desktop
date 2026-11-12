@@ -281,3 +281,16 @@ patrón sintético en un directorio temporal; no necesitan tus vídeos personale
 
 No hay remoto configurado ni se ha publicado el contenido. Antes de distribuir
 a terceros, resolver los límites de licencia señalados en procedencia.
+
+## Nueva experiencia de la isla dinámica
+
+La [guía de la isla](docs/isla-dinamica-uso.md) describe tarjetas configurables,
+actividades persistentes, gestos, estante GTK, notificaciones por aplicación y
+módulos opcionales. Incluye dependencias, privacidad, tareas locales y límites
+verificados. La [validación](docs/isla-dinamica-validacion.md) registra pruebas y
+mediciones.
+
+Para actualizar únicamente una extensión, el instalador acepta
+`--component=dynamic-island` junto con `--apply` o `--check`. Sin `--apply` solo
+muestra los destinos. Esa selección conserva los demás componentes y no modifica
+las preferencias del tema. Usa paquetes construidos desde una etiqueta Git limpia.
