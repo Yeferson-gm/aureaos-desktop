@@ -571,7 +571,8 @@ export default class DynamicIsland extends Extension {
 
 
     _buildPill() {
-        this._button = new St.Button({reactive: true, can_focus: true, accessible_name: 'Abrir isla dinámica'});
+        this._button = new St.Button({reactive: true, can_focus: true, button_mask: St.ButtonMask.ONE | St.ButtonMask.THREE,
+            accessible_name: 'Abrir isla dinámica'});
         this._button.add_style_class_name('di-button');
         this._pill = new St.Widget({
             style_class: 'di-pill',
@@ -653,10 +654,13 @@ export default class DynamicIsland extends Extension {
 
 
         this._connect(this._button, 'scroll-event', (_actor, event) => this._onIslandScroll(event));
-        this._connect(this._button, 'button-release-event', (_actor, event) => {
-            if (event.get_button() === 3) { this._activities.dismiss(); this._presentActivity(); return Clutter.EVENT_STOP; }
-            this._activatePill();
-            return Clutter.EVENT_STOP;
+        this._connect(this._button, 'clicked', (_actor, button) => {
+            if (button === Clutter.BUTTON_SECONDARY) {
+                this._activities.dismiss();
+                this._presentActivity();
+            } else {
+                this._activatePill();
+            }
         });
         this._connect(this._button, 'enter-event', () => {
             this._clear(this._leaveTimer);
@@ -673,21 +677,6 @@ export default class DynamicIsland extends Extension {
         this._connect(this._button, 'leave-event', () => {
             this._clear(this._hoverTimer);
             this._hoverTimer = 0;
-            return Clutter.EVENT_PROPAGATE;
-        });
-        this._connect(this._button, 'touch-event', (_actor, event) => {
-            if (event.type() !== Clutter.EventType.TOUCH_END)
-                return Clutter.EVENT_PROPAGATE;
-            this._activatePill();
-            return Clutter.EVENT_STOP;
-        });
-        this._connect(this._button, 'key-press-event', (_actor, event) => {
-            const key = event.get_key_symbol();
-            if (key === Clutter.KEY_Return || key === Clutter.KEY_KP_Enter ||
-                key === Clutter.KEY_space) {
-                this._activatePill();
-                return Clutter.EVENT_STOP;
-            }
             return Clutter.EVENT_PROPAGATE;
         });
         this._sizePill();

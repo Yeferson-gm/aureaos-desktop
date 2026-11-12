@@ -88,3 +88,24 @@ Se transcribieron el audio de ejemplo y una voz sintética española, también c
 idioma automático. No se grabó el micrófono personal. La prueba española tuvo una
 palabra mal reconocida; el dictado requiere revisar el texto y no promete exactitud
 perfecta. No se copian binario ni pesos al repositorio o paquete de la extensión.
+
+## Regresión de activación del botón compacto
+
+El botón compacto es un `St.Button`: su activación nativa emite `clicked`.
+Escuchar `button-release-event` dejaba el panel cerrado porque el propio botón
+consumía ese evento. Ahora se usa una sola señal de activación para ratón y
+teclado, evitando duplicar el manejo nativo de toque/teclas. El botón secundario
+conserva la acción de descartar el aviso.
+
+Las pruebas anteriores llamaban directamente a los métodos de apertura; no
+verificaban la entrega de entrada del compositor. La regresión se reproduce y
+comprueba con dispositivos virtuales de Clutter en el Shell aislado:
+
+```bash
+DI_TEST_CLICK=1 bash extensions/dynamic-island/tests/smoke-shell.sh
+```
+
+Comprueba un clic para abrir, segundo clic para cerrar, clic derecho para
+descartar, Enter/Espacio para abrir y Escape para cerrar sin retener el grab.
+Espera a que el puntero virtual alcance el botón antes de emitir el clic; nunca
+reintenta un clic fallido. No sustituye la prueba de una pantalla táctil física.

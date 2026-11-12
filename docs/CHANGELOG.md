@@ -1,5 +1,11 @@
 # Cambios
 
+## 0.1.1
+
+- Corregida la apertura de la isla dinámica al hacer clic en el notch.
+- Activación nativa única para ratón y teclado, con prueba de entrada real del
+  compositor aislado y cierre sin bloquear la pantalla.
+
 ## En desarrollo
 
 - README operativo con instalación, activación/desactivación, alternativas
