@@ -26,6 +26,8 @@ import {
     Utils,
 } from './imports.js';
 
+import {styleMenu} from './custom-effects/appearance.js';
+
 const PREVIEW_MAX_WIDTH = 250;
 const PREVIEW_MAX_HEIGHT = 150;
 
@@ -49,6 +51,7 @@ export class WindowPreviewMenu extends PopupMenu.PopupMenu {
 
         this.actor.add_style_class_name('app-menu');
         this.actor.add_style_class_name('dock-app-menu');
+        styleMenu(this, Docking.DockManager.settings);
         this.actor.add_style_class_name('dock-preview-menu');
         this.actor.set_style(
             `max-width: ${Math.round(workArea.width / scaleFactor) - MENU_MARGINS}px; ` +

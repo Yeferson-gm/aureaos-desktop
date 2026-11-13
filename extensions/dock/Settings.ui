@@ -890,7 +890,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="magnification_response_label">
-                                <property name="label">Suavidad del movimiento</property>
+                                <property name="label">Respuesta del suavizado (ms)</property>
                                 <property name="xalign">0</property>
                                 <property name="margin_top">12</property>
                                 <layout>
@@ -954,10 +954,7 @@
                                 <signal name="value-changed" handler="preview_size_scale_value_changed_cb" />
                               </object>
                             </child>
-                            <layout>
-                              <property name="column">0</property>
-                              <property name="row">1</property>
-                            </layout>
+
                           </object>
                         </child>
                       </object>

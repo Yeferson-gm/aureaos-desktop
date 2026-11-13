@@ -50,6 +50,11 @@
     <value value='8' nick='BINARY'/>
     <value value='9' nick='DOT'/>
   </enum>
+  <enum id="org.gnome.shell.extensions.dash-to-dock.material-theme">
+    <value value="0" nick="auto"/>
+    <value value="1" nick="light"/>
+    <value value="2" nick="dark"/>
+  </enum>
   <schema path="/org/gnome/shell/extensions/dash-to-dock/" id="org.gnome.shell.extensions.dash-to-dock">
     <key name="dock-position" enum="org.gnome.shell.extensions.dash-to-dock.position">
       <default>'BOTTOM'</default>
@@ -674,6 +679,11 @@
       <default>true</default>
       <summary>One running indicator dot</summary>
       <description>Show a single dot under running apps, like macOS, regardless of window count.</description>
+    </key>
+    <key enum="org.gnome.shell.extensions.dash-to-dock.material-theme" name="material-theme">
+      <default>'auto'</default>
+      <summary>Aurea material theme</summary>
+      <description>Follow the system or choose light or dark Dock surfaces.</description>
     </key>
   </schema>
 </schemalist>

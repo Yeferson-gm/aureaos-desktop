@@ -1598,9 +1598,9 @@
   background-gradient-direction: vertical;
   background-gradient-start: rgba(255, 255, 255, 0.26);
   background-gradient-end: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.36);
-  border-radius: 22px;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf #dashtodockDashContainer {
@@ -1716,4 +1716,29 @@
 .dock-preview-menu .dashtodock-app-well-preview-menu-item:focus,
 .dock-preview-menu .dashtodock-app-well-preview-menu-item:selected {
   background-color: rgba(255, 255, 255, 0.16);
+}
+
+#dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf.aurea-dark .dash-background {
+  background-color: rgba(29, 32, 38, 0.55);
+  background-gradient-start: rgba(62, 66, 74, 0.62);
+  background-gradient-end: rgba(29, 32, 38, 0.44);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+#dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf.aurea-contrast .dash-background {
+  background-color: #f4f6fa;
+  background-gradient-direction: none;
+  border: 2px solid #20242b;
+  box-shadow: none;
+}
+#dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf.aurea-contrast.aurea-dark .dash-background {
+  background-color: #1d2026;
+  border-color: #ffffff;
+}
+.app-menu.dock-app-menu.aurea-contrast .popup-menu-item:hover,
+.app-menu.dock-app-menu.aurea-contrast .popup-menu-item:focus {
+  background-color: #185abc;
+  color: #ffffff;
+}
+.app-menu.dock-app-menu:not(.aurea-dark) .popup-separator-menu-item .popup-separator-menu-item-separator {
+  background-color: rgba(32, 36, 43, 0.18);
 }

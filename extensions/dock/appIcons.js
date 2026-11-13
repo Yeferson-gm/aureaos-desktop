@@ -35,6 +35,8 @@ import {
     WindowPreview,
 } from './imports.js';
 
+import {styleMenu, appearanceState} from './custom-effects/appearance.js';
+
 import {Extension} from './dependencies/shell/extensions/extension.js';
 
 
@@ -1132,6 +1134,7 @@ const DockAppIconMenu = class DockAppIconMenu extends PopupMenu.PopupMenu {
 
         this.actor.add_style_class_name('app-menu');
         this.actor.add_style_class_name('dock-app-menu');
+        styleMenu(this, Docking.DockManager.settings);
 
 
         this._signalsHandler.add(source, 'notify::mapped', () => {
@@ -1665,7 +1668,7 @@ class DockShowAppsIconMenu extends DockAppIconMenu {
     _rebuildMenu() {
         this.removeAll();
 
-        this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem(__('Dash to Dock')));
+        this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Aurea 27 · Dock'));
 
         const item = this._appendMenuItem(_('Settings'));
         item.connect('activate', () =>
@@ -1682,6 +1685,9 @@ export function itemShowLabel() {
 
     if (!this._labelText || !this.label.get_stage())
         return;
+    const desktop = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'});
+    const {dark, contrast} = appearanceState(Docking.DockManager.settings, desktop);
+    this.label.set_style(`background-color: ${dark ? '#24272e' : '#f4f6fa'}; color: ${dark ? '#f4f5f7' : '#20242b'}; border-color: ${contrast ? (dark ? '#ffffff' : '#20242b') : 'rgba(128,128,128,0.3)'};`);
 
     this.label.set_text(this._labelText);
     this.label.opacity = 0;

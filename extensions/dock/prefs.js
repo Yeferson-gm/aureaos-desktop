@@ -6,6 +6,7 @@ import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
+import {buildAppearancePage} from './custom-effects/preferences.js';
 
 import {
     ExtensionPreferences,
@@ -1216,6 +1217,7 @@ const DockSettings = GObject.registerClass({
 export default class DockPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = new DockSettings(this);
+        window.add(buildAppearancePage(this.getSettings('org.gnome.shell.extensions.dash-to-dock'), window));
         window.add(settings.page);
     }
 }
