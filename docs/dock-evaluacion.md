@@ -80,3 +80,11 @@ Dictamen de movimiento: pendiente de aprobación para una nueva entrega pulida.
 La base puede conservarse; antes de ampliar efectos hay que resolver movimiento
 reducido, duración del rebote y validación de interacción. No es motivo para
 retirar la instalación actual ni reiniciar la sesión durante esta evaluación.
+
+## Seguimiento de implementación
+
+La [guía de uso y verificación](dock-uso.md) registra los cambios aplicados, pruebas
+y límites. Se conserva esta evaluación como diagnóstico previo. Descargas y la
+normalización de iconos de terceros permanecen fuera de esta entrega; la capa de
+desenfoque conserva su margen interior seguro. No se afirma una máscara Liquid
+Glass exacta ni mejoras de FPS físicos no medidas.

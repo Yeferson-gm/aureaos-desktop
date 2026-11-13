@@ -1,5 +1,15 @@
 # Cambios
 
+## 0.3.0
+
+- Dock con materiales claros/oscuros, alto contraste y preferencias Aurea en vivo.
+- Rebote breve, respeto al movimiento reducido y suspensión de lente durante
+  arrastre y menús. Limpieza de referencias a iconos destruidos.
+- Vidrio estirado mediante transformaciones, sin redistribución por cuadro.
+- Corrección de opacidad al pulsar, recorte por monitor, punto único en vivo y
+  listado de monitores sin duplicados al actualizar las preferencias.
+- Pruebas de entrada virtual, ventanas GTK, preferencias y fondo animado sintético.
+
 ## 0.2.2
 
 - Micrófono incluido por defecto en el Centro de Control cuando existe una entrada

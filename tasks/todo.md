@@ -25,3 +25,12 @@ acciones D-Bus y 100 interrupciones. Límites físicos documentados en
 - [x] Ajustar el notch unido al borde a la altura de la barra, conservando ancho y panel expandido.
 - [x] Comprobación general: 25 pruebas, esquemas y CSS; integración GNOME aislada con tres deslizadores y cambios de altura.
 - [x] Clic, segundo clic, clic derecho, Enter, Espacio y Escape validados en sesión aislada. El primer intento no entregó eventos del puntero virtual; la repetición independiente recibió el clic y pasó.
+
+## Dock: movimiento, material e interacción
+
+- [x] Movimiento reducido y rebote acotado, con limpieza de actores destruidos.
+- [x] Material claro/oscuro, alto contraste y preferencias en vivo por grupo.
+- [x] Arrastre y menús suspenden la lente; corrección de opacidad y límites del monitor.
+- [x] Vidrio por transformaciones: 0 cambios de asignación en el barrido frente a 85 antes; 0 cuadros de lente en reposo.
+- [x] Clics, arrastre, ventanas, minimizar/restaurar, ocultamiento/revelado, preferencias y dos monitores 125/100 % verificados.
+- [x] Comprobación general y revisión de límites en docs/dock-uso.md.

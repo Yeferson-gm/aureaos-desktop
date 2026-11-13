@@ -310,3 +310,9 @@ Para actualizar únicamente una extensión, el instalador acepta
 `--component=dynamic-island` junto con `--apply` o `--check`. Sin `--apply` solo
 muestra los destinos. Esa selección conserva los demás componentes y no modifica
 las preferencias del tema. Usa paquetes construidos desde una etiqueta Git limpia.
+
+## Personalizar el Dock
+
+[Controles, pruebas y límites del Dock](docs/dock-uso.md). La nueva página Aurea
+se abre con `gnome-extensions prefs macos27-dock@local`. Incluye material,
+desenfoque, aspecto, indicadores y movimiento con restauración por grupo.
