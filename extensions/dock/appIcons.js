@@ -134,6 +134,9 @@ export const DockAbstractAppIcon = GObject.registerClass({
             this._stateChangedId = 0;
         }
 
+        this._signalsHandler.add(St.Settings.get(), 'notify::enable-animations', () => {
+            if (!St.Settings.get().enable_animations) this._stopBounce();
+        });
         this._signalsHandler.add(this.app, 'windows-changed', () => this._updateWindows());
         this._signalsHandler.add(this.app, 'notify::state', () => this._updateRunningState());
         this._signalsHandler.add(global.display, 'window-demands-attention', (_dpy, window) =>
@@ -265,6 +268,7 @@ export const DockAbstractAppIcon = GObject.registerClass({
 
 
     animateLaunch() {
+        if (!St.Settings.get().enable_animations) return;
         if (!Docking.DockManager.settings.launchBounce) {
             super.animateLaunch();
             return;
@@ -282,36 +286,35 @@ export const DockAbstractAppIcon = GObject.registerClass({
     }
 
     _startBounce(persistent) {
-        if (this._bouncing)
+        if (this._bouncing || !St.Settings.get().enable_animations)
             return;
         const bin = this.icon?._iconBin;
         if (!bin)
             return;
 
         this._bouncing = true;
+        this._bouncePersistent = persistent;
         const [prop, dir] = this._bounceAxis();
-        const startedAt = GLib.get_monotonic_time();
-        const base = Math.max(12, Math.round(this.icon.iconSize * 0.62));
+        const base = Math.max(6, Math.round(this.icon.iconSize * 0.32));
         let count = 0;
 
         const hop = () => {
-            const elapsed = (GLib.get_monotonic_time() - startedAt) / 1e6;
-            const arrived = !persistent && count >= 2 && this.running;
-            if (!this._bouncing || !this.get_stage() || arrived || elapsed > 12) {
+            const arrived = !persistent && this.getWindows().length > 0;
+            if (!this._bouncing || !this.get_stage() || arrived || count >= (persistent ? 2 : 1)) {
                 this._stopBounce();
                 return;
             }
             const amplitude = base * Math.max(0.6, 1 - count * 0.08);
             bin.ease({
                 [prop]: dir * amplitude,
-                duration: 240,
+                duration: 180,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 onComplete: () => {
                     if (!this._bouncing || !this.get_stage())
                         return;
                     bin.ease({
                         [prop]: 0,
-                        duration: 240,
+                        duration: 200,
                         mode: Clutter.AnimationMode.EASE_IN_QUAD,
                         onComplete: () => {
                             count++;
@@ -332,7 +335,7 @@ export const DockAbstractAppIcon = GObject.registerClass({
         if (!bin || !this.get_stage())
             return;
         const [prop] = this._bounceAxis();
-        bin.remove_all_transitions();
+        bin.remove_transition(prop.replaceAll('_', '-'));
         bin[prop] = 0;
     }
 
@@ -404,6 +407,8 @@ export const DockAbstractAppIcon = GObject.registerClass({
     }
 
     _updateWindows() {
+        if (this._bouncing && !this._bouncePersistent && this.getWindows().length > 0)
+            this._stopBounce();
         if (this._menu && this._menu.isOpen)
             this._menu.update();
 

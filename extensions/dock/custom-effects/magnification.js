@@ -37,6 +37,9 @@ export class MagnificationController {
         this._laterId = 0;
         this._lastFrameUs = 0;
         this._settingIds = [];
+        this._motionSettings = St.Settings.get();
+        this._motionId = this._motionSettings.connect('notify::enable-animations',
+            () => this._onSettingsChanged());
 
         this._cursorTracker = getCursorTracker();
         this._cursorId = this._cursorTracker.connect('position-invalidated',
@@ -52,6 +55,7 @@ export class MagnificationController {
         this._stopFrames();
         this._resetImmediately();
         this._cursorTracker.disconnect(this._cursorId);
+        this._motionSettings.disconnect(this._motionId);
         for (const id of this._settingIds)
             this._settings.disconnect(id);
         this._settingIds = [];
@@ -63,7 +67,7 @@ export class MagnificationController {
     }
 
     _enabled() {
-        return this._settings.get_boolean('magnify-icons');
+        return this._settings.get_boolean('magnify-icons') && this._motionSettings.enable_animations;
     }
 
     _maximumScale() {
@@ -79,8 +83,13 @@ export class MagnificationController {
     }
 
     _onSettingsChanged() {
-        if (!this._enabled())
+        if (!this._enabled()) {
             this._pointer = null;
+            this._stopFrames();
+            this._resetImmediately();
+            return;
+        }
+        this._updatePointerPosition();
         this._startFrames();
     }
 
@@ -144,6 +153,7 @@ export class MagnificationController {
             return;
         global.compositor.get_laters().remove(this._laterId);
         this._laterId = 0;
+        this._lastFrameUs = 0;
     }
 
     _items() {

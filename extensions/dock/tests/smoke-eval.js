@@ -1,4 +1,7 @@
 (async () => {
+    if (!GLib.getenv('DI_TEST_DIR')) throw new Error('Solo en sesión aislada');
+    const {default: Clutter} = await import('gi://Clutter');
+    const {default: St} = await import('gi://St');
     const wait = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {resolve(); return GLib.SOURCE_REMOVE;}));
     const ext = Main.extensionManager.lookup('macos27-dock@local');
     if (!ext?.stateObj) throw new Error('Dock no cargado: ' + ext?.error);
@@ -23,6 +26,27 @@
     }
     if (!enlarged.some(({actor, scalable}) => scalable && actor.scale_x > 1)) throw new Error('La ampliación no funciona');
     if (!dockManager.mainDock.dash._glassShelf?.blur) throw new Error('Falta el vidrio');
+    for (const item of dockManager.mainDock.dash._box.get_children()) {
+        const app = item.child?._delegate;
+        if (!app?.icon?._iconBin) continue;
+        const visual = app.icon._iconBin;
+        const [x, y] = visual.get_transformed_position();
+        const [w, h] = visual.get_transformed_size();
+        let picked = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, x + w / 2, y + h / 2);
+        while (picked && picked !== app) picked = picked.get_parent();
+        if (picked !== app) throw new Error(`Zona de clic separada de ${app.name}`);
+    }
+    const motion = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'});
+    motion.set_boolean('enable-animations', false);
+    await wait(150);
+    if (controller._laterId || controller._items().some(({actor}) => actor.scale_x !== 1 || actor.translation_x !== 0))
+        throw new Error('Movimiento reducido deja ampliación o cuadros pendientes');
+    motion.set_boolean('enable-animations', true);
+    await wait(150);
+    controller._pointer = controller._items()[middle].center;
+    controller._startFrames();
+    await wait(700);
+
     const {default: Shell} = await import('gi://Shell');
     const stream = Gio.File.new_for_path(`${GLib.getenv('DI_TEST_DIR')}/dock.png`).replace(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
     await new Shell.Screenshot().screenshot(false, stream);
@@ -34,6 +58,24 @@
     const app = dockManager.mainDock.dash._box.get_children().map(a => a.child?._delegate)
         .find(a => a?.popupMenu);
     if (!app) throw new Error('Falta app para probar menú');
+    const originalWindows = app.getWindows;
+    app.getWindows = () => [];
+    try {
+        app._startBounce(false);
+        await wait(600);
+        if (app._bouncing || app.icon._iconBin.translation_y !== 0)
+            throw new Error('Rebote de apertura no termina');
+        app._startBounce(true);
+        await wait(80);
+        motion.set_boolean('enable-animations', false);
+        await wait(100);
+        if (app._bouncing || app.icon._iconBin.translation_y !== 0)
+            throw new Error('Rebote ignora movimiento reducido');
+    } finally {
+        app.getWindows = originalWindows;
+        motion.set_boolean('enable-animations', true);
+    }
+
     const {UnityIndicator} = await import(`file://${ext.path}/appIconIndicators.js`);
     const badgeIndicator = new UnityIndicator(app);
     badgeIndicator.setNotificationCount(2);
