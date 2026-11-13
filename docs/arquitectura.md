@@ -74,3 +74,13 @@ una capa aparte y no se recorta la barra de herramientas.
 Los campos St.Entry de ajustes habilitan edición al recibir foco y la suspenden
 al perderlo. Evita que Clutter publique la posición del cursor de campos sin
 foco al pintarlos; el acceso por teclado y el foco real se verifican aislados.
+
+## GDM: acceso antes de iniciar sesión
+
+`integrations/login-screen` personaliza el recurso de tema del GDM del sistema;
+no es una extensión de usuario. El código de construcción conserva todos los
+recursos y solo añade CSS de GDM a las variantes clara/oscura y un fondo estático.
+Alto contraste queda intacto. El paquete incluye fuentes y recursos propios,
+compilados contra el GNOME instalado cuando el administrador ejecuta `apply`.
+La integración no tiene acceso a las contraseñas: no contiene JavaScript de
+producción ni cambios a PAM, GDM, systemd o las políticas de autenticación.

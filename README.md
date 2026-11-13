@@ -138,7 +138,7 @@ El paquete no lleva tus vídeos. El estilo del tema no inicia el reproductor.
 La pantalla de bloqueo usa `aurea-lock-screen@local` en GNOME 50. Incluye un fondo
 estático 4K de WhiteSur con su licencia; no reproduce vídeo ni cambia el fondo del
 escritorio. Conserva la autenticación, políticas de bloqueo y notificaciones
-nativas. No personaliza la pantalla de inicio de sesión de GDM.
+nativas. La pantalla de encendido/cierre de sesión GDM se instala por separado, como se indica abajo.
 
 ```bash
 gnome-extensions enable aurea-lock-screen@local
@@ -162,6 +162,30 @@ preferencia global de widgets como el movimiento reducido de GNOME.
 
 La tipografía utilizada es Adwaita Sans. La referencia visual y las diferencias
 con las plataformas de Apple están en [la investigación](docs/bloqueo-widgets-investigacion.md).
+
+### Pantalla de encendido y selección de usuario (GDM)
+
+Si el diseño antiguo aparece **al encender o cerrar sesión**, activar la extensión
+de bloqueo no cambia esa pantalla. Instala la integración de GDM con autorización
+administrativa:
+
+```bash
+sudo python3 integrations/login-screen/manage.py apply
+python3 integrations/login-screen/manage.py status
+```
+
+Se verá al próximo cierre de sesión o arranque. **No reiniciar `gdm.service` desde
+una sesión con trabajo abierto**. El instalador no reinicia ningún servicio.
+Para volver al tema anterior:
+
+```bash
+sudo python3 integrations/login-screen/manage.py remove
+```
+
+Conserva el formulario y la autenticación nativos. El fondo estático y los estilos
+son independientes del vídeo y las extensiones del usuario. Una actualización de
+GNOME puede restaurar el tema de Fedora: repetir `apply` usando sus nuevos recursos.
+[Detalles, respaldo y pruebas](integrations/login-screen/README.md).
 
 ### Evitar componentes duplicados
 

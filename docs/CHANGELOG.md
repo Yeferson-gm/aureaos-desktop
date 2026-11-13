@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.4.1
+
+- Integración de tema para GDM, la pantalla de encendido/cierre de sesión que
+  permanece independiente de la extensión de bloqueo del usuario.
+- Fondo WhiteSur estático, controles de acceso y tipografía Aurea; recursos de
+  GNOME y alto contraste conservados, sin modificar autenticación ni servicios.
+- Instalación administrativa reversible, checksums, sustitución atómica y pruebas
+  de restauración y formulario protegido nativo en sesión aislada.
+
 ## 0.4.0
 
 - Bloqueo nativo con fondo WhiteSur estático, fecha sobre reloj fino y perfil

@@ -38,6 +38,8 @@ for (const group of ['gtk', 'icons', 'cursors']) {
         if (entry.isDirectory()) fs.copyFileSync(path.join(staging, 'theme', group, license), path.join(staging, 'theme', group, entry.name, license));
     }
 }
+fs.cpSync(path.join(root, 'integrations/login-screen'), path.join(staging, 'integrations/login-screen'),
+    {recursive: true, dereference: true, filter: file => !excluded.has(path.basename(file)) && !/^test[-_]/.test(path.basename(file))});
 fs.cpSync(path.join(root, 'docs'), path.join(staging, 'docs'), {recursive: true});
 fs.cpSync(path.join(root, 'presets'), path.join(staging, 'presets'), {recursive: true});
 fs.copyFileSync(path.join(root, 'README.md'), path.join(staging, 'README.md'));
