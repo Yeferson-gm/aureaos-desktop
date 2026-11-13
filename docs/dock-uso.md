@@ -30,8 +30,20 @@ limitado a su monitor y se aplica también durante el ocultamiento.
 El material claro/oscuro usa los mismos colores base que las tarjetas de Aurea.
 Alto contraste elimina el desenfoque y usa superficies opacas con borde visible.
 El menú contextual y las vistas de ventanas tienen texto según su propia tarjeta.
-El vidrio conserva un margen interior seguro: no es una reproducción del shader
-Liquid Glass de Apple ni una máscara de desenfoque de esquinas exactas.
+El desenfoque cubre la superficie completa y una máscara gráfica recorta sus
+esquinas según el radio del contenedor. No hay un rectángulo interior oscurecido.
+Los iconos St.Icon se cargan a la resolución de ampliación máxima; se mantiene
+su asignación de tamaño normal y el compositor considera la escala de pantalla.
+No se recargan las imágenes en cada cuadro. Un recurso original de baja resolución
+puede seguir limitado: el aumento de resolución solicitada no inventa detalle.
+El material no reproduce el shader Liquid Glass de Apple.
+
+La vista desplazable usa el volumen de dibujo de sus hijos para la detección del
+puntero. En GNOME 50, StScrollView lo limita a su asignación y StViewport recorta
+los clics aunque `clip-to-view` esté desactivado. Los adaptadores del Dock corrigen
+esas dos limitaciones sin cambiar asignaciones ni desplazamientos. El actor visual
+recibe eventos que se propagan al botón de la aplicación; al desmontar se restaura
+su estado. El recorte del monitor continúa en el contenedor exterior.
 
 ## Pruebas
 
@@ -49,6 +61,12 @@ la entrada real del compositor sin abrir aplicaciones ajenas. La prueba de
 ventanas usa dos ventanas GTK propias para minimizar, restaurar, maximizar y
 revelar el Dock desde el borde. Las preferencias se construyen y se comprueba que
 sus controles escriben los ajustes. No se activa Eval en la sesión habitual.
+La sesión privada desactiva la indexación de carpetas de Tracker para evitar
+recorrer archivos del usuario. Su ventana sintética usa un SVG propio. Antes de
+probar ocultamiento se espera a que desaparezca la reserva de espacio del Dock
+fijo y se sale de la vista de aplicaciones, donde el Dock permanece visible.
+La esquina activa queda deshabilitada solo en esta sesión privada para que la
+inicialización del puntero virtual no vuelva a abrir esa vista.
 
 El banco con vídeo sintético registró, en un barrido de 120 cuadros, 85 cambios de
 asignación de la capa de desenfoque antes de optimizar y 0 después. El controlador
@@ -62,6 +80,13 @@ con escala 125 % en el primero y 100 % en el segundo. Se comprobó crear un Dock
 por monitor, sus límites y volver a uno. Las capturas conjuntas incluyen el área
 sin monitor bajo la pantalla más baja; esa zona no representa píxeles de una
 pantalla física.
+
+La regresión de nitidez usa ampliación 1,75×: con iconos de 48 px se comprobaron
+texturas reales de 84 px al 100 % y de 168 px en la sesión de escalas mixtas.
+La asignación visual base siguió en 48 px. Se validan también los centros de los
+iconos desplazados, clics con puntero virtual y arrastre. La prueba con vídeo
+conservó 0 reasignaciones del vidrio durante el barrido y 0 cuadros de lente en
+reposo. Estas comprobaciones no reconstruyen detalle ausente en iconos originales.
 
 ## Límites y alcance
 

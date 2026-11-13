@@ -34,3 +34,10 @@ acciones D-Bus y 100 interrupciones. Límites físicos documentados en
 - [x] Vidrio por transformaciones: 0 cambios de asignación en el barrido frente a 85 antes; 0 cuadros de lente en reposo.
 - [x] Clics, arrastre, ventanas, minimizar/restaurar, ocultamiento/revelado, preferencias y dos monitores 125/100 % verificados.
 - [x] Comprobación general y revisión de límites en docs/dock-uso.md.
+
+## Dock: superficie y nitidez
+
+- [x] Sustituir el desenfoque rectangular interior por una superficie completa con máscara redondeada.
+- [x] Cargar iconos para la ampliación máxima conservando el tamaño base y evitando recargas por cuadro.
+- [x] Corregir recortes de clic de StScrollView/StViewport para iconos desplazados.
+- [x] Verificar resolución real, puntero, arrastre, vídeo y monitores con ampliación 1,75×.

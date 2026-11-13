@@ -30,6 +30,7 @@ import {
 
 import {MagnificationController} from './custom-effects/magnification.js';
 import {GlassShelf} from './custom-effects/shelf.js';
+import {IconScrollView, IconViewport} from './custom-effects/icon-viewport.js';
 
 
 
@@ -181,7 +182,7 @@ export const DockDash = GObject.registerClass({
             x_expand: !this._isHorizontal,
         });
 
-        this._scrollView = new St.ScrollView({
+        this._scrollView = new IconScrollView({
             name: 'dashtodockDashScrollview',
             hscrollbar_policy: this._isHorizontal ? St.PolicyType.EXTERNAL : St.PolicyType.NEVER,
             vscrollbar_policy: this._isHorizontal ?  St.PolicyType.NEVER : St.PolicyType.EXTERNAL,
@@ -194,7 +195,7 @@ export const DockDash = GObject.registerClass({
 
         this._scrollView.clip_to_allocation = false;
 
-        this._boxContainer = new St.BoxLayout({
+        this._boxContainer = new IconViewport({
             name: 'dashtodockBoxContainer',
 
 

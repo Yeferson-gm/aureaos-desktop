@@ -20,14 +20,31 @@ export async function testWindows(manager) {
     manager.settings.set_boolean('require-pressure-to-show', false);
     manager.settings.set_boolean('intellihide', true);
     manager.settings.set_string('intellihide-mode', 'MAXIMIZED_WINDOWS');
+    const monitor = Main.layoutManager.monitors[manager.mainDock.monitorIndex];
+    const workspace = global.workspace_manager.get_active_workspace();
+    let area;
+    for (let attempt = 0; attempt < 30; attempt++) {
+        area = workspace.get_work_area_for_monitor(manager.mainDock.monitorIndex);
+        if (area.y + area.height >= monitor.y + monitor.height) break;
+        await wait(100);
+    }
+    if (area.y + area.height < monitor.y + monitor.height)
+        throw new Error('El Dock fijo no liberó su reserva de espacio');
     const pointer = global.stage.context.get_backend().get_default_seat().create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
     try {
         pointer.notify_absolute_motion(GLib.get_monotonic_time(), 10, 100);
+        for (let attempt = 0; attempt < 20; attempt++) {
+            const [x, y] = global.get_pointer();
+            if (Math.abs(x - 10) < 1 && Math.abs(y - 100) < 1) break;
+            await wait(50);
+        }
+        Main.overview.hide();
+        await wait(400);
+        if (Main.overview.visibleTarget) throw new Error('La prueba de ventanas quedó en la vista de aplicaciones');
         Main.activateWindow(windows[0]);
         windows[0].maximize();
         for (let attempt = 0; attempt < 60 && manager.mainDock._slider.slide_x > 0.01; attempt++) await wait(100);
-        if (manager.mainDock._slider.slide_x > 0.01) throw new Error(`Dock visible sobre ventana maximizada: ${JSON.stringify({max: windows[0].is_maximized(), hover: manager.mainDock._box.hover, menu: manager.mainDock._menuOpened, required: manager.mainDock.dash.requiresVisibility, overlap: manager.mainDock._intellihide.getOverlapStatus()})}`);
-        const monitor = Main.layoutManager.monitors[manager.mainDock.monitorIndex];
+        if (manager.mainDock._slider.slide_x > 0.01) throw new Error(`Dock visible sobre ventana maximizada: ${JSON.stringify({max: windows[0].is_maximized(), hover: manager.mainDock._box.hover, menu: manager.mainDock._menuOpened, required: manager.mainDock.dash.requiresVisibility, overlap: manager.mainDock._intellihide.getOverlapStatus(), overview: Main.overview.visibleTarget})}`);
         pointer.notify_absolute_motion(GLib.get_monotonic_time(), monitor.x + monitor.width / 2, monitor.y + monitor.height - 1);
         await wait(1000);
         if (manager.mainDock._slider.slide_x < 0.99) throw new Error('El borde no revela el Dock');

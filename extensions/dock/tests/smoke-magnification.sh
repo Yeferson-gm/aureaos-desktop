@@ -8,6 +8,10 @@ export GSETTINGS_BACKEND=keyfile WAYLAND_DISPLAY=dock-test GDK_BACKEND=wayland G
 unset DISPLAY
 mkdir -m 0700 "$XDG_RUNTIME_DIR"
 mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions"
+if gsettings list-schemas | rg -q '^org.freedesktop.Tracker3.Miner.Files$'; then
+    gsettings set org.freedesktop.Tracker3.Miner.Files index-recursive-directories '[]'
+    gsettings set org.freedesktop.Tracker3.Miner.Files index-single-directories '[]'
+fi
 cp -a "$project_dir" "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local"
 cp -a "$project_dir/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
 export GSETTINGS_SCHEMA_DIR="$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local/schemas"
@@ -24,13 +28,19 @@ if [[ "${AUREA_DOCK_VIDEO:-0}" == 1 ]]; then
 fi
 if [[ "${AUREA_DOCK_WINDOWS:-0}" == 1 ]]; then
     mkdir -p "$XDG_DATA_HOME/applications"
-    cat > "$XDG_DATA_HOME/applications/org.aurea.DockFixture.desktop" <<'DESKTOP'
+    cat > "$DI_TEST_DIR/fixture.svg" <<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<rect x="4" y="4" width="120" height="120" rx="24" fill="#3478f6"/>
+<path d="M32 40h64v48H32z" fill="none" stroke="white" stroke-width="8"/>
+</svg>
+SVG
+    cat > "$XDG_DATA_HOME/applications/org.aurea.DockFixture.desktop" <<DESKTOP
 [Desktop Entry]
 Type=Application
 Name=Aurea Dock fixture
 Exec=true
-Icon=applications-utilities
+Icon=$DI_TEST_DIR/fixture.svg
 DESKTOP
 fi
 printf 'Prueba aislada: %s\n' "$DI_TEST_DIR"
-dbus-run-session -- bash "$project_dir/tests/smoke-session.sh"
+exec dbus-run-session -- bash "$project_dir/tests/smoke-session.sh"

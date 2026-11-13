@@ -17,6 +17,7 @@ import {
     settleToward,
 } from './magnification-math.js';
 import {lensOffset} from './lens-math.js';
+import {IconResolution} from './icon-resolution.js';
 
 const ACTIVATION_PADDING = 24;
 const INFLUENCE_RADIUS_ICONS = 2.6;
@@ -32,6 +33,7 @@ export class MagnificationController {
         this._position = dash._position;
         this._pointer = null;
         this._states = new Map();
+        this._resolution = new IconResolution();
         this._suspended = new Set();
         this._shelf = {a: 0, b: 0};
         this._configuredActors = new Map();
@@ -42,6 +44,8 @@ export class MagnificationController {
         this._motionId = this._motionSettings.connect('notify::enable-animations',
             () => this._onSettingsChanged());
 
+        this._sizeId = dash.connect('icon-size-changed', () => this._startFrames());
+        this._addedId = this._box.connect('child-added', () => this._startFrames());
         this._cursorTracker = getCursorTracker();
         this._cursorId = this._cursorTracker.connect('position-invalidated',
             () => this._updatePointerPosition());
@@ -55,7 +59,13 @@ export class MagnificationController {
     destroy() {
         this._stopFrames();
         this._resetImmediately();
-        for (const [actor, id] of this._configuredActors) actor.disconnect(id);
+        this._dash.disconnect(this._sizeId);
+        this._box.disconnect(this._addedId);
+        this._resolution.destroy();
+        for (const [actor, state] of this._configuredActors) {
+            actor.disconnect(state.destroyed);
+            actor.reactive = state.reactive;
+        }
         this._configuredActors.clear();
         this._cursorTracker.disconnect(this._cursorId);
         this._motionSettings.disconnect(this._motionId);
@@ -171,8 +181,11 @@ export class MagnificationController {
         const push = (container, visual, scalable) => {
             if (!visual || !container?.get_stage())
                 return;
-            if (scalable)
+            if (scalable) {
                 this._configureIconActor(visual);
+                this._resolution.prepare(visual.get_child?.(), this._dash.iconSize,
+                    this._settings.get_boolean('magnify-icons') ? this._maximumScale() : 1);
+            }
             const [x, y] = container.get_transformed_position();
             const [w, h] = container.get_transformed_size();
             const start = horizontal ? x : y;
@@ -207,10 +220,13 @@ export class MagnificationController {
         firstChild?.set_content_scaling_filters(
             Clutter.ScalingFilter.TRILINEAR,
             Clutter.ScalingFilter.TRILINEAR);
-        this._configuredActors.set(actor, actor.connect('destroy', () => {
+        const state = {reactive: actor.reactive};
+        actor.reactive = true;
+        state.destroyed = actor.connect('destroy', () => {
             this._states.delete(actor);
             this._configuredActors.delete(actor);
-        }));
+        });
+        this._configuredActors.set(actor, state);
     }
 
     _updateFrame() {

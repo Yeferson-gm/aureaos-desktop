@@ -24,6 +24,7 @@
     const {dockManager} = await import(`file://${ext.path}/extension.js`);
     dockManager.settings.set_boolean('dock-fixed', true);
     dockManager.settings.set_boolean('magnify-icons', true);
+    dockManager.settings.set_double('magnification-max-scale', 1.75);
     Main.overview.hide();
     await wait(800);
     const controller = dockManager.mainDock.dash._magnification;
@@ -44,6 +45,26 @@
     }
     if (!enlarged.some(({actor, scalable}) => scalable && actor.scale_x > 1)) throw new Error('La ampliación no funciona');
     if (!dockManager.mainDock.dash._glassShelf?.blur) throw new Error('Falta el vidrio');
+    const shelf = dockManager.mainDock.dash._glassShelf;
+    if (Math.abs(shelf.blur.width - dockManager.mainDock.dash._background.width) > 1 || !shelf._mask)
+        throw new Error('El vidrio vuelve a formar un rectángulo interior');
+    const textures = [];
+    for (const {actor, scalable} of enlarged) {
+        const icon = actor.get_child?.();
+        if (!scalable || !(icon instanceof St.Icon)) continue;
+        const required = Math.ceil(dockManager.mainDock.dash.iconSize * controller._maximumScale());
+        if (icon.icon_size < required) throw new Error('Icono solicitado a resolución insuficiente');
+        const texture = icon.get_first_child()?.get_content?.()?.get_texture?.();
+        if (texture) {
+            textures.push({requested: required, texture: texture.get_width(), allocation: icon.width});
+            if (texture.get_width() < required) throw new Error('Textura cargada insuficiente');
+        }
+        if (Math.abs(icon.width - dockManager.mainDock.dash.iconSize * St.ThemeContext.get_for_stage(global.stage).scale_factor) > 1)
+            throw new Error('La resolución cambió el tamaño del icono');
+    }
+    if (!textures.length) throw new Error('No se pudo comprobar la resolución de textura');
+    GLib.file_set_contents(`${GLib.getenv('DI_TEST_DIR')}/textures.json`, JSON.stringify(textures));
+
     for (const item of dockManager.mainDock.dash._box.get_children()) {
         const app = item.child?._delegate;
         if (!app?.icon?._iconBin) continue;
@@ -51,8 +72,9 @@
         const [x, y] = visual.get_transformed_position();
         const [w, h] = visual.get_transformed_size();
         let picked = global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, x + w / 2, y + h / 2);
+        const hit = String(picked);
         while (picked && picked !== app) picked = picked.get_parent();
-        if (picked !== app) throw new Error(`Zona de clic separada de ${app.name}`);
+        if (picked !== app) throw new Error(`Zona de clic separada de ${app.name}: ${x},${y},${w},${h} hit=${hit}`);
     }
     const motion = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'});
     motion.set_boolean('enable-animations', false);

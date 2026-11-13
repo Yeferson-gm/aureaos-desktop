@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+gsettings set org.gnome.desktop.interface enable-hot-corners false
 gsettings set org.gnome.shell enabled-extensions "['macos27-dock@local', 'island-test-driver@local']"
 if [[ "${AUREA_DOCK_VIDEO:-0}" == 1 ]]; then
     gsettings set org.gnome.shell enabled-extensions "['macos27-dock@local', 'island-test-driver@local', 'aurea-wallpaper@local']"

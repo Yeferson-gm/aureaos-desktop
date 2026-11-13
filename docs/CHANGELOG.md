@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.3.1
+
+- Desenfoque de toda la superficie del Dock con máscara de esquinas redondeadas,
+  eliminando el rectángulo interior y su oscurecimiento adicional.
+- Texturas de iconos cargadas para la ampliación máxima, con tamaño base y
+  geometría conservados; comprobación de resolución real en GNOME aislado.
+- Área de clic de los iconos desplazados fuera del contenedor de scroll alineada
+  con su representación; regresión probada con ampliación de 1,75×.
+
 ## 0.3.0
 
 - Dock con materiales claros/oscuros, alto contraste y preferencias Aurea en vivo.
