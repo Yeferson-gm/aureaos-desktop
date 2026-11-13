@@ -32,8 +32,9 @@ export class MagnificationController {
         this._position = dash._position;
         this._pointer = null;
         this._states = new Map();
+        this._suspended = new Set();
         this._shelf = {a: 0, b: 0};
-        this._configuredActors = new WeakSet();
+        this._configuredActors = new Map();
         this._laterId = 0;
         this._lastFrameUs = 0;
         this._settingIds = [];
@@ -54,6 +55,8 @@ export class MagnificationController {
     destroy() {
         this._stopFrames();
         this._resetImmediately();
+        for (const [actor, id] of this._configuredActors) actor.disconnect(id);
+        this._configuredActors.clear();
         this._cursorTracker.disconnect(this._cursorId);
         this._motionSettings.disconnect(this._motionId);
         for (const id of this._settingIds)
@@ -67,7 +70,13 @@ export class MagnificationController {
     }
 
     _enabled() {
-        return this._settings.get_boolean('magnify-icons') && this._motionSettings.enable_animations;
+        return this._settings.get_boolean('magnify-icons') && this._motionSettings.enable_animations && !this._suspended.size;
+    }
+
+    suspend(reason, active) {
+        if (active) this._suspended.add(reason);
+        else this._suspended.delete(reason);
+        this._onSettingsChanged();
     }
 
     _maximumScale() {
@@ -198,7 +207,10 @@ export class MagnificationController {
         firstChild?.set_content_scaling_filters(
             Clutter.ScalingFilter.TRILINEAR,
             Clutter.ScalingFilter.TRILINEAR);
-        this._configuredActors.add(actor);
+        this._configuredActors.set(actor, actor.connect('destroy', () => {
+            this._states.delete(actor);
+            this._configuredActors.delete(actor);
+        }));
     }
 
     _updateFrame() {

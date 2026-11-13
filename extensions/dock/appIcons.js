@@ -219,6 +219,7 @@ export const DockAbstractAppIcon = GObject.registerClass({
         [
             'apply-custom-theme',
             'running-indicator-style',
+            'single-running-dot',
             'show-icons-emblems',
             'show-icons-notifications-counter',
             'application-counter-overrides-notifications',

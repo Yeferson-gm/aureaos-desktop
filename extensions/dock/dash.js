@@ -624,14 +624,17 @@ export const DockDash = GObject.registerClass({
 
         if (appIcon._draggable) {
             appIcon._draggable.connect('drag-begin', () => {
+                this._magnification.suspend('drag', true);
                 appIcon.opacity = 50;
             });
             appIcon._draggable.connect('drag-end', () => {
+                this._magnification.suspend('drag', false);
                 appIcon.opacity = 255;
             });
         }
 
         appIcon.connectObject('menu-state-changed', (_, opened) => {
+            this._magnification.suspend('menu', opened);
             this._itemMenuStateChanged(item, opened);
         }, this);
 

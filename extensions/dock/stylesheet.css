@@ -1627,7 +1627,7 @@
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .overview-tile:active,
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .app-well-app:active,
 #dashtodockContainer #dash.mac-shelf.mac-shelf.mac-shelf.mac-shelf .dash-item-container .show-apps:active {
-  opacity: 190;
+  opacity: 0.75;
 }
 
 
@@ -1692,7 +1692,7 @@
 
 .app-menu.dock-app-menu .popup-menu-item:insensitive {
   color: inherit;
-  opacity: 150;
+  opacity: 0.59;
 }
 
 .app-menu.dock-app-menu .popup-separator-menu-item {

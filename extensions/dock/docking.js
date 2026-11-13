@@ -185,11 +185,16 @@ const DashSlideContainer = GObject.registerClass({
 
         if (shouldClipSlideContainer(this.slideX)) {
             this.child.set_clip(-childBox.x1, -childBox.y1,
-                -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+                availWidth, availHeight);
         } else {
 
 
-            this.child.remove_clip();
+            const monitor = Main.layoutManager.monitors[this.monitorIndex];
+            if (monitor) {
+                const [ok, x, y] = this.child.transform_stage_point(monitor.x, monitor.y);
+                const [endOk, right, bottom] = this.child.transform_stage_point(monitor.x + monitor.width, monitor.y + monitor.height);
+                if (ok && endOk) this.child.set_clip(x, y, Math.max(0, right - x), Math.max(0, bottom - y));
+            }
         }
     }
 

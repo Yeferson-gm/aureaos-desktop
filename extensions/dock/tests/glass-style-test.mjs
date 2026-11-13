@@ -16,3 +16,9 @@ for (const path of paths) {
         assert.match(match[1], /border:\s*1px solid rgba\(255\s*,\s*255\s*,\s*255\s*,\s*0\.20\)/);
     });
 }
+
+test('CSS opacity stays normalized for icon indicators', () => {
+    const css = fs.readFileSync(paths[0], 'utf8');
+    for (const match of css.matchAll(/(?:^|[;{\s])opacity:\s*([0-9.]+)\s*;/g))
+        assert.ok(Number(match[1]) >= 0 && Number(match[1]) <= 1, `Invalid opacity ${match[1]}`);
+});

@@ -87,6 +87,8 @@ const MonitorsConfig = GObject.registerClass({
             }
 
             const [serial_, monitors, logicalMonitors] = resources;
+            this._monitors = [];
+            this._primaryMonitor = null;
             let index = 0;
             for (const monitor of monitors) {
                 const [monitorSpecs, modes_, props] = monitor;
