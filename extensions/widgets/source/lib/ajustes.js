@@ -273,8 +273,8 @@ export function abrirAjustes(core, sel = 'general') {
         for (const n of nodos)
             cont.add_child(n);
     };
-    h.abrir();
     dibujar();
+    h.abrir();
     return h;
 }
 

@@ -12,7 +12,7 @@ if gsettings list-schemas | rg -q '^org.freedesktop.Tracker3.Miner.Files$'; then
     gsettings set org.freedesktop.Tracker3.Miner.Files index-recursive-directories '[]'
     gsettings set org.freedesktop.Tracker3.Miner.Files index-single-directories '[]'
 fi
-cp -a "$project_dir" "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local"
+cp -aL "$project_dir" "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local"
 cp -a "$project_dir/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
 export GSETTINGS_SCHEMA_DIR="$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local/schemas"
 glib-compile-schemas "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local/schemas"

@@ -4,6 +4,9 @@ import St from 'gi://St';
 
 import {paleta, cssMarco} from './estilo.js';
 import {clamp} from './util.js';
+import {createRoundedMask} from '../shared/rounded-clip.js';
+
+const RoundedMask = createRoundedMask('AureaWidgetRoundedMask');
 
 const STOP = Clutter.EVENT_STOP;
 const PASS = Clutter.EVENT_PROPAGATE;
@@ -40,7 +43,9 @@ export class Marco {
         this._blur = new St.Widget({x_expand: true, y_expand: true, style: 'background-color: rgba(0,0,0,0.004);'});
         this._cont = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, clip_to_allocation: true});
         this._capa = this._crearCapa();
+        this._surface = new St.Widget({x_expand: true, y_expand: true});
         a.add_child(this._blur);
+        a.add_child(this._surface);
         a.add_child(this._cont);
         a.add_child(this._capa);
         a.connect('button-press-event', (_a, ev) => {
@@ -59,22 +64,28 @@ export class Marco {
     refrescarEstilo() {
         const est = this.cfg.estilo;
         this.pal = paleta(est, this.core.cfg.global);
-        this.actor.style = cssMarco(est, this.pal);
+        this.actor.style = `color: ${this.pal.texto};`;
+        this._surface.style = cssMarco(est, this.pal);
         this.actor.remove_style_class_name(this.pal.oscuro ? 'lw-light' : 'lw-dark');
         this.actor.add_style_class_name(this.pal.oscuro ? 'lw-dark' : 'lw-light');
-        const inset = Math.round(est.radio * 0.3);
-        this._blur.style = `margin: ${inset}px; background-color: rgba(0,0,0,0.004);`;
+        this._blur.style = 'background-color: rgba(0,0,0,0.004);';
         this._aplicarBlur();
+        this._capa.style = `border-radius: ${est.radio}px;`;
         this._actualizarBotonEstilo();
         this.reconstruir();
     }
 
     _aplicarBlur() {
         this._blur.clear_effects();
+        this._blurMask = null;
         const est = this.cfg.estilo;
         if (est.estilo !== 'glass' || est.desenfoque <= 0)
             return;
         try {
+            const mask = new RoundedMask();
+            mask.resize(this.cfg.w, this.cfg.h, est.radio);
+            this._blur.add_effect(mask);
+            this._blurMask = mask;
             const fx = new Shell.BlurEffect({mode: Shell.BlurMode.BACKGROUND});
             const sigma = 4 + est.desenfoque * 0.44;
             if ('sigma' in fx)
@@ -116,16 +127,21 @@ export class Marco {
         Object.assign(this.cfg, {x, y, w, h});
         this.actor.set_position(x, y);
         this.actor.set_size(w, h);
+        this._blurMask?.resize(w, h, this.cfg.estilo.radio);
         if (reconstruir)
             this.reconstruir();
         this._ubicarBarra();
     }
 
     aparecer() {
-        this.actor.set({opacity: 0, scale_x: 0.9, scale_y: 0.9});
+        if (!this.core.cfg.global.animaciones || !St.Settings.get().enable_animations) {
+            this.actor.set({opacity: 255, scale_x: 1, scale_y: 1});
+            return;
+        }
+        this.actor.set({opacity: 0, scale_x: 0.97, scale_y: 0.97});
         this.actor.ease({
-            opacity: 255, scale_x: 1, scale_y: 1, duration: 260,
-            mode: Clutter.AnimationMode.EASE_OUT_BACK,
+            opacity: 255, scale_x: 1, scale_y: 1, duration: 220,
+            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
         });
     }
 
@@ -210,7 +226,7 @@ export class Marco {
     }
 
     _jiggle(dir) {
-        if (!this._editando || !this.core.cfg.global.animaciones)
+        if (!this._editando || !this.core.cfg.global.animaciones || !St.Settings.get().enable_animations)
             return;
         this.actor.ease({
             rotation_angle_z: this._drag ? 0 : dir * 0.55, duration: 105 + Math.random() * 45,

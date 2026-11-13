@@ -6,10 +6,11 @@ import {WidgetBase} from '../lib/base.js';
 import {http} from '../lib/util.js';
 
 export const META = {
-    id: 'clima', nombre: 'Clima', icono: 'weather-few-clouds-symbolic',
+    id: 'clima', nombre: 'Clima', padding: 0, icono: 'weather-few-clouds-symbolic',
     desc: 'Temperatura real, pronóstico por horas y días, humedad, lluvia y viento con sol y nubes animados.',
     tam: {S: [170, 170], M: [380, 170], L: [380, 380]}, min: [150, 140],
     opciones: [
+        {k: 'fondo', t: 'bool', etq: 'Fondo atmosférico', def: true},
         {k: 'ciudad', t: 'ciudad', etq: 'Ciudad', def: {nombre: 'Lima', lat: -12.0464, lon: -77.0428}},
         {k: 'animacion', t: 'bool', etq: 'Animar sol y nubes', def: true},
         {k: 'horas', t: 'bool', etq: 'Mostrar pronóstico por horas', def: true},
@@ -148,6 +149,10 @@ export function dibujarClima(cr, w, h, tipo, t, dia) {
 }
 
 export class Widget extends WidgetBase {
+    get w() { return super.w - 28; }
+    get h() { return super.h - 28; }
+    get pal() { return this._weatherPalette ?? super.pal; }
+
     construir(box) {
         this.box = box;
         this._t = 0;
@@ -156,6 +161,7 @@ export class Widget extends WidgetBase {
         this.cada(15 * 60 * 1000, () => this._cargar(), true);
         if (this.o.animacion && this.core.cfg.global.animaciones) {
             this.cada(66, () => {
+                if (!this.movimiento || !this.box.mapped) return;
                 this._t += 0.066;
                 this._areas.forEach(a => a.queue_repaint());
             });
@@ -198,12 +204,17 @@ export class Widget extends WidgetBase {
         this.box.destroy_all_children();
         this._areas = [];
         const d = this._d;
+        const night = d?.current.is_day === 0;
+        const cloudy = (d?.current.weather_code ?? 0) >= 3;
+        const colors = night ? ['#172842', '#405475'] : cloudy ? ['#526c85', '#8399af'] : ['#3677ae', '#77b3d9'];
+        this._weatherPalette = this.o.fondo ? {...super.pal, texto: '#ffffff', texto2: 'rgba(255,255,255,0.84)', sep: 'rgba(255,255,255,0.24)'} : null;
+        this.box.style = `padding: 14px; border-radius: ${this.ctx.radio}px;` + (this.o.fondo ?
+            `background-gradient-direction: vertical; background-gradient-start: ${colors[0]}; background-gradient-end: ${colors[1]};` : '');
         if (!d) {
             this.box.add_child(this.t(this._err ? 'Sin conexión. Reintentando…' : 'Cargando clima…', 13, {c: 'texto2'}));
             return;
         }
         const c = d.current;
-        const u = this.core.cfg.global.unidad === 'F' ? '°F' : '°C';
         const vu = this.core.cfg.global.unidad === 'F' ? 'mph' : 'km/h';
         const [desc, tipo] = wmo(c.weather_code);
         const dia = c.is_day === 1;
@@ -212,18 +223,28 @@ export class Widget extends WidgetBase {
         const pequeno = w < 250;
         const lluvia = d.daily.precipitation_probability_max?.[0] ?? 0;
 
+        const compacto = !pequeno && h < 190;
         const top = this.fila();
-        top.y_expand = false;
-        const izq = this.columna();
-        izq.add_child(this.t(this.o.ciudad.nombre, 14, {peso: 'bold'}));
-        izq.add_child(this.t(`${Math.round(c.temperature_2m)}°`, pequeno ? 44 : 52, {peso: '200', extra: 'letter-spacing: -1px;'}));
-        izq.add_child(this.t(desc, 12, {c: 'texto2'}));
-        if (!pequeno || h > 150) {
-            izq.add_child(this.t(`Máx ${Math.round(d.daily.temperature_2m_max[0])}°  Mín ${Math.round(d.daily.temperature_2m_min[0])}°`, 12, {c: 'texto2'}));
-        }
+        const izq = this.columna('spacing: 0;');
+        izq.add_child(this.t(this.o.ciudad.nombre, 14, {peso: '500'}));
+        izq.add_child(this.t(`${Math.round(c.temperature_2m)}°`, compacto ? 40 : 48, {peso: '300', extra: 'letter-spacing: -2px;'}));
+        const maxima = `Máx ${Math.round(d.daily.temperature_2m_max[0])}°  Mín ${Math.round(d.daily.temperature_2m_min[0])}°`;
         top.add_child(izq);
-        top.add_child(this._icono(tipo, this.px(pequeno ? 64 : 92), dia));
+        if (compacto) {
+            const der = this.columna('spacing: 0;');
+            der.x_align = Clutter.ActorAlign.END;
+            der.add_child(this._icono(tipo, this.px(26), dia));
+            der.add_child(this.t(desc, 12, {align: Clutter.ActorAlign.END}));
+            der.add_child(this.t(maxima, 11, {c: 'texto2', align: Clutter.ActorAlign.END}));
+            top.add_child(der);
+        } else {
+            top.add_child(this._icono(tipo, this.px(pequeno ? 38 : 72), dia));
+        }
         this.box.add_child(top);
+        if (!compacto) {
+            this.box.add_child(this.t(desc, 12));
+            this.box.add_child(this.t(maxima, 11, {c: 'texto2'}));
+        }
 
         if (h >= 250 || (w >= 330 && h >= 190)) {
             const det = this.fila(`padding-top: ${this.px(2)}px;`);
@@ -236,8 +257,8 @@ export class Widget extends WidgetBase {
             }
             this.box.add_child(det);
         }
-        if (this.o.horas && h >= 235) {
-            this.box.add_child(new St.Widget({style: `height: 1px; background-color: ${this.pal.sep}; margin: ${this.px(6)}px 0;`, x_expand: true}));
+        if (this.o.horas && (h >= 235 || compacto)) {
+            this.box.add_child(new St.Widget({style: `height: 1px; background-color: ${this.pal.sep}; margin: ${this.px(compacto ? 3 : 6)}px 0;`, x_expand: true}));
             const hs = this.fila();
             const ini = Math.max(0, d.hourly.time.findIndex(x => x >= `${c.time.slice(0, 13)}:00`));
             const n = Math.max(3, Math.min(8, Math.floor(w / this.px(52))));
@@ -248,14 +269,14 @@ export class Widget extends WidgetBase {
                 const hora = parseInt(d.hourly.time[k].slice(11, 13), 10);
                 const col = new St.BoxLayout({vertical: true, x_expand: true, style: 'spacing: 3px;'});
                 col.add_child(this.t(i === 0 ? 'Ahora' : `${hora}h`, 10, {c: 'texto2', align: Clutter.ActorAlign.CENTER}));
-                col.add_child(this._icono(wmo(d.hourly.weather_code[k])[1], this.px(26), hora >= 6 && hora < 18, false));
+                col.add_child(this._icono(wmo(d.hourly.weather_code[k])[1], this.px(compacto ? 20 : 26), hora >= 6 && hora < 18, false));
                 col.add_child(this.t(`${Math.round(d.hourly.temperature_2m[k])}°`, 12, {peso: 'bold', align: Clutter.ActorAlign.CENTER}));
                 hs.add_child(col);
             }
             this.box.add_child(hs);
         }
         if (this.o.dias && h >= 330) {
-            this.box.add_child(new St.Widget({style: `height: 1px; background-color: ${this.pal.sep}; margin: ${this.px(6)}px 0;`, x_expand: true}));
+            this.box.add_child(new St.Widget({style: `height: 1px; background-color: ${this.pal.sep}; margin: ${this.px(compacto ? 3 : 6)}px 0;`, x_expand: true}));
             const gmin = Math.min(...d.daily.temperature_2m_min);
             const gmax = Math.max(...d.daily.temperature_2m_max);
             const filas = Math.min(7, Math.floor((h - this.px(250)) / this.px(24)) + 1);
@@ -282,9 +303,5 @@ export class Widget extends WidgetBase {
             }
         }
         this.box.add_child(new St.Widget({y_expand: true}));
-        if (h >= 300 || (w >= 330 && h >= 190)) {
-
-        }
-        void u;
     }
 }

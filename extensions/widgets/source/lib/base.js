@@ -17,6 +17,8 @@ export class WidgetBase {
     get core() { return this.ctx.core; }
     get datos() { return this.ctx.core.datos.datos; }
 
+    get movimiento() { return this.core.cfg.global.animaciones && St.Settings.get().enable_animations; }
+
     px(n) { return Math.round(n * this.ctx.escala); }
     guardarDatos() { this.ctx.core.datos.guardar(); }
     guardarCfg() { this.ctx.core.guardarCfg(); }
@@ -26,7 +28,7 @@ export class WidgetBase {
         const col = this.pal[c] ?? c;
         const l = new St.Label({
             text: String(texto),
-            style: `font-size: ${this.px(px)}px; font-weight: ${peso}; color: ${col}; ${extra}`,
+            style: `font-family: "Adwaita Sans", sans-serif; font-size: ${this.px(px)}px; font-weight: ${peso === 'bold' ? '600' : peso}; color: ${col}; ${extra}`,
             y_align: Clutter.ActorAlign.CENTER, x_expand: expand,
         });
         if (align)

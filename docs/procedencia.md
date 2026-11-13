@@ -29,3 +29,11 @@ afirma contener el historial remoto ni los archivos de construcción originales
 que no estaban presentes localmente. Los iconos y marcas de aplicaciones siguen
 perteneciendo a sus respectivos titulares. Los nombres de licencias y avisos
 legales no se sustituyen por la marca Aurea.
+
+## Fondo estático del bloqueo
+
+`extensions/lock-screen/assets/WhiteSur-dark.jpg`: WhiteSur-wallpapers de Vince,
+MIT (2022), revisión `5c1d7ca20b8de0a7efe443792c19e49277262e02`.
+La licencia original acompaña al recurso. Fuente y decisiones de tipografía:
+[bloqueo y widgets](bloqueo-widgets-investigacion.md). No se distribuyen fuentes,
+SF Symbols, capturas de Apple ni fotografías personales como recursos nuevos.

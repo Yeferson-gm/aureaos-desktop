@@ -1,0 +1,15 @@
+.aurea-lock { font-family: "Adwaita Sans", sans-serif; color: white; }
+.aurea-lock .unlock-dialog-clock { spacing: 0; }
+.aurea-lock .unlock-dialog-clock-date { font-size: 20px; font-weight: 400; padding: 0; margin: 0 0 2px; color: rgba(255,255,255,0.95); text-shadow: 0 1px 5px rgba(0,0,0,0.16); }
+.aurea-lock .unlock-dialog-clock-time { font-size: 112px; font-weight: 300; letter-spacing: -3px; padding: 0; margin: 0; color: rgba(255,255,255,0.92); text-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.aurea-lock .unlock-dialog-clock-hint { font-size: 12px; font-weight: 400; color: rgba(255,255,255,0.78); margin-top: 14px; }
+.aurea-lock-profile { spacing: 6px; }
+.aurea-lock .user-widget.vertical { spacing: 10px; }
+.aurea-lock .user-widget.vertical .user-icon { icon-size: 64px; border-radius: 32px; }
+.aurea-lock .user-widget-label { font-size: 17px; font-weight: 600; color: white; }
+.aurea-lock StEntry { width: 236px; min-height: 20px; padding: 9px 13px; border-radius: 18px; background-color: rgba(255,255,255,0.18); color: white; caret-color: white; border: 1px solid rgba(255,255,255,0.22); box-shadow: none; }
+.aurea-lock StEntry:focus { border-color: rgba(255,255,255,0.7); background-color: rgba(255,255,255,0.25); }
+.aurea-lock StEntry StLabel.hint-text { color: rgba(255,255,255,0.74); }
+.aurea-lock .login-dialog-message { font-size: 12px; color: rgba(255,255,255,0.9); }
+.aurea-lock .login-dialog-message-warning { color: #ffb4ad; }
+.aurea-lock .unlock-dialog-notifications-container { border-radius: 20px; background-color: rgba(25,28,37,0.66); border: 1px solid rgba(255,255,255,0.18); }

@@ -20,9 +20,11 @@ aurea-27/
 │   ├── dynamic-island/
 │   ├── app-island/
 │   ├── widgets/
+│   ├── lock-screen/
 │   ├── live-wallpaper/
 │   ├── desktop-icons/
 │   └── app-center/
+├── shared/                  Utilidades gráficas empaquetadas por componente
 ├── integrations/            Pruebas del escritorio y ajustes auxiliares
 ├── presets/                 Preferencias visuales sin datos personales
 ├── tools/                   Versión, construcción, instalación y validación
@@ -105,6 +107,7 @@ Estos son los identificadores que se usan con `gnome-extensions`:
 | Isla dinámica | `dynamic-island-gnome50@local` |
 | Isla lateral | `side-dock-gnome50@local` |
 | Widgets | `lintel-widgets@local` |
+| Pantalla de bloqueo | `aurea-lock-screen@local` |
 | Fondo animado | `aurea-wallpaper@local` |
 | Iconos de escritorio | `aurea-desktop-icons@local` |
 | Centro de aplicaciones | `aurea-app-center@local` |
@@ -130,6 +133,36 @@ Widgets también tiene Ajustes desde su menú y edición con `Super+Alt+E`.
 En el fondo animado, seleccionar un vídeo existente y activar su inicio automático.
 El paquete no lleva tus vídeos. El estilo del tema no inicia el reproductor.
 
+### Bloqueo y apariencia de widgets
+
+La pantalla de bloqueo usa `aurea-lock-screen@local` en GNOME 50. Incluye un fondo
+estático 4K de WhiteSur con su licencia; no reproduce vídeo ni cambia el fondo del
+escritorio. Conserva la autenticación, políticas de bloqueo y notificaciones
+nativas. No personaliza la pantalla de inicio de sesión de GDM.
+
+```bash
+gnome-extensions enable aurea-lock-screen@local
+```
+
+Para volver a la presentación nativa, ejecutar únicamente:
+
+```bash
+gnome-extensions disable aurea-lock-screen@local
+```
+
+No activar simultáneamente otra extensión que sustituya `UnlockDialog`.
+Si el UUID no aparece tras instalarlo, cerrar y abrir sesión antes de activarlo.
+No reiniciar el compositor ni usar evaluación insegura en la sesión habitual.
+
+Los widgets conservan posiciones y datos. En sus Ajustes puedes elegir material,
+color y tamaño de texto. Clima incorpora «Fondo atmosférico» (desactivable para
+usar tu material); Calendario pequeño permite «Mes completo» o «Fecha grande»;
+Reloj → «Mundial» muestra esferas por ciudad. Las animaciones respetan tanto la
+preferencia global de widgets como el movimiento reducido de GNOME.
+
+La tipografía utilizada es Adwaita Sans. La referencia visual y las diferencias
+con las plataformas de Apple están en [la investigación](docs/bloqueo-widgets-investigacion.md).
+
 ### Evitar componentes duplicados
 
 Antes de activar todo, revisar `gnome-extensions list --enabled`. No ejecutar a
@@ -154,7 +187,7 @@ Después de instalar, volver a entrar y revisar duplicados, activar el stack:
 
 ```bash
 gsettings set org.gnome.shell disable-user-extensions false
-for uuid in aurea-wallpaper@local aurea-desktop-icons@local aurea-app-center@local macos27-dock@local side-dock-gnome50@local dynamic-island-gnome50@local lintel-v2@local lintel-widgets@local; do
+for uuid in aurea-wallpaper@local aurea-desktop-icons@local aurea-app-center@local macos27-dock@local side-dock-gnome50@local dynamic-island-gnome50@local lintel-v2@local lintel-widgets@local aurea-lock-screen@local; do
     gnome-extensions enable "$uuid" || break
 done
 gnome-extensions list --enabled
@@ -280,6 +313,7 @@ bash extensions/dock/tests/smoke-magnification.sh
 SIDE_TEST_MONITORS=2 bash extensions/app-island/test-shell.sh
 bash extensions/topbar/tests/check-hover.sh
 bash extensions/widgets/tools/test-shell.sh
+bash extensions/lock-screen/tests/smoke.sh
 bash integrations/desktop/test-overview.sh
 ```
 

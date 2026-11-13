@@ -8,7 +8,8 @@
     "widgets": "Widgets",
     "live-wallpaper": "Fondo animado",
     "desktop-icons": "Iconos del escritorio",
-    "app-center": "Centro de aplicaciones"
+    "app-center": "Centro de aplicaciones",
+    "lock-screen": "Pantalla de bloqueo"
   },
   "migrations": {
     "gnome-wallpaper-engine@gjs.com": "aurea-wallpaper@local",

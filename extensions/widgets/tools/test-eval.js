@@ -90,6 +90,17 @@
     await wait(250);
     await click(buttons[1]);
     if (!core.hojas.length) throw new Error('Acción: ajustes no abre');
+    const entries = [];
+    const findEntries = actor => {
+        if (actor instanceof St.Entry) entries.push(actor);
+        actor.get_children().forEach(findEntries);
+    };
+    findEntries(core.hojas.at(-1).cuerpo);
+    if (entries.length < 2) throw new Error('Faltan medidas editables');
+    entries[0].grab_key_focus(); await wait(100);
+    if (!entries[0].clutter_text.editable) throw new Error('No se puede editar el campo enfocado');
+    global.stage.set_key_focus(null); await wait(100);
+    if (entries[0].clutter_text.editable) throw new Error('Campo sin foco mantiene modo de entrada');
     for (const h of [...core.hojas]) h.cerrar();
     await wait(200);
     await click(buttons[0]);
@@ -131,11 +142,13 @@
         scan(widget.actor);
         core.quitar(widget);
     }
+    const {verifyDesign} = await import(`file://${GLib.getenv('DI_TEST_DIR')}/design-eval.js`);
+    await verifyDesign(core, wait);
     ext.stateObj.disable();
     ext.stateObj.enable();
     await wait(500);
     scan(ext.stateObj._esc.capa);
-    return 'PASS: 13 widgets construidos, ajustes, galería, edición y ciclo de vida';
+    return 'PASS: 78 variantes visuales, movimiento reducido, 13 widgets construidos, ajustes, galería, edición y ciclo de vida';
 })().then(async result => {
     const {default: Gio} = await import('gi://Gio');
     const {default: GLib} = await import('gi://GLib');

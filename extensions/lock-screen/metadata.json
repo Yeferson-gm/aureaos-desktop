@@ -1,0 +1,7 @@
+{
+  "uuid": "aurea-lock-screen@local",
+  "name": "Aurea 27 · Pantalla de bloqueo",
+  "description": "Presentación del bloqueo nativo con fondo estático y reloj Aurea.",
+  "shell-version": ["50"],
+  "session-modes": ["user", "unlock-dialog"]
+}

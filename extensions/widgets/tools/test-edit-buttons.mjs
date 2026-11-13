@@ -10,7 +10,7 @@ class Actor {
 const source = fs.readFileSync(new URL('../source/lib/marco.js', import.meta.url), 'utf8')
     .replace(/^import .*;\n/gm, '').replace('export class Marco', 'class Marco');
 let picked;
-const context = vm.createContext({global: {stage: {get_actor_at_pos: () => picked}}, St: {Widget: Actor, BoxLayout: Actor, Button: Actor},
+const context = vm.createContext({createRoundedMask: () => class {}, global: {stage: {get_actor_at_pos: () => picked}}, St: {Widget: Actor, BoxLayout: Actor, Button: Actor},
     Clutter: {BinLayout: class {}, EVENT_STOP: true, EVENT_PROPAGATE: false,
         BUTTON_PRIMARY: 1, ActorAlign: {}, PickMode: {REACTIVE: 1}},
 });

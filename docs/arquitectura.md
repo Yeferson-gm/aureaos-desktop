@@ -19,6 +19,7 @@ a los recursos canónicos dentro de `theme/icons/Aurea27`.
 | dynamic-island | Aurea 27 · Isla dinámica | dynamic-island-gnome50@local |
 | app-island | Aurea 27 · Isla de aplicaciones | side-dock-gnome50@local |
 | widgets | Aurea 27 · Widgets | lintel-widgets@local |
+| lock-screen | Aurea 27 · Pantalla de bloqueo | aurea-lock-screen@local |
 | live-wallpaper | Aurea 27 · Fondo animado | aurea-wallpaper@local |
 | desktop-icons | Aurea 27 · Iconos del escritorio | aurea-desktop-icons@local |
 | app-center | Aurea 27 · Centro de aplicaciones | aurea-app-center@local |
@@ -51,3 +52,25 @@ antes y después. Se conservaron comentarios legales y directivas funcionales.
 Docstrings y texto embebido no se eliminan ciegamente: pueden ser parte de la API
 o del programa generado. Los documentos en `docs/history` describen el estado
 anterior; sus referencias históricas no son instrucciones actuales de instalación.
+
+## Presentación del bloqueo y materiales compartidos
+
+`lock-screen` se ejecuta en los modos `user` y `unlock-dialog` de GNOME 50.
+Decora el `UnlockDialog` nativo mediante `InjectionManager`: fondo estático,
+layout, reloj y estilo. No sustituye el verificador ni el formulario nativo.
+Al desactivarse restaura métodos, padre del reloj, layout y fondos. Las señales
+del teclado se desconectan al destruir el diálogo o desactivar la extensión.
+Si el teclado deja poco espacio, se ocultan reloj y notificaciones para dar
+prioridad al formulario. No carga los widgets del escritorio durante el bloqueo.
+
+`shared/rounded-clip.js` es la única fuente del recorte de framebuffer para dock
+y widgets. Los enlaces de desarrollo apuntan dentro del repositorio; build copia
+el módulo en cada paquete, sin dependencias entre extensiones instaladas. Cada
+consumidor registra un GType distinto. La región se calcula solo al cambiar la
+geometría: rectángulos redondeados alineados o contorno proyectado para rotación.
+En widgets, el material se pinta después del desenfoque; editar y arrastrar usa
+una capa aparte y no se recorta la barra de herramientas.
+
+Los campos St.Entry de ajustes habilitan edición al recibir foco y la suspenden
+al perderlo. Evita que Clutter publique la posición del cursor de campos sin
+foco al pintarlos; el acceso por teclado y el foco real se verifican aislados.

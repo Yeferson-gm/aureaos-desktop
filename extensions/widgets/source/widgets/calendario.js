@@ -8,10 +8,11 @@ import {Hoja, boton, etiqueta, pedir} from '../lib/hoja.js';
 import {DIAS, MESES, cap, feriadosPeru, iso, nuevoId, pad} from '../lib/util.js';
 
 export const META = {
-    id: 'calendario', nombre: 'Calendario', icono: 'x-office-calendar-symbolic',
+    id: 'calendario', nombre: 'Calendario', padding: 0, icono: 'x-office-calendar-symbolic',
     desc: 'Mes completo, feriados de Perú, eventos, cumpleaños de tus contactos y citas.',
     tam: {S: [170, 170], M: [380, 170], L: [380, 380]}, min: [150, 140],
     opciones: [
+        {k: 'compacto', t: 'sel', etq: 'Calendario pequeño', ops: [['mes', 'Mes completo'], ['dia', 'Fecha grande']], def: 'mes'},
         {k: 'feriados', t: 'bool', etq: 'Marcar feriados de Perú', def: true},
         {k: 'cumples', t: 'bool', etq: 'Mostrar cumpleaños de contactos', def: true},
         {k: 'lunes', t: 'bool', etq: 'La semana empieza en lunes', def: true},
@@ -50,6 +51,9 @@ function leerIcs(dir) {
 }
 
 export class Widget extends WidgetBase {
+    get w() { return super.w - 28; }
+    get h() { return super.h - 28; }
+
     construir(box) {
         this.box = box;
         const hoy = new Date();
@@ -100,6 +104,7 @@ export class Widget extends WidgetBase {
 
     _pintar() {
         this.box.destroy_all_children();
+        this.box.style = 'padding: 14px;';
         const hoy = new Date();
         this._dia = hoy.getDate();
         const w = this.w;
@@ -107,6 +112,11 @@ export class Widget extends WidgetBase {
         const modo = h < 200 ? (w < 250 ? 'S' : 'M') : (w >= 520 ? 'XL' : 'L');
         const fila = this.fila();
         fila.y_expand = true;
+        if (modo === 'S' && this.o.compacto !== 'dia') {
+            this.box.style = 'padding: 0;';
+            this.box.add_child(this._mes(hoy, false, true));
+            return;
+        }
         if (modo !== 'L')
             fila.add_child(this._lateral(hoy, modo));
         if (modo === 'L' || modo === 'XL')
@@ -149,24 +159,29 @@ export class Widget extends WidgetBase {
         return col;
     }
 
-    _mes(hoy, conLista) {
+    _mes(hoy, conLista, compacto = false) {
         const col = this.columna();
         col.x_expand = true;
-        const cab = this.fila();
-        cab.add_child(this.t(`${cap(MESES[this.mes.getMonth()])} ${this.mes.getFullYear()}`, 14, {peso: 'bold', expand: true}));
-        const nav = (d, ic) => this.boton(this.icono(ic, 14), () => {
+        col.y_expand = true;
+        if (compacto) col.style = 'spacing: 0;';
+        const cab = this.fila(`background-color: ${this.pal.rojo}; border-radius: ${compacto ? `${this.ctx.radio}px ${this.ctx.radio}px 0 0` : '9px'}; padding: ${compacto ? 7 : 6}px 6px;`);
+        cab.add_child(this.t(compacto ? MESES[this.mes.getMonth()].toUpperCase() : `${cap(MESES[this.mes.getMonth()])} ${this.mes.getFullYear()}`, compacto ? 10 : 14, {peso: 'bold', c: '#ffffff', expand: true, align: compacto ? Clutter.ActorAlign.CENTER : null}));
+        const nav = (d, ic) => this.boton(this.icono(ic, 14, '#ffffff'), () => {
             this.mes = new Date(this.mes.getFullYear(), this.mes.getMonth() + d, 1);
             this._pintar();
         });
+        if (!compacto) {
         cab.add_child(nav(-1, 'go-previous-symbolic'));
-        cab.add_child(this.boton(this.t('Hoy', 11, {c: 'acento'}), () => {
+        cab.add_child(this.boton(this.t('Hoy', 11, {c: '#ffffff'}), () => {
             this.mes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
             this._pintar();
         }));
         cab.add_child(nav(1, 'go-next-symbolic'));
+        }
         col.add_child(cab);
 
         const grid = new St.Widget({layout_manager: new Clutter.GridLayout({column_homogeneous: true, row_homogeneous: true}), x_expand: true, y_expand: true});
+        if (compacto) grid.style = 'margin: 3px 12px 10px;';
         const lay = grid.layout_manager;
         const ini = this.o.lunes ? 1 : 0;
         const nombres = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
@@ -174,7 +189,6 @@ export class Widget extends WidgetBase {
             lay.attach(this.t(nombres[(i + ini) % 7], 10, {c: 'texto2', align: Clutter.ActorAlign.CENTER}), i, 0, 1, 1);
         const primero = (this.mes.getDay() - ini + 7) % 7;
         const total = new Date(this.mes.getFullYear(), this.mes.getMonth() + 1, 0).getDate();
-        const filas = Math.ceil((primero + total) / 7);
         for (let d = 1; d <= total; d++) {
             const pos = primero + d - 1;
             const f = `${this.mes.getFullYear()}-${pad(this.mes.getMonth() + 1)}-${pad(d)}`;
@@ -182,20 +196,19 @@ export class Widget extends WidgetBase {
             const esHoy = f === iso(hoy);
             const feriado = ev.find(e => e.tipo === 'feriado');
             const celda = new St.BoxLayout({vertical: true, x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 1px;'});
-            const num = this.t(String(d), 12, {
+            const num = this.t(String(d), compacto ? 10 : 12, {
                 peso: esHoy ? 'bold' : 'normal', c: esHoy ? '#ffffff' : (feriado ? 'rojo' : 'texto'),
                 align: Clutter.ActorAlign.CENTER,
-                extra: esHoy ? `background-color: ${this.pal.acento}; border-radius: 99px; min-width: ${this.px(22)}px; text-align: center; padding: 1px 0;` : '',
+                extra: esHoy ? `background-color: ${this.pal.rojo}; border-radius: 99px; min-width: ${this.px(compacto ? 15 : 22)}px; text-align: center; padding: 1px 0;` : '',
             });
             celda.add_child(num);
             const pts = new St.BoxLayout({x_align: Clutter.ActorAlign.CENTER, style: 'spacing: 2px;'});
             for (const e of ev.slice(0, 3))
                 pts.add_child(new St.Widget({style: `width: 4px; height: 4px; border-radius: 2px; background-color: ${e.color};`}));
-            celda.add_child(pts);
-            const b = this.boton(celda, () => this._dia_(f), {expand: true});
+            if (!compacto) celda.add_child(pts);
+            const b = this.boton(celda, () => this._dia_(f), {expand: true, extra: compacto ? 'padding: 0;' : ''});
             lay.attach(b, pos % 7, 1 + Math.floor(pos / 7), 1, 1);
         }
-        void filas;
         col.add_child(grid);
         if (conLista && this.h > 330) {
             const prox = this._proximos(2);

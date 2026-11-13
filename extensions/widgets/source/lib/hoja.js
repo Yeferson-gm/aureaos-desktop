@@ -79,10 +79,11 @@ export class Hoja {
         Main.uiGroup.add_child(ov);
         this.grab = Main.pushModal(ov, {actionMode: Shell.ActionMode.POPUP});
         ov.grab_key_focus();
-        ov.ease({opacity: 255, duration: 150, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
+        const animate = this.core.cfg.global.animaciones && St.Settings.get().enable_animations;
+        ov.ease({opacity: 255, duration: animate ? 150 : 0, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
         caja.set_pivot_point(0.5, 0.5);
         caja.set({scale_x: 0.96, scale_y: 0.96});
-        caja.ease({scale_x: 1, scale_y: 1, duration: 200, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+        caja.ease({scale_x: 1, scale_y: 1, duration: animate ? 200 : 0, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
         this.core.hojas.push(this);
         return this;
     }
@@ -94,11 +95,15 @@ export class Hoja {
         const i = this.core.hojas.indexOf(this);
         if (i >= 0)
             this.core.hojas.splice(i, 1);
-        if (this.grab)
+        const focus = global.stage.get_key_focus();
+        if (focus && this.ov.contains(focus)) global.stage.set_key_focus(null);
+        if (this.grab) {
             Main.popModal(this.grab);
+            this.grab = null;
+        }
         this.o.alCerrar?.();
         const ov = this.ov;
-        ov.ease({opacity: 0, duration: 110, mode: Clutter.AnimationMode.EASE_OUT_QUAD, onComplete: () => ov.destroy()});
+        ov.ease({opacity: 0, duration: this.core.cfg.global.animaciones && St.Settings.get().enable_animations ? 110 : 0, mode: Clutter.AnimationMode.EASE_OUT_QUAD, onComplete: () => ov.destroy()});
     }
 }
 
@@ -209,6 +214,9 @@ export function campo(valor, hint, cb, {multi = false, ancho = 230, alto = 0, nu
         text: String(valor ?? ''), hint_text: hint, style_class: 'lintel-input', can_focus: true,
         width: ancho, x_expand: false,
     });
+    e.clutter_text.editable = false;
+    e.clutter_text.connect('key-focus-in', text => { text.editable = true; });
+    e.clutter_text.connect('key-focus-out', text => { text.editable = false; });
     if (multi) {
         e.clutter_text.single_line_mode = false;
         e.clutter_text.line_wrap = true;

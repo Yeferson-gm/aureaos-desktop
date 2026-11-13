@@ -20,7 +20,9 @@ for (const name of Object.keys(stack.extensions)) {
     const metadata = JSON.parse(fs.readFileSync(path.join(source, 'metadata.json')));
     const output = path.join(staging, 'extensions', metadata.uuid);
     fs.cpSync(source, output, {recursive: true, verbatimSymlinks: true, filter: file =>
-        !excluded.has(path.basename(file)) && !/^test[-.]/.test(path.basename(file))});
+        path.basename(file) !== 'shared' && !excluded.has(path.basename(file)) && !/^test[-.]/.test(path.basename(file))});
+    if (fs.existsSync(path.join(source, 'shared')))
+        fs.cpSync(path.join(root, 'shared'), path.join(output, 'shared'), {recursive: true});
     metadata.version = version.integer;
     metadata['version-name'] = version.name;
     fs.writeFileSync(path.join(output, 'metadata.json'), JSON.stringify(metadata, null, 2) + '\n');

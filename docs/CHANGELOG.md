@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.4.0
+
+- Bloqueo nativo con fondo WhiteSur estático, fecha sobre reloj fino y perfil
+  inferior; restauración al desactivar y espacio reservado al teclado.
+- Widgets con tipografía Adwaita, sombras suaves, clima atmosférico y pronóstico
+  compacto, calendario de mes y relojes mundiales con esferas día/noche.
+- Fotografías con transición breve y movimiento reducido respetado en entrada,
+  edición, clima, reloj, fotos y hojas de ajustes.
+- Vidrio continuo con recorte compartido y regiones proyectadas durante edición;
+  se conservan la geometría y los controles del dock.
+- Ajustes construidos antes de abrir el modal, foco de campos controlado y
+  regresiones visuales con 78 variantes de widgets y datos sintéticos.
+
 ## 0.3.2
 
 - Recorte del desenfoque en el framebuffer: elimina las esquinas rectangulares

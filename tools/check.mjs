@@ -24,7 +24,7 @@ function inspect(dir) {
         }
     }
 }
-for (const dir of ['extensions', 'theme', 'integrations', 'tools', 'tests']) inspect(path.join(root, dir));
+for (const dir of ['shared', 'extensions', 'theme', 'integrations', 'tools', 'tests']) inspect(path.join(root, dir));
 for (const name of Object.keys(stack.extensions)) {
     const source = path.join(root, 'extensions', name, name === 'widgets' ? 'source' : '');
     const metadata = JSON.parse(fs.readFileSync(path.join(source, 'metadata.json')));

@@ -8,7 +8,7 @@ if [[ ${1:-} != --session ]]; then
   unset DISPLAY
   mkdir -m 0700 "$XDG_RUNTIME_DIR"
   mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions"
-  cp -a "${WIDGET_TEST_SOURCE_DIR:-$project/source}" "$XDG_DATA_HOME/gnome-shell/extensions/lintel-widgets@local"
+  cp -aL "${WIDGET_TEST_SOURCE_DIR:-$project/source}" "$XDG_DATA_HOME/gnome-shell/extensions/lintel-widgets@local"
   cp -a "$project/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
   cp -a "$project/../live-wallpaper" "$XDG_DATA_HOME/gnome-shell/extensions/aurea-wallpaper@local"
   glib-compile-schemas --strict "$XDG_DATA_HOME/gnome-shell/extensions/aurea-wallpaper@local/schemas"
@@ -16,9 +16,15 @@ if [[ ${1:-} != --session ]]; then
   mkdir -p "$XDG_DATA_HOME/gnome-wallpaper-engine/backgrounds"
   ffmpeg -v error -f lavfi -i testsrc2=size=640x360:rate=24 -t 3 -c:v libvpx-vp9 "$XDG_DATA_HOME/gnome-wallpaper-engine/backgrounds/aurea-test.webm"
   glib-compile-schemas --strict "$XDG_DATA_HOME/gnome-shell/extensions/lintel-widgets@local/schemas"
+  mkdir -p "$XDG_CONFIG_HOME" "$DI_TEST_DIR/pictures"
+  printf 'XDG_PICTURES_DIR="%s/pictures"\n' "$DI_TEST_DIR" > "$XDG_CONFIG_HOME/user-dirs.dirs"
+  cp "$project/tools/design-eval.js" "$DI_TEST_DIR/design-eval.js"
+  gsettings set org.freedesktop.Tracker3.Miner.Files index-recursive-directories '[]'
+  gsettings set org.freedesktop.Tracker3.Miner.Files index-single-directories '[]'
   echo "Prueba aislada: $DI_TEST_DIR"
   exec dbus-run-session -- bash "$0" --session
 fi
+gsettings set org.gnome.desktop.interface enable-hot-corners false
 schema="$XDG_DATA_HOME/gnome-shell/extensions/aurea-wallpaper@local/schemas"
 gsettings --schemadir "$schema" set org.gnome.shell.extensions.gnome-wallpaper-engine autostart true
 gsettings --schemadir "$schema" set org.gnome.shell.extensions.gnome-wallpaper-engine pause-on-fullscreen false
@@ -36,10 +42,11 @@ result=$(gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Sh
 echo "$result"
 [[ "$result" == '(true,'* ]]
 
-for attempt in {1..50}; do
+for attempt in {1..90}; do
   [[ -f "$DI_TEST_DIR/result.txt" ]] && break
   sleep 1
 done
 cat "$DI_TEST_DIR/result.txt"
 rg -q '^PASS:' "$DI_TEST_DIR/result.txt"
+/usr/bin/python3 "$project/../dock/tests/check-glass-corners.py" "$DI_TEST_DIR"
 if rg 'JS ERROR|CRITICAL' "$DI_TEST_DIR/shell.log"; then exit 1; fi

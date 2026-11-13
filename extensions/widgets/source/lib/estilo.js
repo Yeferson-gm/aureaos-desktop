@@ -30,7 +30,7 @@ export function paleta(est, glob) {
     const texto = oscuro ? '#f5f5f7' : '#1c1c1e';
     return {
         oscuro, acento, texto,
-        texto2: oscuro ? 'rgba(235,235,245,0.62)' : 'rgba(60,60,67,0.62)',
+        texto2: oscuro ? 'rgba(235,235,245,0.76)' : 'rgba(60,60,67,0.76)',
         sep: oscuro ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.12)',
         superficie: oscuro ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.06)',
         rojo: '#ff453a', verde: '#30d158', naranja: '#ff9f0a', amarillo: '#ffd60a',
@@ -44,13 +44,13 @@ export function cssMarco(est, pal) {
     const base = est.tinte || (pal.oscuro ? '#1e1e24' : '#ffffff');
     const [r, g, b] = hex255(base);
     const a = clamp(est.opacidad, 0, 100) / 100;
-    let s = `background-color: rgba(${r},${g},${b},${a}); border-radius: ${est.radio}px; color: ${pal.texto};`;
+    let s = `font-family: "Adwaita Sans", sans-serif; background-color: rgba(${r},${g},${b},${a}); border-radius: ${est.radio}px; color: ${pal.texto};`;
     if (est.borde) {
         s += glass
-            ? `border: 1px solid rgba(255,255,255,${pal.oscuro ? 0.22 : 0.62});`
+            ? `border: 1px solid rgba(255,255,255,${pal.oscuro ? 0.18 : 0.38});`
             : `border: 1px solid ${pal.oscuro ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.09)'};`;
     }
     if (est.sombra)
-        s += `box-shadow: 0 10px 30px rgba(0,0,0,${glass ? 0.26 : 0.34});`;
+        s += `box-shadow: 0 3px 12px rgba(0,0,0,${glass ? 0.14 : 0.18});`;
     return s;
 }

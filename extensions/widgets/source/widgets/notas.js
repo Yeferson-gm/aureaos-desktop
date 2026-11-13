@@ -4,7 +4,7 @@ import St from 'gi://St';
 
 import {WidgetBase} from '../lib/base.js';
 import {Hoja, boton, campo, elegirImagen, etiqueta, muestras} from '../lib/hoja.js';
-import {dirImagenes, hex255, listarImagenes, nuevoId, uriDe} from '../lib/util.js';
+import {dirImagenes, listarImagenes, nuevoId, uriDe} from '../lib/util.js';
 
 export const META = {
     id: 'notas', nombre: 'Notas', icono: 'document-edit-symbolic',
@@ -37,10 +37,9 @@ export class Widget extends WidgetBase {
             cuerpo = this.columna();
             cuerpo.add_child(this.t('Sin notas', 15, {peso: 'bold'}));
             cuerpo.add_child(this.t('Toca para crear una nota', 12, {c: 'texto2'}));
-            tarjeta.style = `padding: ${this.px(10)}px; border-radius: ${Math.max(8, this.ctx.radio - 8)}px; background-color: ${this.pal.superficie};`;
+            tarjeta.style = `padding: ${this.px(4)}px 0; border-top: 5px solid ${this.pal.amarillo};`;
         } else {
-            const [r, g, b] = hex255(n.color);
-            tarjeta.style = `padding: ${this.px(10)}px; border-radius: ${Math.max(8, this.ctx.radio - 8)}px; background-color: rgba(${r},${g},${b},${this.pal.oscuro ? 0.26 : 0.36}); border-left: 4px solid ${n.color};`;
+            tarjeta.style = `padding: ${this.px(4)}px 0; border-top: 5px solid ${n.color};`;
             const lineas = n.texto.split('\n');
             cuerpo = this.columna();
             cuerpo.add_child(this.t(lineas[0] || 'Nota sin título', 15, {peso: 'bold'}));

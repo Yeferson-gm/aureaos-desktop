@@ -129,10 +129,10 @@ export class Widget extends WidgetBase {
         const viejo = this._frente;
         nuevo.style = this._estilo(f);
         this._frente = nuevo;
-        if (anim) {
+        if (anim && this.movimiento) {
             nuevo.opacity = 0;
-            nuevo.ease({opacity: 255, duration: 700});
-            viejo.ease({opacity: 0, duration: 700, delay: 200});
+            nuevo.ease({opacity: 255, duration: 250});
+            viejo.ease({opacity: 0, duration: 250});
         } else {
             nuevo.opacity = 255;
             viejo.opacity = 0;
