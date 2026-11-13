@@ -3,6 +3,22 @@
     const {default: Clutter} = await import('gi://Clutter');
     const {default: St} = await import('gi://St');
     const wait = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {resolve(); return GLib.SOURCE_REMOVE;}));
+    if (GLib.getenv('AUREA_TEST_SCALE')) {
+        const call = (method, params) => new Promise((resolve, reject) => Gio.DBus.session.call('org.gnome.Mutter.DisplayConfig', '/org/gnome/Mutter/DisplayConfig', 'org.gnome.Mutter.DisplayConfig', method, params, null, Gio.DBusCallFlags.NONE, 10000, null, (connection, result) => {
+            try { resolve(connection.call_finish(result).recursiveUnpack()); } catch (error) { reject(error); }
+        }));
+        const [serial, monitors] = await call('GetCurrentState', null);
+        let x = 0;
+        const configs = monitors.map(([spec, modes], index) => {
+            const mode = modes.find(item => item[6]['is-current']) ?? modes[0];
+            const scale = index === 0 ? Number(GLib.getenv('AUREA_TEST_SCALE')) : 1;
+            if (!mode[5].includes(scale)) throw new Error('Escala no admitida en el compositor aislado: ' + scale + ' disponibles:' + mode[5]);
+            const config = [x, 0, scale, 0, index === 0, [[spec[0], mode[0], {}]]];
+            x += Math.round(mode[1] / scale); return config;
+        });
+        await call('ApplyMonitorsConfig', new GLib.Variant('(uua(iiduba(ssa{sv}))a{sv})', [serial, 1, configs, {}]));
+        await wait(800);
+    }
     const ext = Main.extensionManager.lookup('macos27-dock@local');
     if (!ext?.stateObj) throw new Error('Dock no cargado: ' + ext?.error);
     const {dockManager} = await import(`file://${ext.path}/extension.js`);
@@ -11,6 +27,8 @@
     Main.overview.hide();
     await wait(800);
     const controller = dockManager.mainDock.dash._magnification;
+    const clip = dockManager.mainDock._box.get_clip();
+    if (clip[2] <= 0 || clip[3] <= 0) throw new Error('Falta límite de pantalla');
     const items = controller._items();
     if (!items.length) throw new Error('No hay iconos de prueba');
     const middle = Math.floor(items.length / 2);
@@ -98,6 +116,52 @@
     await new Shell.Screenshot().screenshot(false, menuStream);
     menuStream.close(null);
     app._menu.close();
+    for (const mode of ['light', 'dark']) {
+        dockManager.settings.set_string('material-theme', mode);
+        app.popupMenu();
+        await wait(200);
+        if (app._menu.actor.has_style_class_name('aurea-dark') !== (mode === 'dark'))
+            throw new Error('El menú no sigue el material');
+        const capture = Gio.File.new_for_path(`${GLib.getenv('DI_TEST_DIR')}/menu-${mode}.png`).replace(null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+        await new Shell.Screenshot().screenshot(false, capture); capture.close(null);
+        app._menu.close();
+    }
+    const accessibility = new Gio.Settings({schema_id: 'org.gnome.desktop.a11y.interface'});
+    accessibility.set_boolean('high-contrast', true);
+    await wait(200);
+    if (dockManager.mainDock.dash._glassShelf.blur.visible)
+        throw new Error('Alto contraste conserva desenfoque');
+    accessibility.set_boolean('high-contrast', false);
+    dockManager.settings.set_string('material-theme', 'auto');
+    const {testPointer} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/pointer.js`);
+    await wait(800);
+    if (GLib.getenv('AUREA_DOCK_WINDOWS') !== '1') await testPointer(dockManager.mainDock.dash);
+    if (GLib.getenv('AUREA_DOCK_VIDEO') === '1') {
+        await wait(1500);
+        const source = `${GLib.getenv('DI_PROJECT_DIR')}/tests/benchmark.js`;
+        const {benchmark} = await import(`file://${source}`);
+        await benchmark(controller, dockManager.mainDock.dash._glassShelf.blur);
+    }
+    if (GLib.getenv('AUREA_DOCK_WINDOWS') === '1') {
+        const {testWindows} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/windows.js`);
+        await testWindows(dockManager);
+    }
+    if (GLib.getenv('AUREA_DOCK_DUAL') === '1') {
+        dockManager.settings.set_boolean('multi-monitor', true);
+        dockManager.settings.set_boolean('dock-fixed', true);
+        await wait(1000);
+        if (dockManager._allDocks.length !== Main.layoutManager.monitors.length)
+            throw new Error('Falta Dock en una pantalla');
+        for (const dock of dockManager._allDocks) {
+            const monitor = Main.layoutManager.monitors[dock.monitorIndex];
+            const [cx, cy, cw, ch] = dock._box.get_clip();
+            const [ok, mx, my] = dock._box.transform_stage_point(monitor.x, monitor.y);
+            if (!ok || Math.abs(cx - mx) > 1 || Math.abs(cy - my) > 1 || cw <= 0 || ch <= 0)
+                throw new Error('Recorte fuera del monitor del Dock');
+        }
+        dockManager.settings.set_boolean('multi-monitor', false);
+        await wait(500);
+    }
     return {icons: items.length, bounds: 'ok', reset: 'ok'};
 })().then(async result => {
     const {default: Gio} = await import('gi://Gio');

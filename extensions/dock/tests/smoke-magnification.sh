@@ -10,6 +10,27 @@ mkdir -m 0700 "$XDG_RUNTIME_DIR"
 mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions"
 cp -a "$project_dir" "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local"
 cp -a "$project_dir/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
+export GSETTINGS_SCHEMA_DIR="$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local/schemas"
 glib-compile-schemas "$XDG_DATA_HOME/gnome-shell/extensions/macos27-dock@local/schemas"
+export AUREA_DOCK_CLK_TCK=$(getconf CLK_TCK)
+if [[ "${AUREA_DOCK_VIDEO:-0}" == 1 ]]; then
+    video_extension="$XDG_DATA_HOME/gnome-shell/extensions/aurea-wallpaper@local"
+    cp -a "$project_dir/../live-wallpaper" "$video_extension"
+    glib-compile-schemas "$video_extension/schemas"
+    mkdir -p "$XDG_DATA_HOME/gnome-wallpaper-engine/backgrounds"
+    ffmpeg -v error -f lavfi -i testsrc2=size=640x360:rate=24 -t 3 -c:v libvpx-vp9 "$XDG_DATA_HOME/gnome-wallpaper-engine/backgrounds/aurea-test.webm"
+    gsettings --schemadir "$video_extension/schemas" set org.gnome.shell.extensions.gnome-wallpaper-engine autostart true
+    gsettings --schemadir "$video_extension/schemas" set org.gnome.shell.extensions.gnome-wallpaper-engine current-wallpaper 'aurea-test.webm'
+fi
+if [[ "${AUREA_DOCK_WINDOWS:-0}" == 1 ]]; then
+    mkdir -p "$XDG_DATA_HOME/applications"
+    cat > "$XDG_DATA_HOME/applications/org.aurea.DockFixture.desktop" <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Aurea Dock fixture
+Exec=true
+Icon=applications-utilities
+DESKTOP
+fi
 printf 'Prueba aislada: %s\n' "$DI_TEST_DIR"
 dbus-run-session -- bash "$project_dir/tests/smoke-session.sh"
