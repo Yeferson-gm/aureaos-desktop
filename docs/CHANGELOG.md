@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.3.2
+
+- Recorte del desenfoque en el framebuffer: elimina las esquinas rectangulares
+  que la máscara de la entrega anterior no alcanzaba a recortar.
+- Prueba visual por píxeles con fondo de contraste, en reposo y ampliación;
+  verifica tanto la ausencia de vidrio exterior como el desenfoque interior.
+
 ## 0.3.1
 
 - Desenfoque de toda la superficie del Dock con máscara de esquinas redondeadas,

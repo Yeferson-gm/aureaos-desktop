@@ -41,3 +41,8 @@ acciones D-Bus y 100 interrupciones. Límites físicos documentados en
 - [x] Cargar iconos para la ampliación máxima conservando el tamaño base y evitando recargas por cuadro.
 - [x] Corregir recortes de clic de StScrollView/StViewport para iconos desplazados.
 - [x] Verificar resolución real, puntero, arrastre, vídeo y monitores con ampliación 1,75×.
+
+## Dock: esquinas del vidrio
+
+- [x] Sustituir la máscara intermedia por recorte del framebuffer que contiene el fondo.
+- [x] Comparar píxeles exteriores e interiores en reposo, ampliación y escalas mixtas, con control sin recorte.

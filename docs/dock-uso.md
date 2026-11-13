@@ -30,8 +30,13 @@ limitado a su monitor y se aplica también durante el ocultamiento.
 El material claro/oscuro usa los mismos colores base que las tarjetas de Aurea.
 Alto contraste elimina el desenfoque y usa superficies opacas con borde visible.
 El menú contextual y las vistas de ventanas tienen texto según su propia tarjeta.
-El desenfoque cubre la superficie completa y una máscara gráfica recorta sus
-esquinas según el radio del contenedor. No hay un rectángulo interior oscurecido.
+El desenfoque cubre la superficie completa y una región de recorte del framebuffer
+limita sus esquinas al radio del contenedor. No hay un rectángulo interior oscurecido.
+La región se calcula en píxeles de destino con las matrices del compositor y se
+reutiliza mientras no cambie la geometría. El medio píxel interior evita que el
+desenfoque sobresalga del borde suavizado del tema. El recorte se aplica antes del
+desenfoque y se retira siempre al terminar de pintar. Una máscara en un framebuffer
+intermedio no servía: o no recortaba el fondo o impedía muestrearlo.
 Los iconos St.Icon se cargan a la resolución de ampliación máxima; se mantiene
 su asignación de tamaño normal y el compositor considera la escala de pantalla.
 No se recargan las imágenes en cada cuadro. Un recurso original de baja resolución
@@ -87,6 +92,12 @@ La asignación visual base siguió en 48 px. Se validan también los centros de 
 iconos desplazados, clics con puntero virtual y arrastre. La prueba con vídeo
 conservó 0 reasignaciones del vidrio durante el barrido y 0 cuadros de lente en
 reposo. Estas comprobaciones no reconstruyen detalle ausente en iconos originales.
+
+La prueba de esquinas necesita Pillow en `/usr/bin/python3`. Compara capturas
+con y sin vidrio sobre un patrón sintético, en reposo y ampliación. Exige que no
+cambien los píxeles exteriores y que sí se desenfoque el interior; desactiva el
+recorte en una captura de control para comprobar que detecta la regresión.
+También se ejecuta con monitores al 125/100 %.
 
 ## Límites y alcance
 

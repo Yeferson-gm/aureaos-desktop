@@ -106,9 +106,9 @@ export class GlassShelf {
             else if ('radius' in fx)
                 fx.radius = sigma * 2;
             fx.brightness = 1;
-            this.blur.add_effect(fx);
             this._mask = new RoundedMask();
             this.blur.add_effect(this._mask);
+            this.blur.add_effect(fx);
             this._syncRadius();
         } catch (e) {
             console.error(`[Dock macOS 27] desenfoque no disponible: ${e.message}`);

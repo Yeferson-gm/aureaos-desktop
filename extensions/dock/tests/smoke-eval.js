@@ -184,6 +184,8 @@
         dockManager.settings.set_boolean('multi-monitor', false);
         await wait(500);
     }
+    const {testGlass} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/glass-corners.js`);
+    await testGlass(dockManager.mainDock);
     return {icons: items.length, bounds: 'ok', reset: 'ok'};
 })().then(async result => {
     const {default: Gio} = await import('gi://Gio');
