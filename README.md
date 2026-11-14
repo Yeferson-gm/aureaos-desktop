@@ -478,3 +478,15 @@ las preferencias del tema. Usa paquetes construidos desde una etiqueta Git limpi
 [Controles, pruebas y límites del Dock](docs/dock-uso.md). La nueva página Aurea
 se abre con `gnome-extensions prefs macos27-dock@local`. Incluye material,
 desenfoque, aspecto, indicadores y movimiento con restauración por grupo.
+
+
+Para actualizar únicamente el Dock, seleccionar `aurea_paquete` como se indica en
+**Instalar un paquete existente** y ejecutar:
+
+```bash
+./aurea.sh install "$aurea_paquete" --apply --component=dock
+./aurea.sh install "$aurea_paquete" --check --component=dock
+```
+
+Conserva las preferencias del Dock. Cerrar sesión y volver a entrar carga el código
+actualizado; `--check` verifica archivos, no la versión ya cargada en memoria.

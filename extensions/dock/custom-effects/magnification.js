@@ -56,11 +56,17 @@ export class MagnificationController {
         this._updatePointerPosition();
     }
 
+    watchBackground() {
+        this._backgroundId = this._dash._background.connect('notify::allocation',
+            () => this._writeShelf(this._shelf.a, this._shelf.b));
+    }
+
     destroy() {
         this._stopFrames();
         this._resetImmediately();
         this._dash.disconnect(this._sizeId);
         this._box.disconnect(this._addedId);
+        this._dash._background.disconnect(this._backgroundId);
         this._resolution.destroy();
         for (const [actor, state] of this._configuredActors) {
             actor.disconnect(state.destroyed);
@@ -188,6 +194,7 @@ export class MagnificationController {
             }
             const [x, y] = container.get_transformed_position();
             const [w, h] = container.get_transformed_size();
+            if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0) return;
             const start = horizontal ? x : y;
             const extent = horizontal ? w : h;
             list.push({

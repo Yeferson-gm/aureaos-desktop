@@ -273,6 +273,7 @@ export const DockDash = GObject.registerClass({
 
 
         this._glassShelf = new GlassShelf(this, Docking.DockManager.settings);
+        this._magnification.watchBackground();
 
         this._workId = Main.initializeDeferredWork(this._box, () => this._redisplay());
 
@@ -447,7 +448,8 @@ export const DockDash = GObject.registerClass({
 
 
     _updateLocationSeparator() {
-        const children = this._box.get_children();
+        this._locSeparator?.get_parent()?.remove_child(this._locSeparator);
+        const children = this._box.get_children().filter(actor => !actor.animatingOut);
         const appOf = actor => actor.child?.app ?? actor.child?._delegate?.app;
         const first = children.findIndex(actor => {
             const app = appOf(actor);
@@ -474,8 +476,7 @@ export const DockDash = GObject.registerClass({
         this._locSeparator.set_size(
             this._isHorizontal ? -1 : this.iconSize,
             this._isHorizontal ? this.iconSize : -1);
-        this._locSeparator.get_parent()?.remove_child(this._locSeparator);
-        this._box.insert_child_at_index(this._locSeparator, first);
+        this._box.insert_child_below(this._locSeparator, children[first]);
     }
 
     _clearDragPlaceholder(...args) {

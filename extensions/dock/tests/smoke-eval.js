@@ -27,6 +27,8 @@
     dockManager.settings.set_double('magnification-max-scale', 1.75);
     Main.overview.hide();
     await wait(800);
+    const {testLayout} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/layout-regression.js`);
+    await testLayout(dockManager, wait);
     const controller = dockManager.mainDock.dash._magnification;
     const clip = dockManager.mainDock._box.get_clip();
     if (clip[2] <= 0 || clip[3] <= 0) throw new Error('Falta límite de pantalla');

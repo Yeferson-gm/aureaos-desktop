@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.4.6
+
+- Dock: recalcula la extensión del fondo al cambiar su ancho y omite medidas
+  transitorias no válidas mientras se actualizan los iconos.
+- Evita separadores contiguos junto a la papelera tras cerrar aplicaciones y
+  conserva su posición en actualizaciones repetidas.
+- Regresiones de tamaño, favoritos, animación de retirada y asignación tardía.
+
 ## 0.4.5
 
 - README principal con comandos para seleccionar el paquete desde Git, construir,

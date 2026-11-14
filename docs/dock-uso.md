@@ -120,3 +120,24 @@ Construir desde una etiqueta limpia y aplicar exclusivamente `--component=dock`:
 Sustituir VERSION por la etiqueta construida sin la v inicial. Tras instalar código
 nuevo en Wayland, cerrar y volver a iniciar sesión. Los ajustes de las preferencias
 no necesitan volver a cerrar sesión. Las copias sustituidas quedan en la papelera.
+
+
+## Ancho y separadores
+
+La superficie vuelve a calcular su escala cuando cambia su asignación, aunque la
+lente ya esté en reposo. Así una actualización tardía de la lista de aplicaciones
+no multiplica el margen de ampliación por el ancho anterior. Se omiten las medidas transitorias no válidas o nulas de
+actores aún sin asignación para evitar propagar valores inválidos a la lente.
+
+El separador de ubicaciones se retira antes de calcular su nueva posición y omite
+los actores que están animándose al desaparecer. Si el separador de favoritos ya
+ocupa ese límite, se reutiliza ese límite sin añadir otra línea. Se conserva la
+separación entre grupos distintos cuando hay aplicaciones abiertas no favoritas.
+
+La prueba `tests/layout-regression.js` cambia favoritos, reduce y recupera el
+ancho, simula una asignación tardía con la lente estable y comprueba que el fondo
+solo añade el margen de ampliación solicitado. También reproduce el cierre de
+una aplicación junto a la papelera y actualiza repetidamente los separadores.
+Forma parte de la prueba aislada de ampliación, incluidas ventanas y escalas mixtas.
+La comprobación con vídeo mantiene cero cuadros de lente en reposo y cero
+reasignaciones de la capa de vidrio durante el barrido de 120 cuadros.
