@@ -79,3 +79,23 @@ sobre 101 posiciones de cada gradiente atmosférico de día y noche. Esta medici
 corresponde a esos fondos opacos; no garantiza contraste sobre cualquier fondo
 transparente personalizado. La prueba de Shell captura también siete condiciones
 meteorológicas tanto de día como de noche.
+
+## Altas inmediatas y una instancia por tipo
+
+La aparición se iniciaba antes de cambiar la capa al modo de edición. Ese cambio
+de padre cancelaba la transición de Clutter dejando opacidad cero: el actor
+existía y estaba mapeado, pero era invisible hasta recrearlo. El controlador ahora
+entra en edición antes del montaje y la transición restaura su estado final
+también al detenerse, por ejemplo al pulsar Listo inmediatamente.
+
+`agregar` devuelve y muestra el widget existente si ya está presente ese tipo.
+La galería distingue los existentes con Mostrar/Ajustes y no ofrece Duplicar.
+Al cargar configuraciones anteriores, `normalizeWidgetList` conserva la primera
+instancia de cada tipo en el orden guardado y mueve las demás a la propiedad
+aditiva `widgetsArchivados`, manteniendo sus opciones y dimensiones. No cambia
+la versión de formato ni los almacenes de notas, contactos o eventos. La migración
+es idempotente: reiniciar no genera más copias archivadas.
+
+La regresión aislada reprodujo `mapped=true, opacity=0` antes del arreglo y
+comprueba la visibilidad después de añadir, de interrumpir la aparición y de
+terminar edición; prueba dos clics consecutivos y la migración al recargar.

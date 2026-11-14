@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {normalizeWidgetList} from '../source/lib/widget-list.js';
+
+const original = {id: 'clock', tipo: 'reloj', opts: {ciudad: 'Lima'}, x: 24};
+const duplicate = {id: 'clock-copy', tipo: 'reloj', opts: {ciudad: 'Madrid'}, x: 250};
+const note = {id: 'note', tipo: 'notas', opts: {nota: 'personal-note-id'}};
+const archived = {id: 'old-copy', tipo: 'clima'};
+const config = {v: 1, global: {animaciones: true}, widgets: [original, note, duplicate], widgetsArchivados: [archived]};
+assert.equal(normalizeWidgetList(config), true);
+assert.deepEqual(config.widgets, [original, note]);
+assert.deepEqual(config.widgetsArchivados, [archived, duplicate]);
+assert.equal(config.widgets[0], original);
+assert.equal(config.widgetsArchivados[1], duplicate);
+assert.deepEqual(config.global, {animaciones: true});
+assert.equal(config.v, 1);
+const saved = JSON.stringify(config);
+assert.equal(normalizeWidgetList(config), false);
+assert.equal(JSON.stringify(config), saved);
+assert.equal(normalizeWidgetList({widgets: []}), false);
+console.log('PASS: one widget per type, original settings preserved, duplicates archived once');

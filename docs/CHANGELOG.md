@@ -1,5 +1,16 @@
 # Cambios
 
+## 0.4.8
+
+- Widgets nuevos visibles inmediatamente: entra en edición antes de iniciar la
+  aparición y termina en estado visible si la transición se interrumpe.
+- Un widget por tipo, incluso ante clics repetidos. La galería ofrece Mostrar y
+  Ajustes para los existentes; retira Duplicar de edición y ajustes.
+- Migración aditiva de copias antiguas: conserva la primera configuración por
+  tipo y archiva las demás en el mismo archivo, sin borrar datos personales.
+- Regresiones en Shell real aislado: alta, interrupción, doble clic, galería,
+  retirada y nueva alta, persistencia y migración repetida.
+
 ## 0.4.7
 
 - Widgets: clima con azules y cian más saturados, tormentas violetas y paletas

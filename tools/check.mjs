@@ -62,6 +62,7 @@ const tests = [
     'extensions/widgets/tools/test-photos.mjs',
     'extensions/widgets/tools/test-stacking.mjs',
     'extensions/widgets/tools/test-weather-colors.mjs',
+    'extensions/widgets/tools/test-widget-list.mjs',
     'integrations/desktop/test-renderer.mjs',
     'integrations/desktop/test-desktop-drop.mjs',
 ];

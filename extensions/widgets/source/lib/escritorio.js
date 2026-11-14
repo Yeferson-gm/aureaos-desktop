@@ -9,7 +9,8 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-import {Almacen, cerrarHttp, clonar, nuevoId} from './util.js';
+import {Almacen, cerrarHttp, nuevoId} from './util.js';
+import {normalizeWidgetList} from './widget-list.js';
 import {estiloNuevo, ESTILO_DEF} from './estilo.js';
 import {Marco} from './marco.js';
 import {boton} from './hoja.js';
@@ -90,6 +91,8 @@ export class Escritorio {
 
         if (!this.cfg.widgets)
             this.cfg.widgets = this._inicial();
+        if (normalizeWidgetList(this.cfg))
+            this.guardarCfg();
         for (const c of [...this.cfg.widgets])
             this._montar(c);
         this.colocar();
@@ -260,17 +263,29 @@ export class Escritorio {
     }
 
     agregar(tipo, tam = 'M') {
+        const existente = this.marcos.find(m => m.cfg.tipo === tipo);
+        if (existente) {
+            this.mostrar(existente);
+            return existente;
+        }
         const mod = MODULOS[tipo];
+        if (!mod?.META.tam[tam])
+            return null;
         const [w, h] = mod.META.tam[tam];
         const [x, y] = this.huecoLibre(w, h);
         const cfg = {id: nuevoId(), tipo, x, y, w, h, estilo: estiloNuevo(this.cfg.global.estilo), opts: {}};
-        this.cfg.widgets.push(cfg);
+        this.modoEdicion(true);
         const m = this._montar(cfg);
+        this.cfg.widgets.push(cfg);
         m.aparecer();
         this.guardarCfg();
-        if (!this.editando)
-            this.modoEdicion(true);
         return m;
+    }
+
+    mostrar(m) {
+        this.modoEdicion(true);
+        this.alFrente(m);
+        m.aparecer();
     }
 
     quitar(m) {
@@ -281,16 +296,6 @@ export class Escritorio {
             opacity: 0, scale_x: 0.85, scale_y: 0.85, duration: 180, mode: Clutter.AnimationMode.EASE_IN_QUAD,
             onComplete: () => m.destruir(),
         });
-    }
-
-    duplicar(m) {
-        const c = clonar(m.cfg);
-        c.id = nuevoId();
-        c.x = Math.min(c.x + 28, Math.max(0, this.area.w - c.w));
-        c.y = Math.min(c.y + 28, Math.max(0, this.area.h - c.h));
-        this.cfg.widgets.push(c);
-        this._montar(c).aparecer();
-        this.guardarCfg();
     }
 
     alternarEstilo(m) {

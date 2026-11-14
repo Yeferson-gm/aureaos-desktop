@@ -142,6 +142,7 @@ export class Marco {
         this.actor.ease({
             opacity: 255, scale_x: 1, scale_y: 1, duration: 220,
             mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            onStopped: () => this.actor.set({opacity: 255, scale_x: 1, scale_y: 1}),
         });
     }
 
@@ -200,7 +201,6 @@ export class Marco {
         mk('Quitar', () => this.core.quitar(this), 'lw-tool-rojo');
         mk('Ajustes', () => this.core.abrirAjustes(this.cfg.id));
         this._bEstilo = mk('', () => this.core.alternarEstilo(this));
-        mk('Duplicar', () => this.core.duplicar(this));
         capa.add_child(barra);
         return capa;
     }

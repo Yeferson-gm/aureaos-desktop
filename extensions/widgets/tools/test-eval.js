@@ -53,6 +53,24 @@
     scan(core.capa);
     const output = Gio.File.new_for_path(`${GLib.getenv('DI_TEST_DIR')}/widgets.png`).replace(null,false,Gio.FileCreateFlags.NONE,null);
     await new Shell.Screenshot().screenshot(false,output); output.close(null);
+    core.cfg.global.animaciones = true;
+    const liveAdded = core.agregar('notas');
+    await wait(500);
+    if (!liveAdded.actor.mapped || liveAdded.actor.opacity !== 255)
+        throw new Error(`Alta invisible: mapped=${liveAdded.actor.mapped}, opacity=${liveAdded.actor.opacity}`);
+    core.modoEdicion(false);
+    await wait(300);
+    if (!liveAdded.actor.mapped || liveAdded.actor.opacity !== 255)
+        throw new Error('Alta invisible tras terminar edición');
+    core.quitar(liveAdded);
+    await wait(250);
+    const interrupted = core.agregar('notas');
+    core.modoEdicion(false);
+    await wait(350);
+    if (!interrupted.actor.mapped || interrupted.actor.opacity !== 255 || interrupted.actor.scale_x !== 1)
+        throw new Error('Alta invisible al interrumpir la animación');
+    core.quitar(interrupted);
+    await wait(250);
     core.modoEdicion(true);
     if (core.capa.get_parent() !== Main.uiGroup) throw new Error('Capa de edición incorrecta');
     const frame = core.marcos[0];
@@ -75,7 +93,7 @@
         await wait(250);
     };
     core.cfg.global.animaciones = false;
-    const editable = core.agregar('baterias');
+    const editable = core.agregar('notas');
     editable.fijarRect(600, 300, 380, 170);
     await wait(300);
     const buttons = editable._barra.get_children();
@@ -84,10 +102,9 @@
     if (editable.cfg.estilo.estilo === material) throw new Error('Acción: estilo no cambia');
     if (editable._drag) throw new Error('Clic en botón inició arrastre');
     const count = core.marcos.length;
-    await click(buttons[3]);
-    if (core.marcos.length !== count + 1) throw new Error('Acción: duplicar no funciona');
-    core.quitar(core.marcos.at(-1));
-    await wait(250);
+    if (buttons.length !== 3) throw new Error('Sigue disponible la acción Duplicar');
+    if (core.agregar('notas', 'S') !== editable || core.marcos.length !== count)
+        throw new Error('Alta repetida crea un duplicado');
     await click(buttons[1]);
     if (!core.hojas.length) throw new Error('Acción: ajustes no abre');
     const entries = [];
@@ -134,6 +151,21 @@
     }
     const galleryOutput = Gio.File.new_for_path(`${GLib.getenv('DI_TEST_DIR')}/gallery.png`).replace(null,false,Gio.FileCreateFlags.NONE,null);
     await new Shell.Screenshot().screenshot(false,galleryOutput); galleryOutput.close(null);
+    const clockCard = cards.find(card => card.get_children()[0].get_children()[1].text === 'Reloj');
+    if (clockCard.get_children().at(-1).get_children().map(b => b.label).join(',') !== 'Mostrar,Ajustes')
+        throw new Error('Galería ofrece añadir un tipo existente');
+    const notesCard = cards.find(card => card.get_children()[0].get_children()[1].text === 'Notas');
+    const addNotes = notesCard.get_children().at(-1).get_children()[1];
+    core.modoEdicion(false);
+    addNotes.emit('clicked', Clutter.BUTTON_PRIMARY);
+    addNotes.emit('clicked', Clutter.BUTTON_PRIMARY);
+    await wait(400);
+    const notes = core.marcos.filter(m => m.cfg.tipo === 'notas');
+    if (notes.length !== 1 || !notes[0].actor.mapped || notes[0].actor.opacity !== 255)
+        throw new Error('Doble clic en galería crea duplicados o deja el widget invisible');
+    core.quitar(notes[0]);
+    core.modoEdicion(false);
+    await wait(250);
     for (const h of [...core.hojas]) h.cerrar();
     for (const type of ['notas','fotos','recordatorios','musica','podcasts','contactos','buscar','noticias','tiempouso']) {
         const widget = core.agregar(type);
@@ -144,11 +176,25 @@
     }
     const {verifyDesign} = await import(`file://${GLib.getenv('DI_TEST_DIR')}/design-eval.js`);
     await verifyDesign(core, wait);
+    const firstClock = core.cfg.widgets.find(w => w.tipo === 'reloj');
+    const copy = {...firstClock, id: 'duplicate-fixture', opts: {...firstClock.opts, retained: 'test'}};
+    core.cfg.widgets.push(copy);
+    core.guardarCfg();
     ext.stateObj.disable();
     ext.stateObj.enable();
     await wait(500);
-    scan(ext.stateObj._esc.capa);
-    return 'PASS: 78 variantes visuales, movimiento reducido, 13 widgets construidos, ajustes, galería, edición y ciclo de vida';
+    const restored = ext.stateObj._esc;
+    scan(restored.capa);
+    if (restored.marcos.filter(m => m.cfg.tipo === 'reloj').length !== 1 ||
+        restored.cfg.widgets.find(w => w.tipo === 'reloj').id !== firstClock.id ||
+        restored.cfg.widgetsArchivados?.[0]?.opts.retained !== 'test')
+        throw new Error('Migración de duplicados pierde configuración o mantiene copias activas');
+    ext.stateObj.disable();
+    ext.stateObj.enable();
+    await wait(500);
+    if (ext.stateObj._esc.cfg.widgetsArchivados.length !== 1)
+        throw new Error('Migración de duplicados no es idempotente');
+    return 'PASS: altas visibles con animación e interrupciones, galería sin duplicados, migración conservadora, 78 variantes y ciclo de vida';
 })().then(async result => {
     const {default: Gio} = await import('gi://Gio');
     const {default: GLib} = await import('gi://GLib');

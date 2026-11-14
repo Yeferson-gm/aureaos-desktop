@@ -172,6 +172,15 @@ Para actualizar solo los widgets con el paquete seleccionado anteriormente:
 
 Conserva datos, posiciones y colores personalizados. El código nuevo se carga
 al volver a iniciar sesión; `--check` verifica los archivos, no recarga GNOME.
+
+Una vez cargada la extensión, añadir un widget lo muestra inmediatamente en modo
+de edición; no requiere cerrar sesión por cada alta. Solo se admite uno de cada
+tipo. La galería muestra «Mostrar» y «Ajustes» para los ya presentes; para cambiar
+su tamaño usa Ajustes o las esquinas de edición. Ya no hay acción «Duplicar».
+Las copias antiguas dejan de mostrarse: se conserva la primera de cada tipo del
+orden guardado y se archivan las configuraciones restantes en `widgetsArchivados`
+dentro de `~/.config/lintel-widgets/config.json`. Notas, eventos y demás datos
+personales permanecen intactos.
 En el fondo animado, seleccionar un vídeo existente y activar su inicio automático.
 El paquete no lleva tus vídeos. El estilo del tema no inicia el reproductor.
 

@@ -158,7 +158,6 @@ function panelWidget(core, marco, redibujar) {
     }
     out.push(seccion('Acciones'));
     const acc = new St.BoxLayout({style: 'spacing: 8px;'});
-    acc.add_child(boton('Duplicar', () => core.duplicar(marco)));
     acc.add_child(boton('Quitar widget', () => {
         core.quitar(marco);
         redibujar('general');
@@ -311,11 +310,24 @@ export function abrirGaleria(core) {
         d.clutter_text.ellipsize = 0;
         card.add_child(d);
         const tams = new St.BoxLayout({style: 'spacing: 6px; padding-top: 6px;'});
-        for (const [k, t] of [['S', 'Pequeño'], ['M', 'Mediano'], ['L', 'Grande']]) {
-            tams.add_child(boton(t, () => {
+        const existente = core.marcos.find(m => m.cfg.tipo === M.id);
+        if (existente) {
+            card.add_child(etiqueta('Ya está en el escritorio', 'lintel-ayuda'));
+            tams.add_child(boton('Mostrar', () => {
                 h.cerrar();
-                core.agregar(M.id, k);
+                core.mostrar(existente);
             }, 'lintel-chip'));
+            tams.add_child(boton('Ajustes', () => {
+                h.cerrar();
+                core.abrirAjustes(existente.cfg.id);
+            }, 'lintel-chip'));
+        } else {
+            for (const [k, t] of [['S', 'Pequeño'], ['M', 'Mediano'], ['L', 'Grande']]) {
+                tams.add_child(boton(t, () => {
+                    h.cerrar();
+                    core.agregar(M.id, k);
+                }, 'lintel-chip'));
+            }
         }
         card.add_child(tams);
         filaTarjetas.add_child(card);

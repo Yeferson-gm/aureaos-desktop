@@ -18,7 +18,7 @@ vm.runInContext(`${source}\nglobalThis.Marco = Marco;`, context);
 const frame = Object.create(context.Marco.prototype);
 let drags = 0;
 const actions = [];
-frame.core = Object.fromEntries(['quitar','abrirAjustes','alternarEstilo','duplicar'].map(k => [k, () => actions.push(k)]));
+frame.core = Object.fromEntries(['quitar','abrirAjustes','alternarEstilo'].map(k => [k, () => actions.push(k)]));
 frame.cfg = {id: 'test'};
 frame._iniciarDrag = () => drags++;
 const layer = frame._crearCapa();
@@ -30,8 +30,8 @@ for (const button of frame._barra.children) {
     button.handlers.clicked();
 }
 assert.equal(drags, 0);
-assert.equal(actions.join(','), 'quitar,abrirAjustes,alternarEstilo,duplicar');
+assert.equal(actions.join(','), 'quitar,abrirAjustes,alternarEstilo');
 picked = layer;
 layer.handlers['button-press-event'](layer, {get_button: () => 1, get_coords: () => [0, 0]});
 assert.equal(drags, 1, 'Widget body must remain draggable');
-console.log('PASS: four edit buttons and independent drag region');
+console.log('PASS: three edit buttons and independent drag region');

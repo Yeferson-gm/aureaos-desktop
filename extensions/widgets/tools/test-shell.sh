@@ -38,7 +38,7 @@ for attempt in {1..30}; do
   sleep 1
 done
 sleep 4
-result=$(gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval "$(< "$project/tools/test-eval.js")")
+result=$(gdbus call --session --timeout 90 --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval "$(< "$project/tools/test-eval.js")")
 echo "$result"
 [[ "$result" == '(true,'* ]]
 
