@@ -25,7 +25,9 @@ aurea-27/
 │   ├── desktop-icons/
 │   └── app-center/
 ├── shared/                  Utilidades gráficas empaquetadas por componente
-├── integrations/            Pruebas del escritorio y ajustes auxiliares
+├── integrations/
+│   ├── login-screen/        Acceso GDM, instalador administrativo y pruebas
+│   └── desktop/             Integración y pruebas del escritorio
 ├── presets/                 Preferencias visuales sin datos personales
 ├── tools/                   Versión, construcción, instalación y validación
 ├── tests/                   Pruebas del repositorio
@@ -36,7 +38,9 @@ aurea-27/
 ## Antes de empezar
 
 Ejecutar los comandos desde esta carpeta, en una terminal de tu sesión GNOME,
-como tu usuario habitual. **No ejecutar el instalador con `sudo`.**
+como tu usuario habitual. **No ejecutar `aurea.sh install` con `sudo`.**
+Solo el instalador independiente de GDM requiere autorización administrativa,
+mediante los comandos indicados en su sección.
 
 ```bash
 cd ~/Escritorio/aurea-27
@@ -52,11 +56,13 @@ stack con otra versión de GNOME. No desactivar la validación de compatibilidad
 
 Herramientas necesarias: Node.js, Git, GJS, GLib (`gsettings`, `gio`,
 `glib-compile-schemas`), `gtk-update-icon-cache` y `gnome-extensions`.
+GDM requiere además Python 3, `gresource`, `glib-compile-resources`, `dconf`,
+`restorecon`, `runuser` y `pkexec` (o `sudo`).
 El vídeo necesita `mpv`, `ffmpeg` y sus codecs. Las pruebas usan también Python 3,
 `rg` y `dbus-run-session`. Comprobar disponibilidad sin instalar ni cambiar nada:
 
 ```bash
-for cmd in node git gjs gsettings gio glib-compile-schemas gtk-update-icon-cache gnome-extensions mpv ffmpeg python3 rg dbus-run-session; do
+for cmd in node git gjs gsettings gio glib-compile-schemas gtk-update-icon-cache gnome-extensions mpv ffmpeg python3 rg dbus-run-session gresource glib-compile-resources dconf restorecon runuser pkexec; do
     command -v "$cmd" || printf 'Falta: %s\n' "$cmd"
 done
 ```
@@ -70,16 +76,42 @@ activando servicios al azar: revisar primero su dependencia concreta.
 
 ## Instalar un paquete existente
 
-`v0.0.1` es la base inicial y ya está etiquetada. **No volver a crear esa etiqueta.**
-El paquete existente se puede instalar con las herramientas actuales aunque el
-repositorio tenga commits posteriores. Un paquete no incluye cambios hechos
-posteriormente en los fuentes de las extensiones.
+La versión del paquete se obtiene de la última etiqueta Git alcanzable desde
+esta rama. Así no se reinstala por accidente la entrega inicial. Seleccionar el
+paquete en la terminal que se usará para los siguientes comandos:
 
 ```bash
-./aurea.sh install dist/aurea-27-0.0.1
-./aurea.sh install dist/aurea-27-0.0.1 --apply
-./aurea.sh install dist/aurea-27-0.0.1 --check
+aurea_tag=$(git describe --tags --abbrev=0 --match 'v[0-9]*')
+aurea_paquete="$PWD/dist/aurea-27-${aurea_tag#v}"
+printf 'Paquete seleccionado: %s\n' "$aurea_paquete"
+test -f "$aurea_paquete/release.json"
 ```
+
+Repetir este bloque al abrir otra terminal o después de cerrar sesión: las
+variables de la terminal anterior no se conservan.
+
+Si `test` falla, el paquete no existe: `dist/` no se descarga con Git. Para generar
+el paquete de un checkout limpio cuya **HEAD ya está etiquetada**, ejecutar:
+
+```bash
+./aurea.sh version && ./aurea.sh check && ./aurea.sh build
+```
+
+Si `version` informa que HEAD no tiene etiqueta o hay cambios sin guardar,
+seguir [Desarrollo y nuevas versiones](#desarrollo-y-nuevas-versiones) antes de
+continuar. No crear otra etiqueta para reconstruir una entrega ya etiquetada. Las etiquetas anteriores siguen disponibles, pero
+sus paquetes no incluyen correcciones posteriores. No sobrescribirlos.
+
+Para instalar todo el escritorio:
+
+```bash
+./aurea.sh install "$aurea_paquete"
+./aurea.sh install "$aurea_paquete" --apply
+./aurea.sh install "$aurea_paquete" --check
+```
+
+**GDM se aplica por separado**, incluso después de instalar el paquete completo.
+Para actualizar únicamente bloqueo y GDM, usar la receta de abajo.
 
 El primer comando solo muestra destinos. `--apply` reemplaza archivos y migra los
 tres UUID antiguos de tienda, conservando su estado activado/desactivado y sus
@@ -138,7 +170,9 @@ El paquete no lleva tus vídeos. El estilo del tema no inicia el reproductor.
 La pantalla de bloqueo usa `aurea-lock-screen@local` en GNOME 50. Incluye un fondo
 estático 4K de WhiteSur con su licencia; no reproduce vídeo ni cambia el fondo del
 escritorio. Conserva la autenticación, políticas de bloqueo y notificaciones
-nativas. La pantalla de encendido/cierre de sesión GDM se instala por separado, como se indica abajo.
+nativas. Impide el teclado virtual durante el bloqueo, también por entrada táctil
+o gestos; el teclado físico sigue disponible. La pantalla de encendido/cierre de
+sesión GDM se instala por separado, como se indica abajo.
 
 ```bash
 gnome-extensions enable aurea-lock-screen@local
@@ -163,31 +197,83 @@ preferencia global de widgets como el movimiento reducido de GNOME.
 La tipografía utilizada es Adwaita Sans. La referencia visual y las diferencias
 con las plataformas de Apple están en [la investigación](docs/bloqueo-widgets-investigacion.md).
 
-### Pantalla de encendido y selección de usuario (GDM)
+### Actualizar bloqueo y acceso GDM juntos
 
-Si el diseño antiguo aparece **al encender o cerrar sesión**, activar la extensión
-de bloqueo no cambia esa pantalla. Instala la integración de GDM con autorización
-administrativa:
+Son dos componentes distintos; instalar uno no actualiza el otro:
 
-```bash
-sudo python3 integrations/login-screen/manage.py apply
-python3 integrations/login-screen/manage.py status
-```
+| Pantalla | Componente | Instalación y activación |
+|---|---|---|
+| Bloqueo de una sesión abierta, `Super+L` | `aurea-lock-screen@local` | Instalador de usuario y `gnome-extensions enable` |
+| Encendido/cierre de sesión, usuario y contraseña | `aurea-login-layout@local` | Instalador administrativo de GDM; activa su propio perfil |
 
-Se verá al próximo cierre de sesión o arranque. **No reiniciar `gdm.service` desde
-una sesión con trabajo abierto**. El instalador no reinicia ningún servicio.
-Para volver al tema anterior:
+Con `aurea_paquete` seleccionado en **Instalar un paquete existente**, ejecutar
+estos comandos en orden. Actualizan solo bloqueo y GDM:
 
 ```bash
-sudo python3 integrations/login-screen/manage.py remove
+./aurea.sh install "$aurea_paquete" --apply --component=lock-screen
+./aurea.sh install "$aurea_paquete" --check --component=lock-screen
+pkexec /usr/bin/python3 "$aurea_paquete/integrations/login-screen/manage.py" apply
+python3 "$aurea_paquete/integrations/login-screen/manage.py" status
 ```
 
-Incluye fondo estático a color, perfil superior y Apagar equipo/Reiniciar/Reposo
-inferiores, sin logo de Fedora ni teclado virtual en la contraseña. Conserva el formulario y la autenticación nativos. La presentación
-se carga como extensión del sistema solo en GDM. El fondo estático y los estilos
-son independientes del vídeo y las extensiones del usuario. Una actualización de
-GNOME puede restaurar el tema de Fedora: repetir `apply` usando sus nuevos recursos.
-[Detalles, respaldo y pruebas](integrations/login-screen/README.md).
+`pkexec` muestra el diálogo administrativo de Fedora. Si se prefiere la terminal,
+reemplazar **solo esa línea** por:
+
+```bash
+sudo python3 "$aurea_paquete/integrations/login-screen/manage.py" apply
+```
+
+Guardar el trabajo, cerrar sesión desde el menú del sistema y volver a entrar.
+GDM mostrará el acceso actualizado; la sesión nueva cargará el código del bloqueo.
+Después, activar o comprobar el componente de usuario:
+
+```bash
+gsettings set org.gnome.shell disable-user-extensions false
+gnome-extensions enable aurea-lock-screen@local
+gnome-extensions info aurea-lock-screen@local
+```
+
+El ajuste global permite las extensiones previamente habilitadas. Si ya está en
+`false`, no cambia nada. **No ejecutar `gnome-extensions enable` para el UUID de
+GDM**: pertenece a otro usuario y el instalador ya lo activa allí.
+
+GDM incluye fondo estático a color, perfil superior, contraseña compacta y
+Apagar equipo/Reiniciar/Reposo inferiores. Elimina el logo y texto de Fedora.
+Desactiva el teclado virtual de accesibilidad y bloquea además su apertura
+automática, por foco o gesto. La misma política se aplica a `Super+L`; fuera del
+acceso y bloqueo se conserva la preferencia personal del teclado virtual.
+No sustituye la autenticación ni requiere vídeo.
+
+El instalador configura y compila dconf, comprueba los valores del perfil GDM y
+registra archivos y checksums para poder retirarlos. No hace falta ejecutar
+`dconf update` manualmente ni borrar la imagen de Fedora del sistema.
+`status` verifica los archivos instalados; **no confirma que un proceso GDM ya
+abierto haya recargado los cambios**, ni sustituye la revisión visual del acceso.
+No reiniciar `gdm.service`, matar GNOME ni usar evaluación insegura para recargar.
+
+#### Restaurar o desactivar
+
+Para retirar el tema y la presentación de GDM, usando el mismo paquete seleccionado:
+
+```bash
+pkexec /usr/bin/python3 "$aurea_paquete/integrations/login-screen/manage.py" remove
+python3 "$aurea_paquete/integrations/login-screen/manage.py" status
+```
+
+Para desactivar la presentación del bloqueo de usuario, por separado:
+
+```bash
+gnome-extensions disable aurea-lock-screen@local
+```
+
+La retirada de GDM elimina sus ajustes propios; vuelven los valores del sistema,
+incluidos logo y teclado de accesibilidad. Desactivar la extensión del bloqueo
+restaura su comportamiento nativo. Los cambios de GDM se ven en el siguiente acceso.
+
+Si una actualización de GNOME restaura el tema de Fedora, repetir `apply` con el
+paquete elegido: construye sobre los recursos nuevos del sistema. No bloquear las
+actualizaciones de GNOME. Para trabajar directamente con los fuentes, los comandos
+equivalentes están en [la guía de GDM](integrations/login-screen/README.md).
 
 ### Evitar componentes duplicados
 
@@ -267,7 +353,7 @@ ver [preferencias](presets/README.md). Nunca ejecutar un reset general de dconf.
 gnome-extensions info macos27-dock@local
 gnome-extensions info aurea-wallpaper@local
 journalctl --user -b --since '10 minutes ago' --no-pager | rg -i 'aurea|lintel|dynamic-island|gnome-shell|JS ERROR'
-./aurea.sh install dist/aurea-27-0.0.1 --check
+./aurea.sh install "$aurea_paquete" --check
 ```
 
 Los registros pueden contener datos personales; revisarlos antes de compartirlos.
@@ -301,18 +387,30 @@ en Markdown. Conservar licencias, directivas interpretadas por herramientas y
 cadenas funcionales. No reiniciar versiones de formatos, protocolos o dependencias.
 
 Para una entrega posterior, elegir una etiqueta semántica **nueva** en un commit
-probado. Ejemplo de siguiente corrección; no ejecutar si esa etiqueta ya existe:
+probado y con árbol limpio. Este bloque solicita la etiqueta; no fija una versión
+antigua en los comandos:
 
 ```bash
-git tag -a v0.0.2 -m 'Aurea 27: correcciones verificadas'
-./aurea.sh version
-./aurea.sh build
-./aurea.sh install dist/aurea-27-0.0.2
+read -r -p 'Nueva etiqueta (formato vX.Y.Z): ' aurea_etiqueta
+git tag -a "$aurea_etiqueta" -m 'Aurea 27: entrega verificada'
 ```
 
-`version` y `build` requieren HEAD etiquetado y árbol limpio. Es normal que fallen
-en un commit de desarrollo sin etiqueta. No mover `v0.0.1` ni sobrescribir paquetes
-existentes. `dist/` es generado, no entra en Git. GNOME recibe un entero calculado
+Si Git rechaza la etiqueta porque ya existe, detenerse y elegir otra; no usar `-f`.
+Con la etiqueta creada:
+
+```bash
+./aurea.sh version
+./aurea.sh build
+aurea_tag=$(git describe --tags --exact-match --match 'v[0-9]*' HEAD)
+aurea_paquete="$PWD/dist/aurea-27-${aurea_tag#v}"
+./aurea.sh install "$aurea_paquete"
+```
+
+`version` y `build` requieren HEAD etiquetado y árbol limpio. En una copia de una
+entrega ya etiquetada basta con esos comandos, sin crear otra etiqueta. Si HEAD
+contiene trabajo posterior sin etiqueta, terminar y verificar esa entrega primero;
+no presentarlo como si fuera la anterior. No mover etiquetas ni sobrescribir paquetes
+existentes. `dist/` es generado y no entra en Git. GNOME recibe un entero calculado
 y `version-name` desde la etiqueta; todos los componentes comparten esa entrega.
 
 ## Personalizar la barra superior
@@ -340,6 +438,8 @@ SIDE_TEST_MONITORS=2 bash extensions/app-island/test-shell.sh
 bash extensions/topbar/tests/check-hover.sh
 bash extensions/widgets/tools/test-shell.sh
 bash extensions/lock-screen/tests/smoke.sh
+python3 integrations/login-screen/test_manage.py
+bash integrations/login-screen/test-shell.sh
 bash integrations/desktop/test-overview.sh
 ```
 
@@ -355,8 +455,10 @@ patrón sintético en un directorio temporal; no necesitan tus vídeos personale
 - [Verificación y límites](docs/verificacion.md)
 - [Cambios](docs/CHANGELOG.md)
 
-No hay remoto configurado ni se ha publicado el contenido. Antes de distribuir
-a terceros, resolver los límites de licencia señalados en procedencia.
+El remoto `origin` está configurado para `Yeferson-gm/aureaos-desktop`. Los commits
+locales no se publican automáticamente: revisar `git status -sb` y `git remote -v`.
+Antes de distribuir a terceros, resolver los límites de licencia señalados en
+[procedencia](docs/procedencia.md).
 
 ## Nueva experiencia de la isla dinámica
 

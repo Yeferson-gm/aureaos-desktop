@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.4.5
+
+- README principal con comandos para seleccionar el paquete desde Git, construir,
+  instalar y actualizar bloqueo y GDM, activar, comprobar y restaurar.
+- Distingue privilegios, reinicio de sesión, política del teclado virtual y retirada
+  del logo; corrige ejemplos de versiones antiguas y el estado del remoto.
+- Guía de GDM alineada con el paquete y los recursos actuales.
+
 ## 0.4.4
 
 - Retira logo y texto de Fedora desde la configuración nativa de GDM.

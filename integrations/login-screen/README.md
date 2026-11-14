@@ -15,7 +15,7 @@ Si no caben junto a los controles nativos, se conserva el menú de energía de G
 
 Solo modifica la presentación. No reemplaza el verificador, lee contraseñas,
 modifica PAM ni instala otra pantalla de acceso. El selector de otras cuentas,
-volver, mostrar contraseña, mensajes, teclado y accesibilidad siguen siendo
+volver, mostrar contraseña, mensajes, teclado físico y demás controles de accesibilidad siguen siendo
 nativos. El avatar es el de la cuenta real; no se copia la persona de la referencia
 ni se muestra un mensaje ficticio de Touch ID. El modo de alto contraste conserva
 su CSS original, aunque participa en la colocación de controles.
@@ -41,6 +41,9 @@ verificación visual final del GDM real después de cerrar sesión.
 
 ## Instalar y restaurar
 
+Para actualizar bloqueo y GDM desde un paquete versionado, seguir la
+[receta del README principal](../../README.md#actualizar-bloqueo-y-acceso-gdm-juntos).
+Los siguientes comandos operan directamente sobre los fuentes de trabajo.
 Primero guardar el trabajo. La instalación no cierra sesión ni reinicia GDM.
 
 ```bash
@@ -86,8 +89,9 @@ sin distribuir una copia obsoleta de los recursos nativos.
 
 ## Procedencia
 
-Fondo compartido con `extensions/lock-screen/assets`, WhiteSur-wallpapers, MIT;
-se conserva `LICENSE.WhiteSur`. Selectores y contratos contrastados con
+Fondo `WhiteSur-light.jpg` de WhiteSur-wallpapers, MIT; `LICENSE.WhiteSur`
+se comparte con `extensions/lock-screen/assets`. El bloqueo de sesión utiliza
+su propia variante `WhiteSur-dark.jpg`. Selectores y contratos contrastados con
 `gdm/loginDialog.js`, `gdm/authPrompt.js` y `ui/sessionMode.js` de GNOME Shell 50.6
 instalado, extraídos de `libshell-18.so`. La carga de estilos usa
 [St.Theme](https://gnome.pages.gitlab.gnome.org/gnome-shell/st/ctor.Theme.new.html).
