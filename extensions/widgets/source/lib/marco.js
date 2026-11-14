@@ -92,7 +92,7 @@ export class Marco {
                 fx.sigma = sigma;
             else if ('radius' in fx)
                 fx.radius = sigma * 2;
-            fx.brightness = this.pal.oscuro ? 0.8 : 1.0;
+            fx.brightness = 1.0;
             this._blur.add_effect(fx);
         } catch (e) {
             console.error(`[Widgets] blur: ${e.message}`);

@@ -61,3 +61,21 @@ movimiento reducido y ciclo de vida. Los datos y fotos de prueba están aislados
 La comparación por píxeles verifica vidrio dentro del contorno antes/después de
 redimensionar y durante rotación. El dock conserva su prueba independiente de
 ampliación, resolución, indicadores, preferencias y esquinas.
+
+## Color de los widgets
+
+El clima usa paletas saturadas por condición y momento del día: azul/cian para
+lluvia, violeta para tormenta y azules diferenciados para nubes, nieve y niebla.
+Las nubes claras y las gotas cian destacan sobre el fondo atmosférico. Al
+desactivar ese fondo se conserva el material elegido por el usuario.
+
+El vidrio oscuro conserva la luminosidad del fondo desenfocado, sin la antigua
+atenuación adicional del 20 %. Su tinte predeterminado es gris neutro más claro;
+los tintes personalizados y la opacidad guardada siguen teniendo prioridad.
+No se modifican fotos, colores de notas, datos ni geometría de los widgets.
+
+`test-weather-colors.mjs` comprueba contraste mínimo 4,5:1 del texto secundario
+sobre 101 posiciones de cada gradiente atmosférico de día y noche. Esta medición
+corresponde a esos fondos opacos; no garantiza contraste sobre cualquier fondo
+transparente personalizado. La prueba de Shell captura también siete condiciones
+meteorológicas tanto de día como de noche.

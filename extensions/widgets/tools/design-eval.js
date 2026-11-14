@@ -69,6 +69,24 @@ export async function verifyDesign(core, wait) {
                 }
             }
         }
+        for (const night of [false, true]) {
+            clear();
+            const codes = [0, 2, 3, 61, 95, 71, 45];
+            for (const [i, code] of codes.entries()) {
+                const cfg = {id: `weather-${i}`, tipo: 'clima', x: 70 + (i % 4) * 450, y: 80 + Math.floor(i / 4) * 460,
+                    w: 380, h: 380, opts: {}, estilo: estiloNuevo('glass')};
+                const frame = new Marco(core, cfg, MODULOS.clima);
+                frames.push(frame); surface.add_child(frame.actor);
+                frame.aparecer();
+                frame._inst._d.current.weather_code = code;
+                frame._inst._d.current.is_day = night ? 0 : 1;
+                frame._inst._pintar();
+            }
+            await wait(250);
+            frames.forEach(frame => scan(frame.actor));
+            const file = Gio.File.new_for_path(`${dir}/weather-${night ? 'night' : 'day'}.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
+            await new Shell.Screenshot().screenshot(false, file); file.close(null);
+        }
         clear();
         const pattern = new St.DrawingArea({width: 1920, height: 1080});
         pattern.connect('repaint', () => {

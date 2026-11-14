@@ -4,6 +4,7 @@ import St from 'gi://St';
 
 import {WidgetBase} from '../lib/base.js';
 import {http} from '../lib/util.js';
+import {weatherColors, WEATHER_SECONDARY_ALPHA} from '../lib/weather-colors.js';
 
 export const META = {
     id: 'clima', nombre: 'Clima', padding: 0, icono: 'weather-few-clouds-symbolic',
@@ -98,7 +99,7 @@ export function dibujarClima(cr, w, h, tipo, t, dia) {
         else luna(cr, cx - s * 0.12, cy - s * 0.12, s * 0.2);
         nube(cr, cx + s * 0.08 + drift, cy + s * 0.1, s * 0.78);
     } else if (tipo === 'nublado') {
-        nube(cr, cx - s * 0.12 - drift, cy - s * 0.1, s * 0.62, 0.72);
+        nube(cr, cx - s * 0.12 - drift, cy - s * 0.1, s * 0.62, 0.84);
         nube(cr, cx + s * 0.06 + drift, cy + s * 0.1, s * 0.8, 0.96);
     } else if (tipo === 'niebla') {
         nube(cr, cx, cy - s * 0.12, s * 0.7, 0.88);
@@ -112,7 +113,7 @@ export function dibujarClima(cr, w, h, tipo, t, dia) {
             cr.stroke();
         }
     } else {
-        nube(cr, cx, cy - s * 0.14, s * 0.78, tipo === 'tormenta' ? 0.55 : 0.78);
+        nube(cr, cx, cy - s * 0.14, s * 0.78, tipo === 'tormenta' ? 0.82 : 0.96);
         if (tipo === 'lluvia' || tipo === 'tormenta') {
             cr.setLineCap(1);
             cr.setLineWidth(Math.max(1.2, s * 0.03));
@@ -120,7 +121,7 @@ export function dibujarClima(cr, w, h, tipo, t, dia) {
                 const f = (t * 0.9 + i / 6) % 1;
                 const x = cx - s * 0.3 + i * s * 0.12 + f * s * 0.04;
                 const y = cy + s * 0.08 + f * s * 0.36;
-                cr.setSourceRGBA(0.55, 0.78, 1, 1 - f);
+                cr.setSourceRGBA(0.32, 0.86, 1, 1 - f);
                 cr.moveTo(x, y);
                 cr.lineTo(x - s * 0.03, y + s * 0.09);
                 cr.stroke();
@@ -205,9 +206,8 @@ export class Widget extends WidgetBase {
         this._areas = [];
         const d = this._d;
         const night = d?.current.is_day === 0;
-        const cloudy = (d?.current.weather_code ?? 0) >= 3;
-        const colors = night ? ['#172842', '#405475'] : cloudy ? ['#526c85', '#8399af'] : ['#3677ae', '#77b3d9'];
-        this._weatherPalette = this.o.fondo ? {...super.pal, texto: '#ffffff', texto2: 'rgba(255,255,255,0.84)', sep: 'rgba(255,255,255,0.24)'} : null;
+        const colors = weatherColors(wmo(d?.current.weather_code ?? 0)[1], night);
+        this._weatherPalette = this.o.fondo ? {...super.pal, texto: '#ffffff', texto2: `rgba(255,255,255,${WEATHER_SECONDARY_ALPHA})`, sep: 'rgba(255,255,255,0.24)'} : null;
         this.box.style = `padding: 14px; border-radius: ${this.ctx.radio}px;` + (this.o.fondo ?
             `background-gradient-direction: vertical; background-gradient-start: ${colors[0]}; background-gradient-end: ${colors[1]};` : '');
         if (!d) {

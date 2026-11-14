@@ -162,6 +162,16 @@ gnome-extensions prefs aurea-wallpaper@local
 ```
 
 Widgets también tiene Ajustes desde su menú y edición con `Super+Alt+E`.
+
+Para actualizar solo los widgets con el paquete seleccionado anteriormente:
+
+```bash
+./aurea.sh install "$aurea_paquete" --apply --component=widgets
+./aurea.sh install "$aurea_paquete" --check --component=widgets
+```
+
+Conserva datos, posiciones y colores personalizados. El código nuevo se carga
+al volver a iniciar sesión; `--check` verifica los archivos, no recarga GNOME.
 En el fondo animado, seleccionar un vídeo existente y activar su inicio automático.
 El paquete no lleva tus vídeos. El estilo del tema no inicia el reproductor.
 

@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.4.7
+
+- Widgets: clima con azules y cian más saturados, tormentas violetas y paletas
+  diferenciadas para lluvia, nubes, nieve y niebla, de día y de noche.
+- Nubes de precipitación más luminosas y gotas cian; texto secundario más legible.
+- Vidrio oscuro sin atenuación adicional del fondo y tinte neutro más luminoso.
+  Conserva colores personalizados, opacidad, posiciones, datos y animaciones.
+- Pruebas de contraste del clima y capturas de siete condiciones de día/noche.
+
 ## 0.4.6
 
 - Dock: recalcula la extensión del fondo al cambiar su ancho y omite medidas
