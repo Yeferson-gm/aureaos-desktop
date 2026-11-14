@@ -20,17 +20,25 @@ export default class LoginPresentation extends Extension {
         });
         this._injections.overrideMethod(proto, '_getBottomButtonGroupAllocation', original => function (area) {
             const allocation = original.call(this, area);
-            extension._dialogs.get(this)?.controls.allocate(area, allocation);
+            try { extension._dialogs.get(this)?.controls.allocate(area, allocation); }
+            catch (error) { console.error('Aurea Login: controles inferiores', error); }
             return allocation;
         });
         if (Main.screenShield?._dialog instanceof LoginDialog)
             this._decorate(Main.screenShield._dialog);
     }
 
-    _decorate(dialog, actions = SystemActions.getDefault()) {
+    _decorate(dialog, actions = null) {
         if (this._dialogs.has(dialog)) return;
-        const controls = new PowerControls(actions);
-        dialog.add_child(controls.actor);
+        let controls;
+        try {
+            controls = new PowerControls(actions ?? SystemActions.getDefault());
+            dialog.add_child(controls.actor);
+        } catch (error) {
+            controls?.destroy();
+            console.error('Aurea Login: se conserva el acceso nativo', error);
+            return;
+        }
         const destroy = dialog.connect('destroy', () => {
             controls.destroy();
             this._dialogs.delete(dialog);

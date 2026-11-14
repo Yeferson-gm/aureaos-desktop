@@ -100,6 +100,13 @@ class LayoutTests(unittest.TestCase):
         self.assertFalse((self.root / CONFIG).exists())
         self.assertFalse((self.root / MANIFEST).exists())
 
+    def test_configuration_compiles_with_real_dconf_and_empty_disabled_list(self):
+        from layout_install import CONFIG
+        self.install.apply()
+        output = self.root / 'compiled-gdm'
+        subprocess.run(['dconf', 'compile', str(output), str((self.root / CONFIG).parent)], check=True)
+        self.assertTrue(output.is_file())
+
     def test_failed_update_restores_existing_files(self):
         from layout_install import CONFIG, MANIFEST
         self.install.apply()
@@ -115,6 +122,19 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual((self.root / MANIFEST).read_bytes(), before)
         self.assertTrue((self.root / CONFIG).is_file())
         self.assertEqual(len(calls), 2)
+
+    def test_failed_first_install_leaves_no_broken_extension_directory(self):
+        from layout_install import EXTENSION, MANIFEST
+        calls = []
+        def update():
+            calls.append(True)
+            if len(calls) == 1:
+                raise RuntimeError('dconf unavailable')
+        self.install.update = update
+        with self.assertRaisesRegex(RuntimeError, 'dconf unavailable'):
+            self.install.apply()
+        self.assertFalse((self.root / EXTENSION).exists())
+        self.assertFalse((self.root / MANIFEST).exists())
 
     def test_external_edits_and_symlinks_are_rejected(self):
         from layout_install import CONFIG

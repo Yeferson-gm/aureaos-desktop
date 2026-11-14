@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.4.3
+
+- Listas GVariant tipadas en dconf, comprobadas con su compilador real.
+- Lectura del perfil GDM con entorno temporal propio del usuario de acceso.
+- Una incidencia de los controles decorativos conserva el acceso nativo.
+- La reversión de una instalación inicial fallida retira también su directorio
+  vacío para que Shell no lo confunda con una extensión incompleta.
+
 ## 0.4.2
 
 - Acceso GDM ajustado a la referencia aportada: fondo WhiteSur a color, avatar
