@@ -71,5 +71,64 @@ class ThemeTests(unittest.TestCase):
         self.assertEqual((self.state / 'original.gresource').read_bytes(), original)
 
 
+class LayoutTests(unittest.TestCase):
+    def setUp(self):
+        from layout_install import LayoutInstall
+        self.directory = tempfile.TemporaryDirectory(prefix='aurea-gdm-layout-')
+        self.addCleanup(self.directory.cleanup)
+        self.root = Path(self.directory.name)
+        self.updates = 0
+        def update():
+            self.updates += 1
+        self.install = LayoutInstall(theme.HERE / 'extension', theme.atomic_write, self.root,
+                                     update=update, read_setting=lambda key: ['existing@local'] if key == 'enabled-extensions' else [])
+
+    def test_install_update_remove_preserves_other_greeter_extensions(self):
+        from layout_install import CONFIG, EXTENSION, MANIFEST, UUID
+        self.install.apply()
+        settings = (self.root / CONFIG).read_text()
+        self.assertIn('existing@local', settings)
+        self.assertIn(UUID, settings)
+        self.assertIn('allow-extension-installation=false', settings)
+        self.assertEqual((self.root / EXTENSION / 'extension.js').read_bytes(),
+                         (theme.HERE / 'extension/extension.js').read_bytes())
+        manifest = (self.root / MANIFEST).read_bytes()
+        self.install.apply()
+        self.assertEqual((self.root / MANIFEST).read_bytes(), manifest)
+        self.install.remove()
+        self.assertFalse((self.root / EXTENSION).exists())
+        self.assertFalse((self.root / CONFIG).exists())
+        self.assertFalse((self.root / MANIFEST).exists())
+
+    def test_failed_update_restores_existing_files(self):
+        from layout_install import CONFIG, MANIFEST
+        self.install.apply()
+        before = (self.root / MANIFEST).read_bytes()
+        calls = []
+        def update():
+            calls.append(True)
+            if len(calls) == 1:
+                raise RuntimeError('dconf unavailable')
+        self.install.update = update
+        with self.assertRaisesRegex(RuntimeError, 'dconf unavailable'):
+            self.install.apply()
+        self.assertEqual((self.root / MANIFEST).read_bytes(), before)
+        self.assertTrue((self.root / CONFIG).is_file())
+        self.assertEqual(len(calls), 2)
+
+    def test_external_edits_and_symlinks_are_rejected(self):
+        from layout_install import CONFIG
+        self.install.apply()
+        path = self.root / CONFIG
+        path.write_text('external edit')
+        with self.assertRaisesRegex(RuntimeError, 'fuera de Aurea'):
+            self.install.remove()
+        self.assertEqual(path.read_text(), 'external edit')
+        path.unlink()
+        path.symlink_to(self.root / 'outside')
+        with self.assertRaisesRegex(RuntimeError, 'enlazadas'):
+            self.install.apply()
+
+
 if __name__ == '__main__':
     unittest.main()

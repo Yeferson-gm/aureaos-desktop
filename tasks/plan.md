@@ -20,3 +20,13 @@ No exigir hardware inexistente ni presentar un servicio simulado como real. Las 
 St/Clutter no implementa APIs de AppKit ni CSS de navegador. Verificar GNOME 50 local.
 El blur de vídeo necesita presupuesto medido. Los menús globales dependen de acciones que la aplicación publique.
 Se conserva el control manual de color y la geometría del notch. No cerrar sesión del usuario.
+
+
+## Acceso GDM según referencia del usuario
+
+- Fondo WhiteSur claro a color, perfil superior y contraseña nativa compacta.
+- Tres acciones inferiores de GNOME, conservando selector, teclado y accesibilidad.
+- Integración root exclusiva de GDM, activación y retirada reversibles mediante dconf.
+- Pruebas en Shell privado a 1280×800 y 1024×600, acciones simuladas sin PAM.
+- Instalar sin cerrar sesión ni reiniciar GDM; validación visual real pendiente del
+  siguiente acceso voluntario del usuario.

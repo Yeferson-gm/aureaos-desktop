@@ -9,6 +9,8 @@ import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
 
+from layout_install import LayoutInstall
+
 HERE = Path(__file__).resolve().parent
 SYSTEM = Path('/usr/share/gnome-shell/gnome-shell-theme.gresource')
 STATE = Path('/var/lib/aurea-27/gdm')
@@ -49,7 +51,7 @@ def build(base, output):
                 data += b'\n' + overlay
             (directory / name).write_bytes(data)
             ET.SubElement(group, 'file').text = name
-        (directory / 'aurea-login.jpg').write_bytes((HERE / 'WhiteSur-dark.jpg').read_bytes())
+        (directory / 'aurea-login.jpg').write_bytes((HERE / 'WhiteSur-light.jpg').read_bytes())
         ET.SubElement(group, 'file').text = 'aurea-login.jpg'
         manifest = directory / 'theme.xml'
         ET.ElementTree(resource).write(manifest, encoding='utf-8', xml_declaration=True)
@@ -174,6 +176,33 @@ def remove(target=SYSTEM, folder=STATE, restore_context=True):
     return 'Personalización GDM retirada; se conserva el tema del sistema.'
 
 
+def apply_system():
+    profile = Path('/etc/dconf/profile/gdm')
+    if not profile.exists():
+        profile = Path('/usr/share/dconf/profile/gdm')
+    if not profile.is_file() or 'system-db:gdm' not in profile.read_text().splitlines():
+        raise RuntimeError('El perfil GDM no contiene la base system-db:gdm requerida.')
+    paths = [SYSTEM, STATE / 'original.gresource', STATE / 'state.json']
+    previous = {path: path.read_bytes() if path.exists() else None for path in paths}
+    result = apply()
+    try:
+        LayoutInstall(HERE / 'extension', atomic_write).apply()
+    except Exception:
+        for path, data in previous.items():
+            if data is None:
+                path.unlink(missing_ok=True)
+            else:
+                atomic_write(path, data)
+        subprocess.run(['restorecon', str(SYSTEM)], check=True)
+        raise
+    return result + ' Presentación y controles de energía habilitados solo en GDM.'
+
+
+def remove_system():
+    LayoutInstall(HERE / 'extension', atomic_write).remove()
+    return remove()
+
+
 def main():
     parser = argparse.ArgumentParser(description='Tema Aurea para la pantalla de inicio de sesión GDM')
     parser.add_argument('action', choices=['build', 'apply', 'remove', 'status'])
@@ -187,14 +216,21 @@ def main():
         print(args.output.resolve())
     elif args.action == 'status':
         state = read_state(STATE)
-        print('Aurea GDM instalado' if state and digest(SYSTEM.read_bytes()) == state['installed'] else 'Tema del sistema o actualización pendiente')
+        layout = LayoutInstall(HERE / 'extension', atomic_write)
+        layout_state = layout._state()
+        try:
+            layout._validate(layout_state)
+            valid_layout = bool(layout_state)
+        except RuntimeError:
+            valid_layout = False
+        print('Aurea GDM instalado: tema y presentación' if valid_layout and state and digest(SYSTEM.read_bytes()) == state['installed'] else 'Tema del sistema o actualización pendiente')
     else:
         if os.geteuid() != 0:
             raise SystemExit('Esta acción requiere autorización de administrador mediante sudo o pkexec.')
         major = subprocess.check_output(['gnome-shell', '--version'], text=True).split()[-1].split('.')[0]
         if args.action == 'apply' and major != '50':
             raise SystemExit('Esta integración se ha probado con GNOME 50; no se aplicará en otra versión.')
-        print(apply() if args.action == 'apply' else remove())
+        print(apply_system() if args.action == 'apply' else remove_system())
 
 
 if __name__ == '__main__':

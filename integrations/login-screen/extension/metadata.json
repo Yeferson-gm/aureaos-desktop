@@ -1,0 +1,7 @@
+{
+  "uuid": "aurea-login-layout@local",
+  "name": "Aurea Login",
+  "description": "Presentación del acceso nativo y controles de energía de GDM",
+  "shell-version": ["50"],
+  "session-modes": ["gdm"]
+}

@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.4.2
+
+- Acceso GDM ajustado a la referencia aportada: fondo WhiteSur a color, avatar
+  circular superior, contraseña compacta y tres controles de energía inferiores.
+- Presentación exclusiva de GDM, con acciones nativas y restricciones del sistema;
+  instalación administrativa reversible sin alterar la autenticación.
+- Pruebas aisladas del formulario, geometría, puntero, acciones, ciclo de vida,
+  instalación, restauración y rechazo de archivos modificados externamente.
+
 ## 0.4.1
 
 - Integración de tema para GDM, la pantalla de encendido/cierre de sesión que

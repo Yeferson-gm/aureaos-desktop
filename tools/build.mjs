@@ -40,6 +40,11 @@ for (const group of ['gtk', 'icons', 'cursors']) {
 }
 fs.cpSync(path.join(root, 'integrations/login-screen'), path.join(staging, 'integrations/login-screen'),
     {recursive: true, dereference: true, filter: file => !excluded.has(path.basename(file)) && !/^test[-_]/.test(path.basename(file))});
+const loginMetadataPath = path.join(staging, 'integrations/login-screen/extension/metadata.json');
+const loginMetadata = JSON.parse(fs.readFileSync(loginMetadataPath));
+loginMetadata.version = version.integer;
+loginMetadata['version-name'] = version.name;
+fs.writeFileSync(loginMetadataPath, JSON.stringify(loginMetadata, null, 2) + '\n');
 fs.cpSync(path.join(root, 'docs'), path.join(staging, 'docs'), {recursive: true});
 fs.cpSync(path.join(root, 'presets'), path.join(staging, 'presets'), {recursive: true});
 fs.copyFileSync(path.join(root, 'README.md'), path.join(staging, 'README.md'));

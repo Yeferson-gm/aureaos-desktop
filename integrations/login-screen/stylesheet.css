@@ -1,5 +1,5 @@
 #lockDialogGroup {
-  background-color: #353940;
+  background-color: #493666;
   background-image: url("resource:///org/gnome/shell/theme/aurea-login.jpg");
   background-size: cover;
   background-position: center;
@@ -8,13 +8,13 @@
 #panel.login-screen { background-color: transparent; color: white; box-shadow: none; border: none; }
 #panel.login-screen .panel-button { color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
 .login-dialog { font-family: "Adwaita Sans", sans-serif; color: white; background-color: transparent; }
-.login-dialog .user-widget.vertical { spacing: 14px; }
-.login-dialog .user-widget.vertical .user-widget-label { font-size: 19px; font-weight: 600; color: white; text-shadow: 0 1px 6px rgba(0,0,0,0.28); }
+.login-dialog .user-widget.vertical { spacing: 24px; }
+.login-dialog .user-widget.vertical .user-widget-label { font-size: 18px; font-weight: 500; color: white; text-shadow: 0 1px 6px rgba(0,0,0,0.28); }
 .login-dialog .user-widget .user-icon { background-color: rgba(255,255,255,0.14); color: white; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 3px 12px rgba(0,0,0,0.12); }
-.login-dialog .user-widget.vertical .user-icon { icon-size: 80px; border-radius: 40px; }
+.login-dialog .user-widget.vertical .user-icon { icon-size: 160px; border-radius: 80px; }
 .login-dialog .login-dialog-prompt-entry {
-  min-width: 232px; padding: 10px 14px; border-radius: 20px;
-  font-size: 14px; color: white; caret-color: white;
+  min-width: 180px; padding: 7px 12px; border-radius: 20px;
+  font-size: 13px; color: white; caret-color: white;
   background-color: rgba(255,255,255,0.20); border: 1px solid rgba(255,255,255,0.24);
   box-shadow: none;
 }
@@ -29,3 +29,10 @@
 .login-dialog .login-dialog-not-listed-label { color: rgba(255,255,255,0.88); font-size: 13px; }
 .login-dialog .login-dialog-message, .login-dialog .caps-lock-warning-label { color: white; font-size: 13px; text-shadow: 0 1px 4px rgba(0,0,0,0.35); }
 .login-dialog .login-dialog-message-warning { color: #ffb4ad; }
+
+.login-dialog .aurea-login-power { spacing: 34px; }
+.login-dialog .aurea-login-power-content { spacing: 9px; }
+.login-dialog .aurea-login-power-button { min-width: 84px; padding: 8px; border-radius: 16px; color: white; font-size: 11px; background-color: transparent; box-shadow: none; border: 1px solid transparent; }
+.login-dialog .aurea-login-power-icon { icon-size: 22px; padding: 7px; border-radius: 20px; background-color: rgba(255,255,255,0.10); }
+.login-dialog .aurea-login-power-button:hover, .login-dialog .aurea-login-power-button:focus { background-color: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.4); }
+.login-dialog .login-dialog-prompt-layout { width: 312px; spacing: 10px; }

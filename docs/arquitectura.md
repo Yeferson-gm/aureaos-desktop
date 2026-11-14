@@ -78,9 +78,12 @@ foco al pintarlos; el acceso por teclado y el foco real se verifican aislados.
 ## GDM: acceso antes de iniciar sesión
 
 `integrations/login-screen` personaliza el recurso de tema del GDM del sistema;
-no es una extensión de usuario. El código de construcción conserva todos los
+no depende de las extensiones del usuario. El código de construcción conserva todos los
 recursos y solo añade CSS de GDM a las variantes clara/oscura y un fondo estático.
 Alto contraste queda intacto. El paquete incluye fuentes y recursos propios,
 compilados contra el GNOME instalado cuando el administrador ejecuta `apply`.
-La integración no tiene acceso a las contraseñas: no contiene JavaScript de
-producción ni cambios a PAM, GDM, systemd o las políticas de autenticación.
+La extensión de sistema `aurea-login-layout@local` se carga exclusivamente en GDM.
+Ajusta las asignaciones del formulario nativo y presenta acciones `SystemActions`;
+restaura métodos y señales al desactivar. No consulta ni sustituye el verificador
+ni modifica PAM, servicios o políticas de autenticación. La activación se administra
+con archivos propios de dconf en el perfil de GDM y un manifiesto reversible.

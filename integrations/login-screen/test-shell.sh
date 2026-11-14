@@ -4,6 +4,7 @@ project=$(cd -- "$(dirname -- "$0")" && pwd)
 if [[ ${1:-} != --session ]]; then
     export DI_TEST_DIR=$(mktemp -d /tmp/aurea-gdm-XXXXXXXX)
     export XDG_DATA_HOME="$DI_TEST_DIR/data" XDG_CONFIG_HOME="$DI_TEST_DIR/config" XDG_CACHE_HOME="$DI_TEST_DIR/cache" XDG_RUNTIME_DIR="$DI_TEST_DIR/runtime"
+    export AUREA_LOGIN_SOURCE="$project/extension"
     export GSETTINGS_BACKEND=keyfile WAYLAND_DISPLAY=gdm-test GTK_A11Y=none
     unset DISPLAY
     mkdir -m 0700 "$XDG_RUNTIME_DIR"
