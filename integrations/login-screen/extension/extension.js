@@ -1,3 +1,4 @@
+import {PasswordKeyboardPolicy} from './keyboardPolicy.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {LoginDialog} from 'resource:///org/gnome/shell/gdm/loginDialog.js';
 import * as SystemActions from 'resource:///org/gnome/shell/misc/systemActions.js';
@@ -6,6 +7,7 @@ import {placePrompt, PowerControls} from './presentation.js';
 
 export default class LoginPresentation extends Extension {
     enable() {
+        this._keyboardPolicy = new PasswordKeyboardPolicy();
         this._dialogs = new Map();
         this._injections = new InjectionManager();
         const extension = this;
@@ -48,6 +50,8 @@ export default class LoginPresentation extends Extension {
     }
 
     disable() {
+        this._keyboardPolicy.destroy();
+        this._keyboardPolicy = null;
         this._injections.clear();
         for (const [dialog, {controls, destroy}] of this._dialogs) {
             dialog.disconnect(destroy);

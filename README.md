@@ -183,7 +183,7 @@ sudo python3 integrations/login-screen/manage.py remove
 ```
 
 Incluye fondo estático a color, perfil superior y Apagar equipo/Reiniciar/Reposo
-inferiores. Conserva el formulario y la autenticación nativos. La presentación
+inferiores, sin logo de Fedora ni teclado virtual en la contraseña. Conserva el formulario y la autenticación nativos. La presentación
 se carga como extensión del sistema solo en GDM. El fondo estático y los estilos
 son independientes del vídeo y las extensiones del usuario. Una actualización de
 GNOME puede restaurar el tema de Fedora: repetir `apply` usando sus nuevos recursos.

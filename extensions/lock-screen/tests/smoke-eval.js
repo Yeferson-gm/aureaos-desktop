@@ -11,6 +11,8 @@
     const ext = Main.extensionManager.lookup('aurea-lock-screen@local');
     if (ext.state !== 1) throw new Error(`No carga el bloqueo: ${ext.error}`);
     Main.overview.hide();
+    const {verifyKeyboardPolicy} = await import(`file://${ext.path}/tests/keyboard-policy.js`);
+    await verifyKeyboardPolicy(wait);
     const parent = new St.Widget({width: global.stage.width, height: global.stage.height});
     Main.layoutManager.uiGroup.add_child(parent);
     const auth = UnlockDialog.prototype._ensureAuthPrompt;

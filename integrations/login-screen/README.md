@@ -91,3 +91,20 @@ se conserva `LICENSE.WhiteSur`. Selectores y contratos contrastados con
 `gdm/loginDialog.js`, `gdm/authPrompt.js` y `ui/sessionMode.js` de GNOME Shell 50.6
 instalado, extraídos de `libshell-18.so`. La carga de estilos usa
 [St.Theme](https://gnome.pages.gitlab.gnome.org/gnome-shell/st/ctor.Theme.new.html).
+
+
+## Teclado y marca del distribuidor
+
+El perfil de GDM fija `org.gnome.login-screen logo` a cadena vacía y
+`org.gnome.desktop.a11y.applications screen-keyboard-enabled` a `false`.
+Ambas claves quedan bloqueadas únicamente en ese perfil; `remove` restaura los
+valores de Fedora al retirar nuestros archivos de configuración.
+
+El modo táctil también puede abrir el teclado aunque la preferencia sea falsa.
+`keyboardPolicy.js` impide la apertura, las peticiones pendientes y los gestos
+cuando Shell está en GDM o bloqueado. Al desactivar se restauran los métodos;
+fuera de esos modos no cambia el teclado virtual ni su preferencia personal.
+La fuente canónica está en `extensions/lock-screen/keyboardPolicy.js`, enlazada
+por GDM y desreferenciada en el paquete para mantener una sola implementación.
+Las pruebas usan el teclado nativo con la finalización de palabras de IBus
+simulada; verifican apertura bloqueada, uso fuera del bloqueo y restauración.

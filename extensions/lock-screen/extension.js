@@ -1,3 +1,4 @@
+import {PasswordKeyboardPolicy} from './keyboardPolicy.js';
 import Clutter from 'gi://Clutter';
 import GDesktopEnums from 'gi://GDesktopEnums';
 import Meta from 'gi://Meta';
@@ -10,6 +11,7 @@ import {LockLayout} from './layout.js';
 
 export default class LockScreen extends Extension {
     enable() {
+        this._keyboardPolicy = new PasswordKeyboardPolicy();
         this._dialogs = new Map();
         this._injections = new InjectionManager();
         const extension = this;
@@ -67,6 +69,8 @@ export default class LockScreen extends Extension {
     }
 
     disable() {
+        this._keyboardPolicy.destroy();
+        this._keyboardPolicy = null;
         this._injections.clear();
         for (const [dialog, state] of this._dialogs) {
             dialog.disconnect(state.destroy);

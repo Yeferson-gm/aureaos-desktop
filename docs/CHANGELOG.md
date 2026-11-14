@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.4.4
+
+- Retira logo y texto de Fedora desde la configuración nativa de GDM.
+- Desactiva el teclado virtual en GDM y evita su apertura por foco, petición
+  pendiente o gesto durante el acceso y bloqueo; conserva el teclado físico.
+- Política compartida y reversible entre acceso y bloqueo; comprobación con
+  teclado nativo aislado y lectura real de la base dconf compilada.
+
 ## 0.4.3
 
 - Listas GVariant tipadas en dconf, comprobadas con su compilador real.

@@ -1,4 +1,6 @@
 import importlib.util
+import os
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -106,6 +108,31 @@ class LayoutTests(unittest.TestCase):
         output = self.root / 'compiled-gdm'
         subprocess.run(['dconf', 'compile', str(output), str((self.root / CONFIG).parent)], check=True)
         self.assertTrue(output.is_file())
+        profile = self.root / 'profile'
+        profile.write_text(f'file-db:{output}\n')
+        env = {**os.environ, 'DCONF_PROFILE': str(profile), 'GSETTINGS_BACKEND': 'dconf'}
+        for schema, key, expected in [('org.gnome.login-screen', 'logo', "''"),
+                                      ('org.gnome.desktop.a11y.applications', 'screen-keyboard-enabled', 'false')]:
+            actual = subprocess.check_output(['gsettings', 'get', schema, key], env=env, text=True).strip()
+            self.assertEqual(actual, expected)
+
+    def test_upgrade_from_layout_without_keyboard_policy(self):
+        from layout_install import CONFIG, EXTENSION, MANIFEST, checksum
+        self.install.apply()
+        config = self.root / CONFIG
+        config.write_text(config.read_text().split('[org/gnome/login-screen]')[0])
+        policy = EXTENSION / 'keyboardPolicy.js'
+        (self.root / policy).unlink()
+        manifest = json.loads((self.root / MANIFEST).read_text())
+        del manifest[str(policy)]
+        manifest[str(CONFIG)]['installed'] = checksum(config.read_bytes())
+        (self.root / MANIFEST).write_text(json.dumps(manifest))
+        self.install.apply()
+        self.assertIn('existing@local', config.read_text())
+        self.assertIn("logo=''", config.read_text())
+        self.assertTrue((self.root / policy).is_file())
+        self.install.remove()
+        self.assertFalse((self.root / policy).exists())
 
     def test_failed_update_restores_existing_files(self):
         from layout_install import CONFIG, MANIFEST

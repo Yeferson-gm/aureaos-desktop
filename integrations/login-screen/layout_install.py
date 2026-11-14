@@ -1,5 +1,7 @@
 import ast
 import base64
+import configparser
+import io
 import hashlib
 import json
 import os
@@ -19,14 +21,19 @@ def checksum(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def greeter_setting(key):
+def greeter_value(schema, key):
     account = pwd.getpwnam('gdm')
     with tempfile.TemporaryDirectory(prefix='aurea-gdm-read-') as runtime:
         os.chown(runtime, account.pw_uid, account.pw_gid)
         output = subprocess.check_output(['runuser', '-u', 'gdm', '--', 'env',
             '-u', 'DBUS_SESSION_BUS_ADDRESS', '-u', 'GSETTINGS_BACKEND', '-u', 'XDG_CONFIG_HOME',
             '-u', 'XDG_DATA_HOME', f'HOME={account.pw_dir}', f'XDG_RUNTIME_DIR={runtime}',
-            'DCONF_PROFILE=gdm', 'gsettings', 'get', 'org.gnome.shell', key], text=True).strip()
+            'DCONF_PROFILE=gdm', 'gsettings', 'get', schema, key], text=True).strip()
+    return output
+
+
+def greeter_setting(key):
+    output = greeter_value('org.gnome.shell', key)
     if output.startswith('@as '):
         output = output[4:]
     values = ast.literal_eval(output)
@@ -55,6 +62,12 @@ class LayoutInstall:
         if self.path(CONFIG).exists():
             if UUID not in self.read_setting('enabled-extensions') or UUID in self.read_setting('disabled-extensions'):
                 raise RuntimeError('GDM no reconoce la activación; se restaurará la configuración anterior.')
+            applied = configparser.ConfigParser(interpolation=None)
+            applied.read_string(self.path(CONFIG).read_text())
+            for schema, key, expected in [('org.gnome.login-screen', 'logo', "''"),
+                                         ('org.gnome.desktop.a11y.applications', 'screen-keyboard-enabled', 'false')]:
+                if applied.has_option(schema.replace('.', '/'), key) and greeter_value(schema, key) != expected:
+                    raise RuntimeError(f'GDM no reconoce el ajuste {schema} {key}.')
 
     def _read(self, relative):
         path = self.path(relative)
@@ -73,7 +86,7 @@ class LayoutInstall:
         return json.loads(data) if data else {}
 
     def _validate(self, state):
-        allowed = {str(EXTENSION / name) for name in ['metadata.json', 'extension.js', 'presentation.js']} | {str(CONFIG), str(LOCKS)}
+        allowed = {str(EXTENSION / name) for name in ['metadata.json', 'extension.js', 'presentation.js', 'keyboardPolicy.js']} | {str(CONFIG), str(LOCKS)}
         if set(state) - allowed:
             raise RuntimeError('Manifiesto de presentación GDM no válido.')
         for name, entry in state.items():
@@ -85,7 +98,7 @@ class LayoutInstall:
         state = self._state()
         self._validate(state)
         replacements = {str(EXTENSION / name): (self.source / name).read_bytes()
-                        for name in ['metadata.json', 'extension.js', 'presentation.js']}
+                        for name in ['metadata.json', 'extension.js', 'presentation.js', 'keyboardPolicy.js']}
         if state:
             replacements[str(CONFIG)] = self._read(CONFIG)
         else:
@@ -94,8 +107,17 @@ class LayoutInstall:
             replacements[str(CONFIG)] = ('[org/gnome/shell]\n'
                 f'enabled-extensions=@as {enabled!r}\ndisabled-extensions=@as {disabled!r}\n'
                 'disable-user-extensions=false\nallow-extension-installation=false\n').encode()
+        config = configparser.ConfigParser(interpolation=None)
+        config.read_string(replacements[str(CONFIG)].decode())
+        config['org/gnome/login-screen'] = {'logo': "''"}
+        config['org/gnome/desktop/a11y/applications'] = {'screen-keyboard-enabled': 'false'}
+        stream = io.StringIO()
+        config.write(stream, space_around_delimiters=False)
+        replacements[str(CONFIG)] = stream.getvalue().encode()
         replacements[str(LOCKS)] = ''.join(f'/org/gnome/shell/{key}\n' for key in
-            ['enabled-extensions', 'disabled-extensions', 'disable-user-extensions', 'allow-extension-installation']).encode()
+            ['enabled-extensions', 'disabled-extensions', 'disable-user-extensions', 'allow-extension-installation']).encode() + (
+                b'/org/gnome/login-screen/logo\n'
+                b'/org/gnome/desktop/a11y/applications/screen-keyboard-enabled\n')
         previous = {name: self._read(name) for name in replacements}
         manifest = self._read(MANIFEST)
         if not state and any(data is not None for data in previous.values()):

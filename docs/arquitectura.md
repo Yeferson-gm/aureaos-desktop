@@ -87,3 +87,9 @@ Ajusta las asignaciones del formulario nativo y presenta acciones `SystemActions
 restaura métodos y señales al desactivar. No consulta ni sustituye el verificador
 ni modifica PAM, servicios o políticas de autenticación. La activación se administra
 con archivos propios de dconf en el perfil de GDM y un manifiesto reversible.
+
+
+La política de teclado del acceso se comparte con `lock-screen`: intercepta la
+apertura del teclado virtual solo en los modos GDM/bloqueado y restaura sus
+métodos al desactivar. La configuración administrativa elimina el logo nativo y
+la activación manual del teclado en el perfil GDM, sin cambiar PAM.

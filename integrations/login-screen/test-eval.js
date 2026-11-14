@@ -4,6 +4,8 @@
     const {default: St} = await import('gi://St');
     const {default: Clutter} = await import('gi://Clutter');
     const {default: GObject} = await import('gi://GObject');
+    const {Keyboard} = await import('resource:///org/gnome/shell/ui/keyboard.js');
+    const originalKeyboardOpen = Keyboard.prototype.open;
     const {LoginDialog} = await import('resource:///org/gnome/shell/gdm/loginDialog.js');
     const {default: LoginPresentation} = await import(`file://${GLib.getenv('AUREA_LOGIN_SOURCE')}/extension.js`);
     const {default: Shell} = await import('gi://Shell');
@@ -101,7 +103,10 @@
         items.add_child(new St.Button({label: name, style_class: 'login-dialog-user-list-item', can_focus: true, reactive: true}));
     }
     await capture('login-users');
+    const {verifyKeyboardPolicy} = await import(`file://${GLib.getenv('AUREA_LOGIN_SOURCE')}/../../../extensions/lock-screen/tests/keyboard-policy.js`);
+    await verifyKeyboardPolicy(wait);
     extension.disable();
+    if (Keyboard.prototype.open !== originalKeyboardOpen) throw new Error('No se restauró la política del teclado');
     if (signals.size || LoginDialog.prototype._getCenterActorAllocation !== originalCenter) throw new Error('Restauración incompleta');
     screen.destroy();
     context.set_theme(oldTheme); resource._unregister();
