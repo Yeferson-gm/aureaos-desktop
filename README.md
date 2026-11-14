@@ -27,6 +27,7 @@ aurea-27/
 ├── shared/                  Utilidades gráficas empaquetadas por componente
 ├── integrations/
 │   ├── login-screen/        Acceso GDM, instalador administrativo y pruebas
+│   ├── boot-menu/           Aurea 27 · Arranque (GRUB), tema completo y recuperación
 │   └── desktop/             Integración y pruebas del escritorio
 ├── presets/                 Preferencias visuales sin datos personales
 ├── tools/                   Versión, construcción, instalación y validación
@@ -39,7 +40,7 @@ aurea-27/
 
 Ejecutar los comandos desde esta carpeta, en una terminal de tu sesión GNOME,
 como tu usuario habitual. **No ejecutar `aurea.sh install` con `sudo`.**
-Solo el instalador independiente de GDM requiere autorización administrativa,
+Los instaladores independientes de GDM y del menú de arranque requieren autorización administrativa,
 mediante los comandos indicados en su sección.
 
 ```bash
@@ -465,6 +466,39 @@ bash integrations/desktop/test-overview.sh
 Estos comandos usan su propio bus, configuración y compositor. Nunca habilitar el
 control inseguro de Shell en la sesión habitual. Las pruebas de vídeo generan un
 patrón sintético en un directorio temporal; no necesitan tus vídeos personales.
+
+## Menú de arranque Aurea 27 (GRUB)
+
+Tema completo integrado en `integrations/boot-menu`, con nombre activo `Aurea27`.
+Retira la entrada manual de Arch externo y conserva Fedora y Windows. Las opciones
+alternativa y de rescate siguen perteneciendo a Fedora; no se borran kernels para
+ocultarlas. Mantiene el motor GRUB y sus identificadores técnicos originales.
+
+Desde el repositorio:
+
+```bash
+sudo python3 integrations/boot-menu/manage.py apply
+sudo python3 integrations/boot-menu/manage.py check
+```
+
+Desde el paquete construido y seleccionado con `aurea_paquete`:
+
+```bash
+sudo python3 "$aurea_paquete/integrations/boot-menu/manage.py" apply
+sudo python3 "$aurea_paquete/integrations/boot-menu/manage.py" check
+```
+
+La instalación general de extensiones no modifica el arranque. Para revertir:
+
+```bash
+sudo python3 integrations/boot-menu/manage.py restore
+```
+
+Necesita Fedora UEFI, BLS, `grub2-mkconfig`, `grub2-script-check`, `restorecon` y
+Windows ya configurado en `40_custom`, con su cargador en la partición EFI montada.
+Se respaldan los archivos antes de editar y se valida la configuración generada.
+No se reinicia automáticamente. Los detalles, límites tras actualizar GRUB y
+recuperación están en [la guía de arranque](integrations/boot-menu/README.md).
 
 ## Documentación
 

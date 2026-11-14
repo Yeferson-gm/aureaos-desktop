@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.5.0
+
+- Integra el tema completo de arranque como Aurea 27 · Arranque, con instalador
+  Fedora UEFI, comprobación y restauración administrativa.
+- Retira la entrada manual de Arch externo, conserva Windows y Fedora BLS con
+  sus kernels; oculta el acceso manual UEFI y conserva las actualizaciones fwupd.
+- Validación de sintaxis antes de sustituir el menú, respaldo de configuración
+  y tema, reversión ante fallos y documentación en el README principal.
+
 ## 0.4.8
 
 - Widgets nuevos visibles inmediatamente: entra en edición antes de iniciar la

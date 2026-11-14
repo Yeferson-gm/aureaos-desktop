@@ -68,5 +68,6 @@ const tests = [
 ];
 for (const file of tests) run('node', [file]);
 run('python3', ['integrations/login-screen/test_manage.py']);
+run('python3', ['integrations/boot-menu/test_manage.py']);
 run('node', ['theme/tools/folders/install.mjs', '--check'], {env: {...process.env, ICON_TEST_ROOT: path.join(root, 'theme/icons')}});
 console.log(`Aurea 27: ${syntax} archivos de código, ${links} enlaces, ${tests.length} pruebas y esquemas/CSS verificados.`);

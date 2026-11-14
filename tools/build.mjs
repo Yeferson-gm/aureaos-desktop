@@ -40,6 +40,8 @@ for (const group of ['gtk', 'icons', 'cursors']) {
 }
 fs.cpSync(path.join(root, 'integrations/login-screen'), path.join(staging, 'integrations/login-screen'),
     {recursive: true, dereference: true, filter: file => !excluded.has(path.basename(file)) && !/^test[-_]/.test(path.basename(file))});
+fs.cpSync(path.join(root, 'integrations/boot-menu'), path.join(staging, 'integrations/boot-menu'),
+    {recursive: true, filter: file => !excluded.has(path.basename(file)) && !/^test[-_]/.test(path.basename(file))});
 const loginMetadataPath = path.join(staging, 'integrations/login-screen/extension/metadata.json');
 const loginMetadata = JSON.parse(fs.readFileSync(loginMetadataPath));
 loginMetadata.version = version.integer;

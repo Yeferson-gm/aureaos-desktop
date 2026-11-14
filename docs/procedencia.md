@@ -1,12 +1,14 @@
 # Procedencia y licencias
 
 Aurea 27 es el nombre de esta integración y sus modificaciones. No reemplaza la
-autoría de sus bases ni altera sus licencias. Repositorio local sin publicación.
+autoría de sus bases ni altera sus licencias. El propietario solicita sincronizar el repositorio con GitHub. Esa publicación no
+resuelve por sí misma los permisos de las bases sin licencia declarada.
 
 | Base | Contenido importado | Licencia/evidencia |
 |---|---|---|
 | WhiteSur GTK, vinceliuice | Tema instalado completo y personalización GTK4 | `theme/gtk/COPYING`, obtenido del repositorio original |
 | WhiteSur icons, vinceliuice | Familia completa de iconos y carpetas personalizadas | `theme/icons/COPYING`, obtenido del repositorio original |
+| WhiteSur GRUB, vinceliuice | Tema completo del arranque bajo el nombre Aurea27 | `integrations/boot-menu/theme/LICENSE` y procedencia en su README |
 | WhiteSur cursors, vinceliuice | Cursores instalados | `theme/cursors/LICENSE`, obtenido del repositorio original |
 | Dash to Dock | Dock completo con efectos y correcciones locales | `extensions/dock/COPYING` y avisos originales |
 | GTK4 Desktop Icons NG, smedius y colaboradores | Extensión completa instalada y corrección de arrastre | Cabeceras GPL3 y `extensions/desktop-icons/COPYING` |

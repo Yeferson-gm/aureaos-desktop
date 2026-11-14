@@ -93,3 +93,11 @@ La política de teclado del acceso se comparte con `lock-screen`: intercepta la
 apertura del teclado virtual solo en los modos GDM/bloqueado y restaura sus
 métodos al desactivar. La configuración administrativa elimina el logo nativo y
 la activación manual del teclado en el perfil GDM, sin cambiar PAM.
+
+## Arranque Aurea 27
+
+`integrations/boot-menu` incorpora el tema completo y su instalación administrativa
+independiente. La copia activa se llama `Aurea27`; GRUB sigue siendo el motor de
+arranque de Fedora. Se conservan BLS, UUID de discos y parámetros del kernel.
+La entrada manual obsoleta se retira por título exacto; no se escanean ni modifican
+particiones. Los respaldos por equipo quedan fuera del repositorio.
