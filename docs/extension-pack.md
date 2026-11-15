@@ -58,3 +58,6 @@ solo en la prueba para no ejecutar pkexec ni escribir límites reales de baterí
 Se comprueban carga, dos ciclos de activación/desactivación, recarga del tema,
 ventanas de preferencias y carga conjunta del stack. Esto no certifica cada
 combinación de hardware, periféricos o todas las animaciones de los efectos.
+
+Acceso y bloqueo se unifican posteriormente bajo `aurea-lock-screen@local`;
+la receta del README migra la antigua Aurea Login a una instalación global única.

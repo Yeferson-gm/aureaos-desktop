@@ -134,6 +134,53 @@ class LayoutTests(unittest.TestCase):
         self.install.remove()
         self.assertFalse((self.root / policy).exists())
 
+    def legacy_install(self):
+        from layout_install import CONFIG, LOCKS, MANIFEST, LEGACY_EXTENSION, LEGACY_UUID, checksum
+        files = {str(LEGACY_EXTENSION / name): b'old source' for name in
+                 ['extension.js', 'metadata.json', 'presentation.js', 'keyboardPolicy.js']}
+        files[str(CONFIG)] = ("[org/gnome/shell]\n"
+            f"enabled-extensions=['existing@local', '{LEGACY_UUID}']\n"
+            "disabled-extensions=[]\n").encode()
+        files[str(LOCKS)] = b'/org/gnome/shell/enabled-extensions\n'
+        state = {}
+        for name, data in files.items():
+            self.install._set(name, data)
+            state[name] = {'original': None, 'installed': checksum(data)}
+        self.install._set(MANIFEST, json.dumps(state).encode())
+        return files
+
+    def test_unify_old_greeter_preserves_activation_and_removes_old_files(self):
+        from layout_install import CONFIG, EXTENSION, LEGACY_EXTENSION, LEGACY_UUID, UUID
+        self.legacy_install()
+        self.install.apply()
+        self.assertFalse((self.root / LEGACY_EXTENSION).exists())
+        config = (self.root / CONFIG).read_text()
+        self.assertIn('existing@local', config)
+        self.assertIn(UUID, config)
+        self.assertNotIn(LEGACY_UUID, config)
+        metadata = json.loads((self.root / EXTENSION / 'metadata.json').read_text())
+        self.assertEqual(set(metadata['session-modes']), {'user', 'unlock-dialog', 'gdm'})
+        self.install.apply()
+        self.install.remove()
+        self.assertFalse((self.root / EXTENSION).exists())
+
+    def test_failed_unification_restores_old_module_and_manifest(self):
+        from layout_install import EXTENSION, MANIFEST
+        files = self.legacy_install()
+        before = (self.root / MANIFEST).read_bytes()
+        calls = []
+        def update():
+            calls.append(True)
+            if len(calls) == 1:
+                raise RuntimeError('migration failed')
+        self.install.update = update
+        with self.assertRaisesRegex(RuntimeError, 'migration failed'):
+            self.install.apply()
+        self.assertFalse((self.root / EXTENSION).exists())
+        self.assertEqual((self.root / MANIFEST).read_bytes(), before)
+        for name, content in files.items():
+            self.assertEqual((self.root / name).read_bytes(), content)
+
     def test_failed_update_restores_existing_files(self):
         from layout_install import CONFIG, MANIFEST
         self.install.apply()

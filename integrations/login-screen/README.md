@@ -2,12 +2,12 @@
 
 GDM muestra el selector de usuario y la contraseña al encender el equipo o cerrar
 sesión. Es un proceso independiente, anterior a las extensiones del usuario.
-La extensión `aurea-lock-screen@local` personaliza únicamente Super+L.
+El módulo `aurea-lock-screen@local` también personaliza Super+L en la sesión del usuario.
 
 Esta integración prepara el recurso de tema de GNOME Shell 50 conservando todos
 sus recursos originales. Añade el fondo WhiteSur estático y estilos limitados a
 GDM: fondo WhiteSur claro a color, avatar circular, nombre y entrada compacta.
-La extensión de sistema `aurea-login-layout@local`, exclusiva del modo `gdm`,
+La extensión global `aurea-lock-screen@local`, cuando está en el modo `gdm`,
 coloca el formulario nativo en el 14 % superior del área disponible y añade
 Apagar equipo, Reiniciar y Reposo al pie. Usa `SystemActions` de GNOME y respeta
 sus capacidades y políticas; los controles no disponibles aparecen desactivados.
@@ -64,12 +64,12 @@ sustituye atómicamente el recurso y conserva/restaura los contextos SELinux. Si
 falla, recupera el recurso y manifiesto anteriores. Es idempotente.
 
 La presentación se instala como archivos propiedad de root en
-`/usr/share/gnome-shell/extensions/aurea-login-layout@local`. El instalador añade
+`/usr/share/gnome-shell/extensions/aurea-lock-screen@local`. El instalador añade
 su UUID a las extensiones ya configuradas de GDM y retira únicamente ese UUID de
 su lista de desactivadas. Las claves de activación quedan en
 `/etc/dconf/db/gdm.d/90-aurea-login`, con bloqueos en `locks/90-aurea-login`:
 solo afectan al perfil de GDM. `allow-extension-installation=false` impide cargar
-extensiones desde el directorio personal de GDM. No se cambia la lista del usuario.
+extensiones desde el directorio personal de GDM. El perfil de GDM y la activación del usuario siguen siendo independientes.
 `dconf update` compila estos ajustes; no reinicia ningún servicio.
 
 `layout.json` registra los checksums y permite desinstalar sin dejar esta
@@ -112,3 +112,25 @@ La fuente canónica está en `extensions/lock-screen/keyboardPolicy.js`, enlazad
 por GDM y desreferenciada en el paquete para mantener una sola implementación.
 Las pruebas usan el teclado nativo con la finalización de palabras de IBus
 simulada; verifican apertura bloqueada, uso fuera del bloqueo y restauración.
+
+## Una sola instalación
+
+Los fuentes de ambas presentaciones viven en `extensions/lock-screen`; la ruta
+`extension` de esta integración es un enlace a esa fuente. El paquete lo resuelve
+al construir. `extension.js` elige `login.js` en GDM y `lock.js` en la sesión del
+usuario. Comparten UUID, teclado y ciclo de vida; no hay dos módulos activos.
+
+`apply` migra el manifiesto de la antigua Aurea Login, comprueba los checksums,
+cambia el UUID en el perfil y retira sus archivos. Si falla, restaura los archivos
+y configuración anteriores. Después de aplicar el paquete administrativo:
+
+```bash
+node tools/unify-session-screens.mjs "$aurea_paquete" --apply
+./aurea.sh install "$aurea_paquete" --check --component=lock-screen
+```
+
+Ejecutar desde la raíz del repositorio como usuario habitual. La herramienta
+verifica que la copia global coincida con el paquete antes de retirar la copia
+local mediante GNOME. Conserva las listas de activación. Un nuevo inicio de sesión
+carga la copia global y elimina de la lista las fichas guardadas de módulos retirados.
+`remove` retira ahora la presentación de ambas pantallas; no altera la autenticación.

@@ -53,3 +53,14 @@ de instalar para cargar todos los módulos e identificadores nuevos.
   batería está simulado exclusivamente en estas pruebas; no se escribe hardware.
 - La nueva sesión real debe confirmar periféricos, límites de carga, vídeo y
   animaciones con las aplicaciones del usuario. No se fuerza cierre de sesión.
+
+## Unificación de acceso y bloqueo
+
+La comprobación general pasó con 387 archivos de código y los esquemas/estilos.
+Las pruebas administrativas cubren la migración del manifiesto antiguo, cambio
+de UUID en GDM, preservación de otros módulos, actualización repetida y reversión
+completa si falla dconf. Las pruebas aisladas de GDM y Super+L conservan ambas
+presentaciones y la autenticación nativa. La retirada real por D-Bus de una copia
+de usuario se probó en el GNOME privado, conservando sus listas de activación.
+El instalador de usuario se probó contra un destino global simulado: no lo
+escribe, no crea duplicados y exige actualizar GDM primero si la versión difiere.

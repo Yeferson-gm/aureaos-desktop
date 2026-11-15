@@ -195,7 +195,7 @@ def apply_system():
                 atomic_write(path, data)
         subprocess.run(['restorecon', str(SYSTEM)], check=True)
         raise
-    return result + ' Presentación y controles de energía habilitados solo en GDM.'
+    return result + ' Módulo único de acceso y bloqueo instalado; perfil GDM actualizado.'
 
 
 def remove_system():

@@ -1,1 +1,0 @@
-../../../extensions/lock-screen/keyboardPolicy.js

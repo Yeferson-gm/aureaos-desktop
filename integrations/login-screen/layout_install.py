@@ -10,7 +10,13 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-UUID = 'aurea-login-layout@local'
+UUID = 'aurea-lock-screen@local'
+LEGACY_UUID = 'aurea-login-layout@local'
+LEGACY_EXTENSION = Path('usr/share/gnome-shell/extensions') / LEGACY_UUID
+FILES = ('metadata.json', 'extension.js', 'lock.js', 'login.js', 'presentation.js',
+         'layout.js', 'keyboardPolicy.js', 'stylesheet.css',
+         'assets/WhiteSur-dark.jpg', 'assets/LICENSE.WhiteSur')
+LEGACY_FILES = ('metadata.json', 'extension.js', 'presentation.js', 'keyboardPolicy.js')
 EXTENSION = Path('usr/share/gnome-shell/extensions') / UUID
 CONFIG = Path('etc/dconf/db/gdm.d/90-aurea-login')
 LOCKS = Path('etc/dconf/db/gdm.d/locks/90-aurea-login')
@@ -57,13 +63,15 @@ class LayoutInstall:
         return path
 
     def _update(self):
-        subprocess.run(['restorecon', '-R', str(self.path(EXTENSION)), str(self.path(CONFIG.parent)), str(self.path(MANIFEST.parent))], check=True)
+        paths = [self.path(relative) for relative in [EXTENSION, LEGACY_EXTENSION, CONFIG.parent, MANIFEST.parent]]
+        subprocess.run(['restorecon', '-R', *(str(path) for path in paths if path.exists())], check=True)
         subprocess.run(['dconf', 'update'], check=True)
         if self.path(CONFIG).exists():
-            if UUID not in self.read_setting('enabled-extensions') or UUID in self.read_setting('disabled-extensions'):
-                raise RuntimeError('GDM no reconoce la activación; se restaurará la configuración anterior.')
             applied = configparser.ConfigParser(interpolation=None)
             applied.read_string(self.path(CONFIG).read_text())
+            expected = UUID if UUID in applied['org/gnome/shell']['enabled-extensions'] else LEGACY_UUID
+            if expected not in self.read_setting('enabled-extensions') or expected in self.read_setting('disabled-extensions'):
+                raise RuntimeError('GDM no reconoce la activación; se restaurará la configuración anterior.')
             for schema, key, expected in [('org.gnome.login-screen', 'logo', "''"),
                                          ('org.gnome.desktop.a11y.applications', 'screen-keyboard-enabled', 'false')]:
                 if applied.has_option(schema.replace('.', '/'), key) and greeter_value(schema, key) != expected:
@@ -86,7 +94,8 @@ class LayoutInstall:
         return json.loads(data) if data else {}
 
     def _validate(self, state):
-        allowed = {str(EXTENSION / name) for name in ['metadata.json', 'extension.js', 'presentation.js', 'keyboardPolicy.js']} | {str(CONFIG), str(LOCKS)}
+        allowed = {str(EXTENSION / name) for name in FILES} | {str(CONFIG), str(LOCKS)}
+        allowed |= {str(LEGACY_EXTENSION / name) for name in LEGACY_FILES}
         if set(state) - allowed:
             raise RuntimeError('Manifiesto de presentación GDM no válido.')
         for name, entry in state.items():
@@ -97,18 +106,26 @@ class LayoutInstall:
     def apply(self):
         state = self._state()
         self._validate(state)
-        replacements = {str(EXTENSION / name): (self.source / name).read_bytes()
-                        for name in ['metadata.json', 'extension.js', 'presentation.js', 'keyboardPolicy.js']}
-        if state:
-            replacements[str(CONFIG)] = self._read(CONFIG)
-        else:
-            enabled = list(dict.fromkeys([*self.read_setting('enabled-extensions'), UUID]))
-            disabled = [value for value in self.read_setting('disabled-extensions') if value != UUID]
-            replacements[str(CONFIG)] = ('[org/gnome/shell]\n'
-                f'enabled-extensions=@as {enabled!r}\ndisabled-extensions=@as {disabled!r}\n'
-                'disable-user-extensions=false\nallow-extension-installation=false\n').encode()
+        replacements = {str(EXTENSION / name): (self.source / name).read_bytes() for name in FILES}
         config = configparser.ConfigParser(interpolation=None)
-        config.read_string(replacements[str(CONFIG)].decode())
+        if state:
+            config.read_string(self._read(CONFIG).decode())
+        else:
+            config['org/gnome/shell'] = {}
+        shell = config['org/gnome/shell']
+        def values(key):
+            raw = shell.get(key)
+            if raw is None:
+                return self.read_setting(key)
+            result = ast.literal_eval(raw.removeprefix('@as '))
+            if not isinstance(result, list) or not all(isinstance(item, str) for item in result):
+                raise RuntimeError('Lista de extensiones GDM no válida.')
+            return result
+        enabled = list(dict.fromkeys([*(UUID if item == LEGACY_UUID else item
+                                       for item in values('enabled-extensions')), UUID]))
+        disabled = [item for item in values('disabled-extensions') if item not in (UUID, LEGACY_UUID)]
+        shell.update({'enabled-extensions': f'@as {enabled!r}', 'disabled-extensions': f'@as {disabled!r}',
+                      'disable-user-extensions': 'false', 'allow-extension-installation': 'false'})
         config['org/gnome/login-screen'] = {'logo': "''"}
         config['org/gnome/desktop/a11y/applications'] = {'screen-keyboard-enabled': 'false'}
         stream = io.StringIO()
@@ -118,18 +135,23 @@ class LayoutInstall:
             ['enabled-extensions', 'disabled-extensions', 'disable-user-extensions', 'allow-extension-installation']).encode() + (
                 b'/org/gnome/login-screen/logo\n'
                 b'/org/gnome/desktop/a11y/applications/screen-keyboard-enabled\n')
-        previous = {name: self._read(name) for name in replacements}
+        obsolete = set(state) - set(replacements)
+        previous = {name: self._read(name) for name in set(replacements) | obsolete}
         manifest = self._read(MANIFEST)
-        if not state and any(data is not None for data in previous.values()):
-            raise RuntimeError('Ya existen archivos con el nombre de Aurea sin un manifiesto verificable.')
+        for name, data in previous.items():
+            if name not in state and data is not None:
+                raise RuntimeError('Ya existen archivos con el nombre de Aurea sin un manifiesto verificable.')
+        next_state = {}
         for name, data in replacements.items():
-            if name not in state:
-                state[name] = {'original': base64.b64encode(previous[name]).decode() if previous[name] is not None else None}
-            state[name]['installed'] = checksum(data)
+            original = state.get(name, {}).get('original')
+            next_state[name] = {'original': original, 'installed': checksum(data)}
         try:
             for name, data in replacements.items():
                 self._set(name, data)
-            self._set(MANIFEST, json.dumps(state, indent=2).encode() + b'\n')
+            for name in obsolete:
+                entry = state[name]
+                self._set(name, base64.b64decode(entry['original']) if entry['original'] is not None else None)
+            self._set(MANIFEST, json.dumps(next_state, indent=2).encode() + b'\n')
             self.update()
         except Exception:
             for name, data in previous.items():
@@ -141,10 +163,18 @@ class LayoutInstall:
                 self._prune_extension_directory()
             raise
 
+        self._prune_extension_directory()
+
     def _prune_extension_directory(self):
-        directory = self.path(EXTENSION)
-        if directory.exists() and not any(directory.iterdir()):
-            directory.rmdir()
+        for relative in [EXTENSION, LEGACY_EXTENSION]:
+            directory = self.path(relative)
+            if not directory.exists():
+                continue
+            for child in sorted(directory.rglob('*'), reverse=True):
+                if child.is_dir() and not child.is_symlink() and not any(child.iterdir()):
+                    child.rmdir()
+            if not any(directory.iterdir()):
+                directory.rmdir()
 
     def remove(self):
         state = self._state()

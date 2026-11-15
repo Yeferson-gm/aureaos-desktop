@@ -98,3 +98,42 @@ test('instalar en destino aislado conserva preferencias y valida el resultado', 
         fs.rmSync(target, {recursive: true});
     }
 });
+
+test('un módulo global se verifica sin duplicarlo ni escribirlo como usuario', () => {
+    const release = fs.mkdtempSync(path.join(root, 'dist/.install-test-'));
+    const target = fs.mkdtempSync(path.join(os.tmpdir(), 'aurea-global-test-'));
+    const uuid = 'aurea-lock-screen@local';
+    const source = path.join(release, 'extensions', uuid);
+    const user = path.join(target, 'data/gnome-shell/extensions', uuid);
+    const system = path.join(target, 'system/gnome-shell/extensions', uuid);
+    const entries = {
+        'release.json': JSON.stringify({stack: 'Aurea 27', name: '0.0.1', tag: 'v0.0.1', extensions: {'lock-screen': uuid}}),
+        [`extensions/${uuid}/metadata.json`]: JSON.stringify({uuid, version: 1, 'version-name': '0.0.1'}),
+        [`extensions/${uuid}/extension.js`]: 'export default class {}',
+    };
+    const call = action => execFileSync('node', ['tools/install.mjs', release, action, '--component=lock-screen'], {
+        cwd: root, env: {...process.env, AUREA_TEST_ROOT: target}, stdio: 'pipe',
+    });
+    try {
+        for (const [file, content] of Object.entries(entries)) {
+            fs.mkdirSync(path.dirname(path.join(release, file)), {recursive: true});
+            fs.writeFileSync(path.join(release, file), content);
+        }
+        fs.writeFileSync(path.join(release, 'SHA256SUMS'), Object.entries(entries).map(([file, content]) =>
+            `${crypto.createHash('sha256').update(content).digest('hex')}  ${file}`).join('\n') + '\n');
+        call('--apply');
+        fs.cpSync(source, system, {recursive: true});
+        assert.throws(() => call('--apply'), /copia de usuario/);
+        fs.rmSync(user, {recursive: true});
+        call('--apply');
+        call('--check');
+        assert.equal(fs.existsSync(user), false);
+        fs.writeFileSync(path.join(system, 'extension.js'), 'older installed version');
+        assert.throws(() => call('--apply'), /administrativo de GDM/);
+        assert.equal(fs.readFileSync(path.join(system, 'extension.js'), 'utf8'), 'older installed version');
+        assert.equal(fs.existsSync(user), false);
+    } finally {
+        fs.rmSync(release, {recursive: true});
+        fs.rmSync(target, {recursive: true});
+    }
+});

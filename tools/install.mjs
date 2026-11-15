@@ -32,6 +32,8 @@ const data = testRoot ? path.join(testRoot, 'data') : process.env.XDG_DATA_HOME 
 const config = testRoot ? path.join(testRoot, 'config') : process.env.XDG_CONFIG_HOME ?? path.join(os.homedir(), '.config');
 const themes = testRoot ? path.join(testRoot, 'themes') : path.join(os.homedir(), '.themes');
 const targets = [];
+const systemTargets = new Set();
+const systemData = testRoot ? path.join(testRoot, 'system') : '/usr/share';
 if (component && !Object.hasOwn(release.extensions, component)) throw new Error(`Componente desconocido: ${component}`);
 const selectedExtensions = component ? {[component]: release.extensions[component]} : release.extensions;
 for (const uuid of Object.values(selectedExtensions)) {
@@ -40,7 +42,16 @@ for (const uuid of Object.values(selectedExtensions)) {
     const metadata = JSON.parse(fs.readFileSync(path.join(source, 'metadata.json')));
     if (metadata.uuid !== uuid || metadata.version !== version.integer || metadata['version-name'] !== version.name)
         throw new Error(`Metadatos inconsistentes: ${uuid}`);
-    targets.push([source, path.join(data, 'gnome-shell/extensions', uuid)]);
+    const userTarget = path.join(data, 'gnome-shell/extensions', uuid);
+    const systemTarget = path.join(systemData, 'gnome-shell/extensions', uuid);
+    if (uuid === 'aurea-lock-screen@local' && fs.existsSync(path.join(systemTarget, 'metadata.json'))) {
+        targets.push([source, systemTarget]);
+        systemTargets.add(systemTarget);
+        if (action !== 'preview' && fs.existsSync(userTarget))
+            throw new Error('Acceso y bloqueo tiene una copia de usuario. Completa la unificación indicada en README antes de instalar.');
+    } else {
+        targets.push([source, userTarget]);
+    }
 }
 if (!component) for (const [group, destination] of [['gtk', themes], ['icons', path.join(data, 'icons')], ['cursors', path.join(data, 'icons')]]) {
     for (const entry of fs.readdirSync(path.join(releaseDir, 'theme', group), {withFileTypes: true})) {
@@ -54,6 +65,11 @@ if (action === 'preview') {
     process.exit(0);
 }
 if (action === 'apply') {
+    for (const [source, target] of targets) {
+        if (!systemTargets.has(target)) continue;
+        try { verifyTree(source, target); }
+        catch (error) { throw new Error('Actualiza primero Acceso y bloqueo con el instalador administrativo de GDM del mismo paquete.', {cause: error}); }
+    }
     for (const [, target] of targets) {
         const stat = fs.lstatSync(target, {throwIfNoEntry: false});
         if (stat && !stat.isDirectory()) throw new Error(`Destino no es un directorio normal: ${target}`);
@@ -73,7 +89,7 @@ let files = 0;
 for (const [source, target] of targets) {
     const isGtk = target === path.join(config, 'gtk-4.0');
     const ignored = isGtk ? new Set(['settings.ini']) : new Set();
-    if (action === 'apply')
+    if (action === 'apply' && !systemTargets.has(target))
         installTarget(source, target, {preserveSettings: isGtk, testMode: Boolean(testRoot)});
     files += verifyTree(source, target, ignored);
 }

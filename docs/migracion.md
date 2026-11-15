@@ -40,5 +40,6 @@ de desarrollo está únicamente en `theme/`; cualquier retirada de rutas instala
 debe comprobar primero consumidores, enlaces y configuración.
 
 La ampliación a 19 módulos usa la misma política para las diez incorporaciones.
-Consultar [pack y recuperación por módulo](extension-pack.md). Emoji Copy y
-Aurea Login de GDM permanecen fuera de esa migración; no son duplicados.
+Consultar [pack y recuperación por módulo](extension-pack.md). Emoji Copy permanece independiente. El acceso GDM y bloqueo se unifican con
+el instalador administrativo y la herramienta `unify-session-screens.mjs`,
+conservando ambas presentaciones bajo un solo UUID e instalación global.

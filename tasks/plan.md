@@ -51,3 +51,12 @@ preferencias, migración viva y carga/descarga del pack superadas en GNOME 50
 privado. Batería simulada en pruebas para no escribir hardware. La entrega se
 construye como versión Git y requiere un nuevo inicio de sesión para descubrir
 los nuevos UUID. Emoji Copy y acceso GDM se conservan.
+
+## Unificar acceso y bloqueo
+
+Una sola identidad `aurea-lock-screen@local`, instalada globalmente cuando GDM
+está personalizado. La entrada elige la presentación según el modo de sesión.
+Migrar el perfil y manifiesto antiguos de GDM, retirar su UUID y la copia de
+usuario una vez comprobada la instalación global. El instalador de usuario
+verifica la copia global y no crea otra. Dash to Dock ya no está en disco;
+GNOME conserva su entrada en memoria hasta un nuevo inicio de sesión.

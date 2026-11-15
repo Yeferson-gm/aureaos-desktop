@@ -32,4 +32,7 @@ for attempt in {1..60}; do
 done
 cat "$DI_TEST_DIR/result.txt"
 rg -q '^PASS:' "$DI_TEST_DIR/result.txt"
-if rg 'JS ERROR|CRITICAL' "$DI_TEST_DIR/shell.log"; then exit 1; fi
+gjs "$project/../../tools/retire-user-lock.js"
+test ! -d "$XDG_DATA_HOME/gnome-shell/extensions/aurea-lock-screen@local"
+gsettings get org.gnome.shell enabled-extensions | rg -q 'aurea-lock-screen@local'
+if rg 'JS ERROR|CRITICAL'  "$DI_TEST_DIR/shell.log"; then exit 1; fi

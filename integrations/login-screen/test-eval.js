@@ -7,7 +7,7 @@
     const {Keyboard} = await import('resource:///org/gnome/shell/ui/keyboard.js');
     const originalKeyboardOpen = Keyboard.prototype.open;
     const {LoginDialog} = await import('resource:///org/gnome/shell/gdm/loginDialog.js');
-    const {default: LoginPresentation} = await import(`file://${GLib.getenv('AUREA_LOGIN_SOURCE')}/extension.js`);
+    const {default: LoginPresentation} = await import(`file://${GLib.getenv('AUREA_LOGIN_SOURCE')}/login.js`);
     const {default: Shell} = await import('gi://Shell');
     const Main = await import('resource:///org/gnome/shell/ui/main.js');
     const {AuthPrompt, AuthPromptMode} = await import('resource:///org/gnome/shell/gdm/authPrompt.js');
@@ -38,7 +38,7 @@
         connect(name, callback) {signals.set(++signalId, {name, callback}); return signalId;},
         disconnect(id) {signals.delete(id);}, forceUpdate() {},
         activatePowerOff() {activations++;}, activateRestart() {activations++;}, activateSuspend() {activations++;}};
-    const extension = new LoginPresentation({uuid: 'aurea-login-layout@local', path: GLib.getenv('AUREA_LOGIN_SOURCE'), dir: Gio.File.new_for_path(GLib.getenv('AUREA_LOGIN_SOURCE'))});
+    const extension = new LoginPresentation({uuid: 'aurea-lock-screen@local', path: GLib.getenv('AUREA_LOGIN_SOURCE'), dir: Gio.File.new_for_path(GLib.getenv('AUREA_LOGIN_SOURCE'))});
     const originalCenter = LoginDialog.prototype._getCenterActorAllocation;
     extension.enable();
     extension._decorate(login, actions);

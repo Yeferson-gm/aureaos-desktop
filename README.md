@@ -114,6 +114,11 @@ seguir [Desarrollo y nuevas versiones](#desarrollo-y-nuevas-versiones) antes de
 continuar. No crear otra etiqueta para reconstruir una entrega ya etiquetada. Las etiquetas anteriores siguen disponibles, pero
 sus paquetes no incluyen correcciones posteriores. No sobrescribirlos.
 
+**Acceso y bloqueo global se actualiza primero con el instalador de GDM**,
+si ya está instalado globalmente. Seguir la receta de abajo antes de aplicar
+el resto del paquete. Así no se crea una copia de usuario ni se requiere ejecutar
+el instalador completo como root.
+
 Para instalar todo el escritorio:
 
 ```bash
@@ -121,9 +126,6 @@ Para instalar todo el escritorio:
 ./aurea.sh install "$aurea_paquete" --apply
 ./aurea.sh install "$aurea_paquete" --check
 ```
-
-**GDM se aplica por separado**, incluso después de instalar el paquete completo.
-Para actualizar únicamente bloqueo y GDM, usar la receta de abajo.
 
 El primer comando solo muestra destinos. `--apply` reemplaza archivos y migra los
 UUID antiguos declarados en `stack.json`, conservando su estado activado/desactivado y sus
@@ -151,7 +153,7 @@ Estos son los identificadores que se usan con `gnome-extensions`:
 | Isla dinámica | `dynamic-island-gnome50@local` |
 | Isla lateral | `side-dock-gnome50@local` |
 | Widgets | `lintel-widgets@local` |
-| Pantalla de bloqueo | `aurea-lock-screen@local` |
+| Acceso y bloqueo | `aurea-lock-screen@local` |
 | Fondo animado | `aurea-wallpaper@local` |
 | Iconos de escritorio | `aurea-desktop-icons@local` |
 | Centro de aplicaciones | `aurea-app-center@local` |
@@ -208,7 +210,7 @@ El paquete no lleva tus vídeos. El estilo del tema no inicia el reproductor.
 
 ### Bloqueo y apariencia de widgets
 
-La pantalla de bloqueo usa `aurea-lock-screen@local` en GNOME 50. Incluye un fondo
+Acceso y bloqueo comparten `aurea-lock-screen@local` en GNOME 50. Incluye un fondo
 estático 4K de WhiteSur con su licencia; no reproduce vídeo ni cambia el fondo del
 escritorio. Conserva la autenticación, políticas de bloqueo y notificaciones
 nativas. Impide el teclado virtual durante el bloqueo, también por entrada táctil
@@ -240,21 +242,22 @@ con las plataformas de Apple están en [la investigación](docs/bloqueo-widgets-
 
 ### Actualizar bloqueo y acceso GDM juntos
 
-Son dos componentes distintos; instalar uno no actualiza el otro:
+Un único módulo adapta su presentación a dos modos. Al aplicar GDM queda una
+sola instalación global; el instalador de usuario la verifica sin duplicarla:
 
 | Pantalla | Componente | Instalación y activación |
 |---|---|---|
-| Bloqueo de una sesión abierta, `Super+L` | `aurea-lock-screen@local` | Instalador de usuario y `gnome-extensions enable` |
-| Encendido/cierre de sesión, usuario y contraseña | `aurea-login-layout@local` | Instalador administrativo de GDM; activa su propio perfil |
+| Bloqueo de una sesión abierta, `Super+L` | `aurea-lock-screen@local` | Módulo global y activación del usuario |
+| Encendido/cierre de sesión, usuario y contraseña | `aurea-lock-screen@local` | Mismo módulo global; activación en el perfil de GDM |
 
 Con `aurea_paquete` seleccionado en **Instalar un paquete existente**, ejecutar
 estos comandos en orden. Actualizan solo bloqueo y GDM:
 
 ```bash
-./aurea.sh install "$aurea_paquete" --apply --component=lock-screen
-./aurea.sh install "$aurea_paquete" --check --component=lock-screen
 pkexec /usr/bin/python3 "$aurea_paquete/integrations/login-screen/manage.py" apply
+node tools/unify-session-screens.mjs "$aurea_paquete" --apply
 python3 "$aurea_paquete/integrations/login-screen/manage.py" status
+./aurea.sh install "$aurea_paquete" --check --component=lock-screen
 ```
 
 `pkexec` muestra el diálogo administrativo de Fedora. Si se prefiere la terminal,
@@ -275,8 +278,11 @@ gnome-extensions info aurea-lock-screen@local
 ```
 
 El ajuste global permite las extensiones previamente habilitadas. Si ya está en
-`false`, no cambia nada. **No ejecutar `gnome-extensions enable` para el UUID de
-GDM**: pertenece a otro usuario y el instalador ya lo activa allí.
+`false`, no cambia nada. El mismo UUID tiene activación independiente en cada
+sesión: el instalador configura GDM y el comando anterior configura tu escritorio.
+La migración retira `aurea-login-layout@local` del sistema y del perfil de GDM.
+La retirada de la copia de usuario conserva tu selección de activación; hasta
+volver a entrar, GNOME puede mostrar el bloqueo nativo. No reinstalar otra copia.
 
 GDM incluye fondo estático a color, perfil superior, contraseña compacta y
 Apagar equipo/Reiniciar/Reposo inferiores. Elimina el logo y texto de Fedora.
@@ -294,7 +300,7 @@ No reiniciar `gdm.service`, matar GNOME ni usar evaluación insegura para recarg
 
 #### Restaurar o desactivar
 
-Para retirar el tema y la presentación de GDM, usando el mismo paquete seleccionado:
+Para retirar el tema de GDM y el módulo global de acceso/bloqueo, usando el mismo paquete seleccionado:
 
 ```bash
 pkexec /usr/bin/python3 "$aurea_paquete/integrations/login-screen/manage.py" remove
@@ -307,8 +313,8 @@ Para desactivar la presentación del bloqueo de usuario, por separado:
 gnome-extensions disable aurea-lock-screen@local
 ```
 
-La retirada de GDM elimina sus ajustes propios; vuelven los valores del sistema,
-incluidos logo y teclado de accesibilidad. Desactivar la extensión del bloqueo
+La retirada administrativa elimina el módulo global y los ajustes de GDM;
+vuelven las pantallas nativas, incluidos logo y teclado de accesibilidad. Desactivar la extensión del bloqueo
 restaura su comportamiento nativo. Los cambios de GDM se ven en el siguiente acceso.
 
 Si una actualización de GNOME restaura el tema de Fedora, repetir `apply` con el
@@ -353,15 +359,17 @@ reinstalaciones a ciegas: comprobar el UUID y cerrar/abrir sesión tras instalar
 
 ### Módulos integrados y extensiones del sistema
 
-El pack incluye 19 componentes de usuario. La migración conserva qué módulos
+El pack incluye 19 componentes; Acceso y bloqueo usa una única instalación
+global cuando se personaliza GDM. La migración conserva qué módulos
 estaban habilitados; en una instalación nueva puedes activar los adicionales
 individualmente con los UUID de la tabla. Los efectos son opcionales, no requisitos
 del tema. Emoji Copy no se importa, desinstala ni configura.
 
 Los fuentes originales, revisiones y licencias están registrados en
 [procedencia del pack](docs/extension-pack.md) y `docs/upstream-extensions.json`.
-Aurea Login aparece desactivada en la sesión del usuario porque funciona **solo
-en GDM**. No borrarla ni activarla como extensión de usuario.
+La antigua entrada Aurea Login se sustituye por **Aurea 27 · Acceso y bloqueo**.
+Si aparece una extensión ya retirada, GNOME conserva su ficha en memoria: cerrar
+y abrir sesión actualiza la lista. Reabrir el gestor de extensiones no la recarga.
 
 Después de instalar y verificar los sustitutos Aurea, los tres RPM redundantes
 pueden retirarse sin eliminación automática de dependencias. Primero previsualizar:
@@ -377,7 +385,7 @@ detenerse y revisar. Para aplicar esa misma retirada:
 sudo dnf remove --no-autoremove gnome-shell-extension-dash-to-dock gnome-shell-extension-appindicator gnome-shell-extension-user-theme
 ```
 
-Conservar `gnome-shell-extension-common`, GNOME Shell, GDM y Aurea Login.
+Conservar `gnome-shell-extension-common`, GNOME Shell, GDM y Acceso y bloqueo.
 No borrar carpetas de `/usr/share/gnome-shell/extensions` manualmente. Para volver
 a las extensiones de Fedora, desactivar primero sus equivalentes Aurea y usar
 `sudo dnf install` con los tres nombres anteriores. No se restauran los UUID

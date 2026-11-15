@@ -19,7 +19,7 @@ a los recursos canónicos dentro de `theme/icons/Aurea27`.
 | dynamic-island | Aurea 27 · Isla dinámica | dynamic-island-gnome50@local |
 | app-island | Aurea 27 · Isla de aplicaciones | side-dock-gnome50@local |
 | widgets | Aurea 27 · Widgets | lintel-widgets@local |
-| lock-screen | Aurea 27 · Pantalla de bloqueo | aurea-lock-screen@local |
+| lock-screen | Aurea 27 · Acceso y bloqueo | aurea-lock-screen@local |
 | live-wallpaper | Aurea 27 · Fondo animado | aurea-wallpaper@local |
 | desktop-icons | Aurea 27 · Iconos del escritorio | aurea-desktop-icons@local |
 | app-center | Aurea 27 · Centro de aplicaciones | aurea-app-center@local |
@@ -66,7 +66,8 @@ anterior; sus referencias históricas no son instrucciones actuales de instalaci
 
 ## Presentación del bloqueo y materiales compartidos
 
-`lock-screen` se ejecuta en los modos `user` y `unlock-dialog` de GNOME 50.
+`lock-screen` se ejecuta en `user`, `unlock-dialog` y `gdm` de GNOME 50.
+Su entrada selecciona la presentación del acceso o del bloqueo según la sesión.
 Decora el `UnlockDialog` nativo mediante `InjectionManager`: fondo estático,
 layout, reloj y estilo. No sustituye el verificador ni el formulario nativo.
 Al desactivarse restaura métodos, padre del reloj, layout y fondos. Las señales
@@ -93,7 +94,8 @@ no depende de las extensiones del usuario. El código de construcción conserva 
 recursos y solo añade CSS de GDM a las variantes clara/oscura y un fondo estático.
 Alto contraste queda intacto. El paquete incluye fuentes y recursos propios,
 compilados contra el GNOME instalado cuando el administrador ejecuta `apply`.
-La extensión de sistema `aurea-login-layout@local` se carga exclusivamente en GDM.
+La extensión global `aurea-lock-screen@local` comparte una única instalación
+con la sesión del usuario y elige la presentación de GDM cuando corresponde.
 Ajusta las asignaciones del formulario nativo y presenta acciones `SystemActions`;
 restaura métodos y señales al desactivar. No consulta ni sustituye el verificador
 ni modifica PAM, servicios o políticas de autenticación. La activación se administra

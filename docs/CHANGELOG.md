@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.6.1
+
+- Unifica acceso GDM y bloqueo en un solo módulo global: Aurea 27 · Acceso y bloqueo.
+- Migra el perfil de GDM y retira Aurea Login antigua; permite retirar la copia de
+  usuario conservando su activación. El instalador evita volver a duplicarla.
+- Documenta que GNOME mantiene en memoria fichas de extensiones retiradas hasta
+  un nuevo inicio de sesión; Dash to Dock ya no forma parte de la instalación.
+
 ## 0.6.0
 
 - Pack de 19 componentes: incorpora diez extensiones desde revisiones upstream
