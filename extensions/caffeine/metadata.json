@@ -1,0 +1,28 @@
+{
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "uuid": "aurea-caffeine@local",
+  "name": "Aurea 27 · Cafeína",
+  "settings-schema": "org.gnome.shell.extensions.caffeine",
+  "gettext-domain": "gnome-shell-extension-caffeine",
+  "description": "Cafeína integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop",
+  "donations": {
+    "paypal": [
+      "eonpatapon",
+      "stuartahayhurst",
+      "pakaoraki"
+    ]
+  },
+  "session-modes": [
+    "user",
+    "unlock-dialog"
+  ]
+}

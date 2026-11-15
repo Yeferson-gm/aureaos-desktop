@@ -1,0 +1,22 @@
+{
+  "uuid": "aurea-desktop-cube@local",
+  "description": "Cubo de escritorios integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "name": "Aurea 27 · Cubo de escritorios",
+  "donations": {
+    "kofi": "schneegans",
+    "github": "schneegans",
+    "paypal": "simonschneegans"
+  },
+  "gettext-domain": "desktop-cube",
+  "settings-schema": "org.gnome.shell.extensions.desktop-cube",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop"
+}

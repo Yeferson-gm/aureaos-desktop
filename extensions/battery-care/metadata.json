@@ -1,0 +1,21 @@
+{
+  "uuid": "aurea-battery-care@local",
+  "name": "Aurea 27 · Cuidado de batería",
+  "description": "Cuidado de batería integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "session-modes": [
+    "user",
+    "unlock-dialog"
+  ],
+  "settings-schema": "org.gnome.shell.extensions.Battery-Health-Charging",
+  "gettext-domain": "Battery-Health-Charging@maniacx.github.com"
+}

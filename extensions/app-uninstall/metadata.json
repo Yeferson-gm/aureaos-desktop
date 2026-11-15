@@ -1,0 +1,18 @@
+{
+  "uuid": "aurea-app-uninstall@local",
+  "name": "Aurea 27 · Desinstalar aplicaciones",
+  "description": "Right-click any app in the GNOME App Grid to uninstall it directly, without opening GNOME Software or a terminal.",
+  "shell-version": [
+    "42",
+    "43",
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50"
+  ],
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop",
+  "settings-schema": "org.gnome.shell.extensions.appgrid-uninstall"
+}

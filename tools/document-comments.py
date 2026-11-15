@@ -34,7 +34,7 @@ def tokens(parser, data):
             if not node.children and node.type not in ('comment', 'hash_bang_line')]
 
 report = []
-for directory in ['extensions', 'integrations', 'theme', 'tools', 'tests']:
+for directory in (sys.argv[1:] or ['extensions', 'integrations', 'theme', 'tools', 'tests']):
     for file in sorted((root / directory).rglob('*')):
         if not file.is_file() or file.is_symlink():
             continue
@@ -63,6 +63,9 @@ for directory in ['extensions', 'integrations', 'theme', 'tools', 'tests']:
         notes, edits = [], []
         for start, end in ranges:
             text = data[start:end].decode('utf8')
+            prefix = re.sub(rb'(?m)^#![^\n]*|/\*[\s\S]*?\*/|//[^\n]*', b'', data[:start]).strip()
+            if parser and not prefix:
+                continue
             if legal.search(text) or directive.search(text):
                 continue
             notes.append((data[:start].count(b'\n') + 1, text))

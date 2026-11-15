@@ -1,0 +1,16 @@
+{
+  "description": "Efecto lámpara integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "name": "Aurea 27 · Efecto lámpara",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ],
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop",
+  "uuid": "aurea-magic-lamp@local",
+  "settings-schema": "org.gnome.shell.extensions.com.github.hermes83.compiz-alike-magic-lamp-effect"
+}

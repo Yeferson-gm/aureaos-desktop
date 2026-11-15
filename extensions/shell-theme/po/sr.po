@@ -1,0 +1,385 @@
+# Serbian translation for gnome-shell-extensions.
+# Courtesy of Prevod.org team (http://prevod.org/) -- 2012—2017.
+# This file is distributed under the same license as the gnome-shell-extensions package.
+# Милош Поповић <gpopac@gmail.com>, 2012.
+# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2012—2017.
+# Марко Костић <marko.m.kostic@gmail.com>, 2020-2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-shell-extensions master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gnome-shell-extensions/"
+"issues\n"
+"POT-Creation-Date: 2026-03-03 12:50+0000\n"
+"PO-Revision-Date: 2026-03-26 10:24+0100\n"
+"Last-Translator: Марко М. Костић <marko.m.kostic@gmail.com>\n"
+"Language-Team: Serbian <gnome-sr@googlegroups.org>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : "
+"n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Project-Style: gnome\n"
+"X-Generator: Poedit 3.9\n"
+
+#: data/gnome-classic.desktop.in:2
+msgid "GNOME Classic"
+msgstr "Класичан Гном"
+
+#: data/gnome-classic.desktop.in:3
+msgid "This session logs you into GNOME Classic"
+msgstr "Ова сесија вас пријављује у класичан Гном"
+
+#: extensions/apps-menu/extension.js:118
+msgid "Favorites"
+msgstr "Омиљено"
+
+#: extensions/apps-menu/extension.js:388
+msgid "Apps"
+msgstr "Апликације"
+
+#: extensions/auto-move-windows/org.gnome.shell.extensions.auto-move-windows.gschema.xml:12
+msgid "Application and workspace list"
+msgstr "Програм и списак радних простора"
+
+#: extensions/auto-move-windows/org.gnome.shell.extensions.auto-move-windows.gschema.xml:13
+msgid ""
+"A list of strings, each containing an application id (desktop file name), "
+"followed by a colon and the workspace number"
+msgstr ""
+"Списак ниски од којих свака садржи иб програма (назив датотеке „.desktop“), "
+"зарез и број радног простора"
+
+#: extensions/auto-move-windows/prefs.js:157
+msgid "Workspace Rules"
+msgstr "Правила радних простора"
+
+#: extensions/auto-move-windows/prefs.js:312
+msgid "Add Rule"
+msgstr "Додај правило"
+
+#. TRANSLATORS: %s is the filesystem name
+#: extensions/drive-menu/extension.js:123
+#: extensions/places-menu/placeDisplay.js:186
+#, javascript-format
+msgid "Ejecting drive “%s” failed:"
+msgstr "Нисам успео да избацим уређај „%s“:"
+
+#: extensions/drive-menu/extension.js:142
+msgid "Removable devices"
+msgstr "Уклоњиви уређаји"
+
+#: extensions/drive-menu/extension.js:164
+msgid "Open Files"
+msgstr "Отвори датотеке"
+
+#: extensions/native-window-placement/org.gnome.shell.extensions.native-window-placement.gschema.xml:11
+msgid "Use more screen for windows"
+msgstr "Користи више простора за прозор"
+
+#: extensions/native-window-placement/org.gnome.shell.extensions.native-window-placement.gschema.xml:12
+msgid ""
+"Try to use more screen for placing window thumbnails by adapting to screen "
+"aspect ratio, and consolidating them further to reduce the bounding box. "
+"This setting applies only with the natural placement strategy."
+msgstr ""
+"Користи више простора за смештање умањених приказа прозора у зависности од "
+"величине екрана. Ово подешавање важи само уколико је стратегија размештања "
+"постављена на природно."
+
+#: extensions/native-window-placement/org.gnome.shell.extensions.native-window-placement.gschema.xml:17
+msgid "Place window captions on top"
+msgstr "Поставља натписе прозора изнад приказа"
+
+#: extensions/native-window-placement/org.gnome.shell.extensions.native-window-placement.gschema.xml:18
+msgid ""
+"If true, place window captions on top the respective thumbnail, overriding "
+"shell default of placing it at the bottom. Changing this setting requires "
+"restarting the shell to have any effect."
+msgstr ""
+"Уколико је изабрано, натписи прозора ће бити постављени на врх њихових "
+"умањених приказа уместо испод приказа. Промена ових подешавања захтева да "
+"поново покренете Гномову шкољку."
+
+#: extensions/places-menu/extension.js:75
+#: extensions/places-menu/extension.js:78
+msgid "Places"
+msgstr "Места"
+
+#: extensions/places-menu/placeDisplay.js:52
+#, javascript-format
+msgid "Failed to launch “%s”"
+msgstr "Нисам успео да покренем „%s“"
+
+#: extensions/places-menu/placeDisplay.js:67
+#, javascript-format
+msgid "Failed to mount volume for “%s”"
+msgstr "Нисам успео да прикачим волумен за „%s“"
+
+#: extensions/places-menu/placeDisplay.js:314
+msgid "Home"
+msgstr "Личнo"
+
+#: extensions/places-menu/placeDisplay.js:320
+msgid "Recent"
+msgstr "Скорашње"
+
+#: extensions/places-menu/placeDisplay.js:326
+msgid "Starred"
+msgstr "Са звездицом"
+
+#: extensions/places-menu/placeDisplay.js:346
+msgid "Network"
+msgstr "Мрежа"
+
+#: extensions/places-menu/placeDisplay.js:353
+msgid "Trash"
+msgstr "Канта"
+
+#: extensions/screenshot-window-sizer/org.gnome.shell.extensions.screenshot-window-sizer.gschema.xml:14
+msgid "Cycle Screenshot Sizes"
+msgstr "Кружи кроз величине снимака екрана"
+
+#: extensions/screenshot-window-sizer/org.gnome.shell.extensions.screenshot-window-sizer.gschema.xml:18
+msgid "Cycle Screenshot Sizes Backward"
+msgstr "Кружи уназад кроз величине снимака екрана"
+
+#: extensions/system-monitor/extension.js:135
+msgid "CPU stats"
+msgstr "Статистика процесора"
+
+#: extensions/system-monitor/extension.js:159
+msgid "Memory stats"
+msgstr "Статистика меморије"
+
+#: extensions/system-monitor/extension.js:177
+msgid "Swap stats"
+msgstr "Статистика свап меморије"
+
+#: extensions/system-monitor/extension.js:336
+msgid "Upload stats"
+msgstr "Статистика слања датотека"
+
+#: extensions/system-monitor/extension.js:350
+msgid "Download stats"
+msgstr "Статистика преузимања датотека"
+
+#: extensions/system-monitor/extension.js:365
+msgid "System stats"
+msgstr "Статистика система"
+
+#: extensions/system-monitor/extension.js:413
+msgid "Show"
+msgstr "Прикажи"
+
+#: extensions/system-monitor/extension.js:415
+msgid "CPU"
+msgstr "Процесор"
+
+#: extensions/system-monitor/extension.js:417
+msgid "Memory"
+msgstr "Меморија"
+
+#: extensions/system-monitor/extension.js:419
+msgid "Swap"
+msgstr "Свап"
+
+#: extensions/system-monitor/extension.js:421
+msgid "Upload"
+msgstr "Слање"
+
+#: extensions/system-monitor/extension.js:423
+msgid "Download"
+msgstr "Преузимање"
+
+#: extensions/system-monitor/extension.js:428
+msgid "Open System Monitor"
+msgstr "Отвори монитор система"
+
+#: extensions/system-monitor/schemas/org.gnome.shell.extensions.system-monitor.gschema.xml:12
+msgid "Show CPU usage"
+msgstr "Прикажи коришћење процесора"
+
+#: extensions/system-monitor/schemas/org.gnome.shell.extensions.system-monitor.gschema.xml:16
+msgid "Show memory usage"
+msgstr "Прикажи коришћење меморије"
+
+#: extensions/system-monitor/schemas/org.gnome.shell.extensions.system-monitor.gschema.xml:20
+msgid "Show swap usage"
+msgstr "Прикажи коришћење свап меморије"
+
+#: extensions/system-monitor/schemas/org.gnome.shell.extensions.system-monitor.gschema.xml:24
+msgid "Show upload"
+msgstr "Прикажи слање"
+
+#: extensions/system-monitor/schemas/org.gnome.shell.extensions.system-monitor.gschema.xml:28
+msgid "Show download"
+msgstr "Прикажи преузимање"
+
+#: extensions/user-theme/org.gnome.shell.extensions.user-theme.gschema.xml:11
+msgid "Theme name"
+msgstr "Назив теме"
+
+#: extensions/user-theme/org.gnome.shell.extensions.user-theme.gschema.xml:12
+msgid "The name of the theme, to be loaded from ~/.themes/name/gnome-shell"
+msgstr "Назив теме који се учитава из датотеке „~/.themes/name/gnome-shell“"
+
+#: extensions/window-list/extension.js:98
+msgid "Close"
+msgstr "Затвори"
+
+#: extensions/window-list/extension.js:125
+msgid "Unminimize"
+msgstr "Поништи умањење"
+
+#: extensions/window-list/extension.js:125
+msgid "Minimize"
+msgstr "Умањи"
+
+#: extensions/window-list/extension.js:130
+msgid "Unmaximize"
+msgstr "Поништи увећање"
+
+#: extensions/window-list/extension.js:130
+msgid "Maximize"
+msgstr "Увећај"
+
+#: extensions/window-list/extension.js:719
+msgid "Minimize all"
+msgstr "Умањи све"
+
+#: extensions/window-list/extension.js:725
+msgid "Unminimize all"
+msgstr "Поништи умањење свега"
+
+#: extensions/window-list/extension.js:731
+msgid "Maximize all"
+msgstr "Увећај све"
+
+#: extensions/window-list/extension.js:739
+msgid "Unmaximize all"
+msgstr "Поништи увећање свега"
+
+#: extensions/window-list/extension.js:747
+msgid "Close all"
+msgstr "Затвори све"
+
+#: extensions/window-list/extension.js:999 extensions/window-list/prefs.js:23
+msgid "Window List"
+msgstr "Списак прозора"
+
+#: extensions/window-list/org.gnome.shell.extensions.window-list.gschema.xml:18
+msgid "When to group windows"
+msgstr "Када груписати прозоре"
+
+#: extensions/window-list/org.gnome.shell.extensions.window-list.gschema.xml:19
+msgid ""
+"Decides when to group windows from the same application on the window list. "
+"Possible values are “never”, “auto” and “always”."
+msgstr ""
+"Одређује када ће бити груписани прозори истог програма у списку прозора. "
+"Дозвољене вредности су „never“ (никад), „auto“ (аутоматски) и „always“ "
+"(увек)."
+
+#: extensions/window-list/org.gnome.shell.extensions.window-list.gschema.xml:26
+#: extensions/window-list/prefs.js:74
+msgid "Show windows from all workspaces"
+msgstr "Прикажи прозоре свих радних простора"
+
+#: extensions/window-list/org.gnome.shell.extensions.window-list.gschema.xml:27
+msgid "Whether to show windows from all workspaces or only the current one."
+msgstr "Да ли да прикаже прозоре са свих радних прозора или само са тренутног."
+
+#: extensions/window-list/org.gnome.shell.extensions.window-list.gschema.xml:33
+msgid "Show the window list on all monitors"
+msgstr "Приказује списак прозора на свим мониторима"
+
+#: extensions/window-list/org.gnome.shell.extensions.window-list.gschema.xml:34
+msgid ""
+"Whether to show the window list on all connected monitors or only on the "
+"primary one."
+msgstr ""
+"Да ли да прикаже списак прозора на свим прикљученим мониторима или само на "
+"главном."
+
+#: extensions/window-list/org.gnome.shell.extensions.window-list.gschema.xml:41
+msgid "Show workspace previews in window list"
+msgstr "Прикажи прегледе радних простора у списку прозора"
+
+#: extensions/window-list/prefs.js:41
+msgid "Window Grouping"
+msgstr "Груписање прозора"
+
+#: extensions/window-list/prefs.js:46
+msgid "Never group windows"
+msgstr "Никад не групиши прозоре"
+
+#: extensions/window-list/prefs.js:47
+msgid "Group windows when space is limited"
+msgstr "Групиши прозоре када је простор ограничен"
+
+#: extensions/window-list/prefs.js:48
+msgid "Always group windows"
+msgstr "Увек групиши прозоре"
+
+#: extensions/window-list/prefs.js:68
+msgid "Show on all monitors"
+msgstr "Прикажи на свим мониторима"
+
+#: extensions/workspace-indicator/schemas/org.gnome.shell.extensions.workspace-indicator.gschema.xml:12
+msgid "Show workspace previews in top bar"
+msgstr "Прикажи прегледе радних простора у горњој траци"
+
+#: extensions/workspace-indicator/workspaceIndicator.js:405
+#, javascript-format
+msgid "Press %s to edit"
+msgstr "Притисни %s за измену"
+
+#: extensions/workspace-indicator/workspaceIndicator.js:528
+msgid "Settings"
+msgstr "Поставке"
+
+#: extensions/workspace-indicator/workspaceIndicator.js:613
+msgid "Workspace Indicator"
+msgstr "Показатељ радних простора"
+
+#: extensions/workspace-indicator/workspacePrefs.js:20
+msgid "Indicator"
+msgstr "Показатељ"
+
+#: extensions/workspace-indicator/workspacePrefs.js:25
+msgid "Previews"
+msgstr "Прегледи"
+
+#: extensions/workspace-indicator/workspacePrefs.js:35
+msgid "Workspace Name"
+msgstr "Назив радног простора"
+
+#: extensions/workspace-indicator/workspacePrefs.js:59
+msgid "Behavior"
+msgstr "Понашање"
+
+#: extensions/workspace-indicator/workspacePrefs.js:64
+msgid "Dynamic"
+msgstr "Динамика"
+
+#: extensions/workspace-indicator/workspacePrefs.js:65
+msgid "Automatically removes empty workspaces."
+msgstr "Самостално уклања празне радне просторе."
+
+#: extensions/workspace-indicator/workspacePrefs.js:75
+msgid "Fixed Number"
+msgstr "Сталан број"
+
+#: extensions/workspace-indicator/workspacePrefs.js:76
+msgid "Specify a number of permanent workspaces."
+msgstr "Наведите број трајних радних простора"
+
+#: extensions/workspace-indicator/workspacePrefs.js:89
+msgid "Number of Workspaces"
+msgstr "Број радних простора"
+
+#: extensions/workspace-indicator/workspacePrefs.js:128
+msgid "Workspaces"
+msgstr "Радни простори"

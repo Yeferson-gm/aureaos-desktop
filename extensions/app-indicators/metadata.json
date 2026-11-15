@@ -1,0 +1,16 @@
+{
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50"
+  ],
+  "gettext-domain": "AppIndicatorExtension",
+  "settings-schema": "org.gnome.shell.extensions.appindicator",
+  "uuid": "aurea-app-indicators@local",
+  "name": "Aurea 27 · Indicadores de aplicaciones",
+  "description": "Indicadores de aplicaciones integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop"
+}

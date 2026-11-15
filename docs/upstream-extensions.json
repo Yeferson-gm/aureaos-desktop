@@ -1,0 +1,82 @@
+{
+  "battery-care": {
+    "repository": "https://github.com/maniacx/Battery-Health-Charging",
+    "revision": "4b9fb3eb4b700fb9d50823925e248b690012a4de",
+    "upstream_uuid": "Battery-Health-Charging@maniacx.github.com",
+    "uuid": "aurea-battery-care@local",
+    "upstream_version": 81,
+    "label": "Cuidado de batería"
+  },
+  "caffeine": {
+    "repository": "https://github.com/eonpatapon/gnome-shell-extension-caffeine",
+    "revision": "3c558cd33c38e9e3a5e051fdcf7b9ac9b867f675",
+    "upstream_uuid": "caffeine@patapon.info",
+    "uuid": "aurea-caffeine@local",
+    "upstream_version": 61,
+    "label": "Cafeína"
+  },
+  "magic-lamp": {
+    "repository": "https://github.com/hermes83/compiz-alike-magic-lamp-effect",
+    "revision": "69f0a5a17b554c9ce0119dace7044b9d6917c399",
+    "upstream_uuid": "compiz-alike-magic-lamp-effect@hermes83.github.com",
+    "uuid": "aurea-magic-lamp@local",
+    "upstream_version": 25,
+    "label": "Efecto lámpara"
+  },
+  "window-motion": {
+    "repository": "https://github.com/hermes83/compiz-windows-effect",
+    "revision": "891f3721a9f8935e6f8b2b01948e0394af2dce48",
+    "upstream_uuid": "compiz-windows-effect@hermes83.github.com",
+    "uuid": "aurea-window-motion@local",
+    "upstream_version": 33,
+    "label": "Movimiento de ventanas"
+  },
+  "window-switcher": {
+    "repository": "https://github.com/dsheeler/CoverflowAltTab",
+    "revision": "f84929758fdcc2d3cfd0ef5550dfcc3e3b57964c",
+    "upstream_uuid": "CoverflowAltTab@palatis.blogspot.com",
+    "uuid": "aurea-window-switcher@local",
+    "upstream_version": null,
+    "label": "Selector de ventanas"
+  },
+  "desktop-cube": {
+    "repository": "https://github.com/Schneegans/Desktop-Cube",
+    "revision": "a6b6ee42103e147c5da002392fed4de73e73358e",
+    "upstream_uuid": "desktop-cube@schneegans.github.com",
+    "uuid": "aurea-desktop-cube@local",
+    "upstream_version": 35,
+    "label": "Cubo de escritorios"
+  },
+  "privacy": {
+    "repository": "https://github.com/stuarthayhurst/privacy-menu-extension",
+    "revision": "f33a3e869f4a47ddc0177a604811072a5da5b53f",
+    "upstream_uuid": "PrivacyMenu@stuarthayhurst",
+    "uuid": "aurea-privacy@local",
+    "upstream_version": 30,
+    "label": "Privacidad"
+  },
+  "app-indicators": {
+    "repository": "https://github.com/ubuntu/gnome-shell-extension-appindicator",
+    "revision": "c934adc6c97363b8e6bb161ca8d1ac62d1da3d63",
+    "upstream_uuid": "appindicatorsupport@rgcjonas.gmail.com",
+    "uuid": "aurea-app-indicators@local",
+    "upstream_version": null,
+    "label": "Indicadores de aplicaciones"
+  },
+  "app-uninstall": {
+    "repository": "https://github.com/i-soumya18/gnome-shell-appgrid-uninstall",
+    "revision": "d21128bab03113770d588e4318b36be483e553a2",
+    "upstream_uuid": "appgrid-uninstall@i-soumya18.github.io",
+    "uuid": "aurea-app-uninstall@local",
+    "upstream_version": 7,
+    "label": "Desinstalar aplicaciones"
+  },
+  "shell-theme": {
+    "repository": "https://gitlab.gnome.org/GNOME/gnome-shell-extensions",
+    "revision": "03ba4ad6f6d6403d3e98e9e7a0e48b6258bc3835",
+    "upstream_uuid": "user-theme@gnome-shell-extensions.gcampax.github.com",
+    "uuid": "aurea-shell-theme@local",
+    "upstream_version": null,
+    "label": "Tema del sistema"
+  }
+}

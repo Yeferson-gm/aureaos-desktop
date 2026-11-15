@@ -1,0 +1,12 @@
+{
+  "description": "Movimiento de ventanas integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "name": "Aurea 27 · Movimiento de ventanas",
+  "shell-version": [
+    "49",
+    "50",
+    "51"
+  ],
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop",
+  "uuid": "aurea-window-motion@local",
+  "settings-schema": "org.gnome.shell.extensions.com.github.hermes83.compiz-windows-effect"
+}

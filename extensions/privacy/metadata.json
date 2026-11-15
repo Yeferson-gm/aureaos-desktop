@@ -1,0 +1,22 @@
+{
+  "name": "Aurea 27 · Privacidad",
+  "description": "Privacidad integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "uuid": "aurea-privacy@local",
+  "gettext-domain": "PrivacyMenu@stuarthayhurst",
+  "settings-schema": "org.gnome.shell.extensions.privacy-menu",
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop",
+  "donations": {
+    "github": "stuarthayhurst",
+    "kofi": "stuarthayhurst",
+    "paypal": "stuartahayhurst"
+  },
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51"
+  ]
+}

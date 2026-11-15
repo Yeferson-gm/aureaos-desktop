@@ -1,0 +1,14 @@
+{
+  "name": "Aurea 27 · Tema del sistema",
+  "description": "Tema del sistema integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",
+  "original-authors": [
+    "john.stowers@gmail.com"
+  ],
+  "uuid": "aurea-shell-theme@local",
+  "gettext-domain": "gnome-shell-extensions",
+  "settings-schema": "org.gnome.shell.extensions.user-theme",
+  "shell-version": [
+    "50"
+  ],
+  "url": "https://github.com/Yeferson-gm/aureaos-desktop"
+}
