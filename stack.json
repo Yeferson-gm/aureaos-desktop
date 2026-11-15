@@ -9,11 +9,31 @@
     "live-wallpaper": "Fondo animado",
     "desktop-icons": "Iconos del escritorio",
     "app-center": "Centro de aplicaciones",
-    "lock-screen": "Pantalla de bloqueo"
+    "lock-screen": "Pantalla de bloqueo",
+    "battery-care": "Cuidado de batería",
+    "caffeine": "Cafeína",
+    "magic-lamp": "Efecto lámpara",
+    "window-motion": "Movimiento de ventanas",
+    "window-switcher": "Selector de ventanas",
+    "desktop-cube": "Cubo de escritorios",
+    "privacy": "Privacidad",
+    "app-indicators": "Indicadores de aplicaciones",
+    "app-uninstall": "Desinstalar aplicaciones",
+    "shell-theme": "Tema del sistema"
   },
   "migrations": {
     "gnome-wallpaper-engine@gjs.com": "aurea-wallpaper@local",
     "gtk4-ding@smedius.gitlab.com": "aurea-desktop-icons@local",
-    "vertical-app-grid@lublst.github.io": "aurea-app-center@local"
+    "vertical-app-grid@lublst.github.io": "aurea-app-center@local",
+    "Battery-Health-Charging@maniacx.github.com": "aurea-battery-care@local",
+    "caffeine@patapon.info": "aurea-caffeine@local",
+    "compiz-alike-magic-lamp-effect@hermes83.github.com": "aurea-magic-lamp@local",
+    "compiz-windows-effect@hermes83.github.com": "aurea-window-motion@local",
+    "CoverflowAltTab@palatis.blogspot.com": "aurea-window-switcher@local",
+    "desktop-cube@schneegans.github.com": "aurea-desktop-cube@local",
+    "PrivacyMenu@stuarthayhurst": "aurea-privacy@local",
+    "appindicatorsupport@rgcjonas.gmail.com": "aurea-app-indicators@local",
+    "appgrid-uninstall@i-soumya18.github.io": "aurea-app-uninstall@local",
+    "user-theme@gnome-shell-extensions.gcampax.github.com": "aurea-shell-theme@local"
   }
 }

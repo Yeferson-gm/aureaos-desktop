@@ -23,6 +23,16 @@ a los recursos canónicos dentro de `theme/icons/Aurea27`.
 | live-wallpaper | Aurea 27 · Fondo animado | aurea-wallpaper@local |
 | desktop-icons | Aurea 27 · Iconos del escritorio | aurea-desktop-icons@local |
 | app-center | Aurea 27 · Centro de aplicaciones | aurea-app-center@local |
+| battery-care | Aurea 27 · Cuidado de batería | aurea-battery-care@local |
+| caffeine | Aurea 27 · Cafeína | aurea-caffeine@local |
+| magic-lamp | Aurea 27 · Efecto lámpara | aurea-magic-lamp@local |
+| window-motion | Aurea 27 · Movimiento de ventanas | aurea-window-motion@local |
+| window-switcher | Aurea 27 · Selector de ventanas | aurea-window-switcher@local |
+| desktop-cube | Aurea 27 · Cubo de escritorios | aurea-desktop-cube@local |
+| privacy | Aurea 27 · Privacidad | aurea-privacy@local |
+| app-indicators | Aurea 27 · Indicadores de aplicaciones | aurea-app-indicators@local |
+| app-uninstall | Aurea 27 · Desinstalar aplicaciones | aurea-app-uninstall@local |
+| shell-theme | Aurea 27 · Tema del sistema | aurea-shell-theme@local |
 
 UUID, nombres D-Bus, gettext, esquemas GSettings, selectores CSS y rutas de datos
 son contratos internos. Renombrarlos indiscriminadamente rompería integración,
@@ -30,9 +40,10 @@ traducciones, preferencias y detección de ventanas. No se confunden con la marc
 visible ni con el número de versión. Las versiones de formato de datos tampoco
 se reinician: eso alteraría la lectura de datos existentes.
 
-Las extensiones de batería, cafeína, privacidad y efectos de terceros no
-modificadas son dependencias externas, no se presentan como código propio.
-Los tres forks que tenían UUID de la tienda reciben identificadores propios.
+Batería, cafeína, privacidad, efectos, indicadores, desinstalación y tema Shell
+se incorporan desde revisiones upstream fijadas, con licencias y autores originales.
+Son integraciones y adaptaciones Aurea, no autoría nueva del código base.
+Todos los forks importados reciben UUID propios; Emoji Copy sigue independiente.
 `stack.json` declara la migración de la lista de extensiones habilitadas y
 deshabilitadas. Se mantienen esquemas y rutas de datos, conservando preferencias.
 Así la tienda no sustituye Aurea por versiones del proveedor.

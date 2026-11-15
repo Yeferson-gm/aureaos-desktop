@@ -38,3 +38,7 @@ Las copias antiguas del tema instalado pueden conservarse durante la transición
 de sesión: aplicaciones ya abiertas podrían usar sus rutas. La fuente oficial
 de desarrollo está únicamente en `theme/`; cualquier retirada de rutas instaladas
 debe comprobar primero consumidores, enlaces y configuración.
+
+La ampliación a 19 módulos usa la misma política para las diez incorporaciones.
+Consultar [pack y recuperación por módulo](extension-pack.md). Emoji Copy y
+Aurea Login de GDM permanecen fuera de esa migración; no son duplicados.

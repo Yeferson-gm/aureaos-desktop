@@ -302,7 +302,7 @@ class PowerProfiles extends Model {
 }
 
 const BATTERY_HEALTH_SCHEMA = 'org.gnome.shell.extensions.Battery-Health-Charging';
-const BATTERY_HEALTH_UUID = 'Battery-Health-Charging@maniacx.github.com';
+const BATTERY_HEALTH_UUID = ['aurea-battery-care@local', 'Battery-Health-Charging@maniacx.github.com'];
 
 class BatteryCare extends Model {
     constructor() {

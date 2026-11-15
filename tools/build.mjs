@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {gitVersion} from './version.mjs';
+import {compileResources} from './extension-resources.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const version = gitVersion(root);
@@ -26,6 +27,7 @@ for (const name of Object.keys(stack.extensions)) {
     metadata.version = version.integer;
     metadata['version-name'] = version.name;
     fs.writeFileSync(path.join(output, 'metadata.json'), JSON.stringify(metadata, null, 2) + '\n');
+    compileResources(output);
     if (fs.existsSync(path.join(output, 'schemas')))
         execFileSync('glib-compile-schemas', ['--strict', path.join(output, 'schemas')]);
     sources[name] = metadata.uuid;

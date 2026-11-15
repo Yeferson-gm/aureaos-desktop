@@ -30,3 +30,24 @@ Se conserva el control manual de color y la geometría del notch. No cerrar sesi
 - Pruebas en Shell privado a 1280×800 y 1024×600, acciones simuladas sin PAM.
 - Instalar sin cerrar sesión ni reiniciar GDM; validación visual real pendiente del
   siguiente acceso voluntario del usuario.
+
+## Pack completo de extensiones
+
+- Importar diez módulos de sus repositorios, fijando revisiones compatibles con
+  GNOME 50: batería, cafeína, lámpara, ventanas, selector, cubo, privacidad,
+  indicadores, tema Shell y desinstalación desde la cuadrícula.
+- Marca Aurea y UUID propios; conservar esquemas, gettext, protocolos y licencias.
+  Emoji Copy permanece independiente; Aurea Login permanece exclusivo de GDM.
+- Migración de estados/preferencias y referencias del Centro de Control;
+  corregir hojas CSS temporales que rompen User Themes al recargar el tema.
+- Probar carga, descarga, recursos, preferencias y migraciones en GNOME aislado.
+- Instalar pack completo; retirar los RPM redundantes solo tras comprobar sus
+  sustitutos; documentar activación, recuperación y procedencia.
+
+### Resultado de integración
+
+Fuentes y licencias incorporados; UUID y esquemas comprobados. Pruebas generales,
+preferencias, migración viva y carga/descarga del pack superadas en GNOME 50
+privado. Batería simulada en pruebas para no escribir hardware. La entrega se
+construye como versión Git y requiere un nuevo inicio de sesión para descubrir
+los nuevos UUID. Emoji Copy y acceso GDM se conservan.

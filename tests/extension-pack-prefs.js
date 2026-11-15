@@ -1,0 +1,30 @@
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import Adw from 'gi://Adw';
+const directory = GLib.getenv('DI_TEST_DIR');
+if (!directory?.startsWith('/tmp/aurea-pack-')) throw new Error('Solo sesión aislada');
+Gio.Resource.load('/usr/share/gnome-shell/org.gnome.Shell.Extensions.src.gresource')._register();
+const {ExtensionPreferences} = await import('resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js');
+const [uuid] = ARGV;
+const extensionPath = `${directory}/data/gnome-shell/extensions/${uuid}`;
+const [, bytes] = GLib.file_get_contents(`${extensionPath}/metadata.json`);
+const metadata = {...JSON.parse(new TextDecoder().decode(bytes)), path: extensionPath, dir: Gio.File.new_for_path(extensionPath), version: 1};
+Adw.init();
+imports.package.initFormat();
+const {default: Preferences} = await import(`file://${extensionPath}/prefs.js`);
+const prefs = new Preferences(metadata);
+ExtensionPreferences.lookupByUUID = id => id === uuid ? prefs : null;
+const window = new Adw.PreferencesWindow();
+if (uuid === 'aurea-app-indicators@local') prefs.getSettings().set_double('icon-brightness', 0.4);
+await prefs.fillPreferencesWindow(window);
+window.present();
+const loop = new GLib.MainLoop(null, false);
+GLib.timeout_add(GLib.PRIORITY_DEFAULT, 400, () => {
+    if (uuid === 'aurea-app-indicators@local' && prefs.getSettings().get_double('icon-brightness') !== 0.4)
+        throw new Error('Las preferencias alteraron el brillo al abrirse');
+    window.close();
+    print(`PASS: preferencias ${uuid}`);
+    loop.quit();
+    return GLib.SOURCE_REMOVE;
+});
+loop.run();

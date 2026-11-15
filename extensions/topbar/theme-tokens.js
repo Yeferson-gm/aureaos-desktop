@@ -31,10 +31,19 @@ export class ThemeTokens {
 .lintel-menu .lintel-cc-holder, .lintel-menu .lintel-cc-holder:hover,
 .lintel-menu .lintel-cc-holder:focus, .lintel-menu .lintel-item-info:hover { background-color: transparent; }
 `;
-        this.theme?.unload_stylesheet(this.file);
+        this._unload();
         GLib.file_set_contents(this.file.get_path(), css);
         this.theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
         this.theme.load_stylesheet(this.file);
     }
-    destroy() { this.theme?.unload_stylesheet(this.file); this.file.delete(null); }
+    _unload() {
+        const current = St.ThemeContext.get_for_stage(global.stage).get_theme();
+        for (const theme of new Set([this.theme, current]))
+            theme?.unload_stylesheet(this.file);
+    }
+    destroy() {
+        this._unload();
+        this.theme = null;
+        if (this.file.query_exists(null)) this.file.delete(null);
+    }
 }

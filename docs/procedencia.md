@@ -41,3 +41,21 @@ en la misma revisión de [WhiteSur-wallpapers](https://github.com/vinceliuice/Wh
 La licencia original acompaña a ambos recursos. Fuente y decisiones de tipografía:
 [bloqueo y widgets](bloqueo-widgets-investigacion.md). No se distribuyen fuentes,
 SF Symbols, capturas de Apple ni fotografías personales como recursos nuevos.
+
+## Ampliación del pack
+
+Diez módulos adicionales se importan desde repositorios upstream, con revisión
+exacta en [el manifiesto](upstream-extensions.json) y `UPSTREAM.md` por módulo.
+Las licencias originales acompañan a los fuentes; no se sustituyen por una licencia
+global de Aurea. Las traducciones y recursos se compilan al construir.
+
+- [Cuidado de batería](https://github.com/maniacx/Battery-Health-Charging): `extensions/battery-care/`.
+- [Cafeína](https://github.com/eonpatapon/gnome-shell-extension-caffeine): `extensions/caffeine/`.
+- [Efecto lámpara](https://github.com/hermes83/compiz-alike-magic-lamp-effect): `extensions/magic-lamp/`.
+- [Movimiento de ventanas](https://github.com/hermes83/compiz-windows-effect): `extensions/window-motion/`.
+- [Selector de ventanas](https://github.com/dsheeler/CoverflowAltTab): `extensions/window-switcher/`.
+- [Cubo de escritorios](https://github.com/Schneegans/Desktop-Cube): `extensions/desktop-cube/`.
+- [Privacidad](https://github.com/stuarthayhurst/privacy-menu-extension): `extensions/privacy/`.
+- [Indicadores de aplicaciones](https://github.com/ubuntu/gnome-shell-extension-appindicator): `extensions/app-indicators/`.
+- [Desinstalar aplicaciones](https://github.com/i-soumya18/gnome-shell-appgrid-uninstall): `extensions/app-uninstall/`.
+- [Tema del sistema](https://gitlab.gnome.org/GNOME/gnome-shell-extensions): `extensions/shell-theme/`.

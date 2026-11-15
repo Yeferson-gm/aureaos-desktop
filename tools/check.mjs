@@ -41,6 +41,7 @@ const tests = [
     'tests/version.test.mjs',
     'tests/files.test.mjs',
     'tests/install.test.mjs',
+    'tests/theme-tokens.test.mjs',
     'extensions/dynamic-island/tests/activities.mjs',
     'extensions/dynamic-island/tests/content-models.mjs',
     'extensions/dynamic-island/tests/studio-lifecycle.mjs',

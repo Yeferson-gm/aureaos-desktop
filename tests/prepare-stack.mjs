@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
+import {compileResources} from '../tools/extension-resources.mjs';
 const root = process.env.AUREA_PROJECT;
 const data = process.env.XDG_DATA_HOME;
 if (!root || !process.env.DI_TEST_DIR || !data.startsWith(process.env.DI_TEST_DIR + '/')) throw new Error('Solo sesión aislada');
@@ -15,8 +16,10 @@ for (const name of Object.keys(manifest.extensions)) {
     const input = path.join(root, 'extensions', name, name === 'widgets' ? 'source' : '');
     const metadata = JSON.parse(fs.readFileSync(path.join(input, 'metadata.json')));
     const target = path.join(data, 'gnome-shell/extensions', metadata.uuid);
-    fs.cpSync(input, target, {recursive: true, verbatimSymlinks: true});
+    fs.cpSync(input, target, {recursive: true, dereference: true});
     fs.writeFileSync(path.join(target, 'metadata.json'), JSON.stringify({...metadata, version: count, 'version-name': `test-${revision}`}));
+    compileResources(target);
+    if (name === 'battery-care') fs.appendFileSync(path.join(target, 'lib/driver.js'), '\nIntializeDriver.prototype._checkCompatibility = function () {};\n');
     if (fs.existsSync(path.join(target, 'schemas'))) execFileSync('glib-compile-schemas', ['--strict', path.join(target, 'schemas')]);
 }
 fs.cpSync(path.join(root, 'extensions/dynamic-island/tests/driver'), path.join(data, 'gnome-shell/extensions/island-test-driver@local'), {recursive: true});

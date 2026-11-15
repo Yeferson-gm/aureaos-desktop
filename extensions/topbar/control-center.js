@@ -20,7 +20,7 @@ export class ControlCenter {
             appearance: settingsFor('org.gnome.desktop.interface'), night: settingsFor('org.gnome.settings-daemon.plugins.color'),
             focus: settingsFor('org.gnome.desktop.notifications'), privacy: settingsFor('org.gnome.desktop.privacy'),
             location: settingsFor('org.gnome.system.location'),
-            caffeine: settingsForExtension('org.gnome.shell.extensions.caffeine', 'caffeine@patapon.info'),
+            caffeine: settingsForExtension('org.gnome.shell.extensions.caffeine', ['aurea-caffeine@local', 'caffeine@patapon.info']),
         };
         for (const setting of Object.values(this.settings).filter(Boolean)) this.signals.push([setting, setting.connect('changed', () => this.sync())]);
         for (const model of [ctx.wifi, ctx.bluetooth, ctx.sound, ctx.brightness, ctx.powerProfiles, ctx.batteryCare, ctx.airplaneMode, ctx.privacy])

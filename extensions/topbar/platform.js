@@ -25,12 +25,14 @@ export function settingsFor(id) {
 }
 
 export function settingsForExtension(id, uuid) {
-    for (const root of [GLib.get_user_data_dir(), ...GLib.get_system_data_dirs()]) {
-        const schemaDir = GLib.build_filenamev([root, 'gnome-shell', 'extensions', uuid, 'schemas']);
-        if (!GLib.file_test(schemaDir, GLib.FileTest.IS_DIR)) continue;
-        const source = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
-        const schema = source.lookup(id, false);
-        if (schema) return new Gio.Settings({settings_schema: schema});
+    for (const candidate of (Array.isArray(uuid) ? uuid : [uuid])) {
+        for (const root of [GLib.get_user_data_dir(), ...GLib.get_system_data_dirs()]) {
+          const schemaDir = GLib.build_filenamev([root, 'gnome-shell', 'extensions', candidate, 'schemas']);
+          if (!GLib.file_test(schemaDir, GLib.FileTest.IS_DIR)) continue;
+          const source = Gio.SettingsSchemaSource.new_from_directory(schemaDir, Gio.SettingsSchemaSource.get_default(), false);
+          const schema = source.lookup(id, false);
+          if (schema) return new Gio.Settings({settings_schema: schema});
+        }
     }
     return null;
 }

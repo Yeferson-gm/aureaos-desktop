@@ -78,7 +78,7 @@ for (const [source, target] of targets) {
     files += verifyTree(source, target, ignored);
 }
 if (action === 'apply' && !testRoot && !component) {
-    execFileSync('gjs', [path.join(root, 'tools/migrate-identities.js'), JSON.stringify(migrations)]);
+    execFileSync('gjs', [path.join(root, 'tools/migrate-identities.js'), JSON.stringify(migrations), '--live']);
     for (const oldId of Object.keys(migrations)) {
         for (const group of ['extensions', 'extension-updates']) {
             const old = path.join(data, 'gnome-shell', group, oldId);
@@ -94,7 +94,7 @@ if (action === 'apply' && !testRoot && !component) {
         if (current.includes('WhiteSur')) execFileSync('gsettings', ['set', schema, key, current.replaceAll('WhiteSur', 'Aurea27')]);
     }
     const dataDirs = [data, ...(process.env.XDG_DATA_DIRS ?? '/usr/local/share:/usr/share').split(path.delimiter)];
-    const schemaDir = dataDirs.map(dir => path.join(dir, 'gnome-shell/extensions/user-theme@gnome-shell-extensions.gcampax.github.com/schemas'))
+    const schemaDir = ['aurea-shell-theme@local', 'user-theme@gnome-shell-extensions.gcampax.github.com'].flatMap(uuid => dataDirs.map(dir => path.join(dir, 'gnome-shell/extensions', uuid, 'schemas')))
         .find(dir => fs.existsSync(path.join(dir, 'gschemas.compiled')));
     if (schemaDir) {
         const args = ['--schemadir', schemaDir];

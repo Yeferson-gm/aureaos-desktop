@@ -23,7 +23,17 @@ aurea-27/
 │   ├── lock-screen/
 │   ├── live-wallpaper/
 │   ├── desktop-icons/
-│   └── app-center/
+│   ├── app-center/
+│   ├── battery-care/
+│   ├── caffeine/
+│   ├── magic-lamp/
+│   ├── window-motion/
+│   ├── window-switcher/
+│   ├── desktop-cube/
+│   ├── privacy/
+│   ├── app-indicators/
+│   ├── app-uninstall/
+│   └── shell-theme/
 ├── shared/                  Utilidades gráficas empaquetadas por componente
 ├── integrations/
 │   ├── login-screen/        Acceso GDM, instalador administrativo y pruebas
@@ -56,22 +66,23 @@ que declara cada extensión por separado no garantizan compatibilidad de todo el
 stack con otra versión de GNOME. No desactivar la validación de compatibilidad.
 
 Herramientas necesarias: Node.js, Git, GJS, GLib (`gsettings`, `gio`,
-`glib-compile-schemas`), `gtk-update-icon-cache` y `gnome-extensions`.
+`glib-compile-schemas`, `glib-compile-resources`), gettext (`msgfmt`), `gtk-update-icon-cache` y `gnome-extensions`.
 GDM requiere además Python 3, `gresource`, `glib-compile-resources`, `dconf`,
 `restorecon`, `runuser` y `pkexec` (o `sudo`).
 El vídeo necesita `mpv`, `ffmpeg` y sus codecs. Las pruebas usan también Python 3,
 `rg` y `dbus-run-session`. Comprobar disponibilidad sin instalar ni cambiar nada:
 
 ```bash
-for cmd in node git gjs gsettings gio glib-compile-schemas gtk-update-icon-cache gnome-extensions mpv ffmpeg python3 rg dbus-run-session gresource glib-compile-resources dconf restorecon runuser pkexec; do
+for cmd in node git gjs gsettings gio glib-compile-schemas msgfmt gtk-update-icon-cache gnome-extensions mpv ffmpeg python3 rg dbus-run-session gresource glib-compile-resources dconf restorecon runuser pkexec; do
     command -v "$cmd" || printf 'Falta: %s\n' "$cmd"
 done
 ```
 
 KDE Connect es opcional para dispositivos y Buscar; MPRIS requiere un reproductor
 compatible abierto. Batería/carga depende de UPower y del hardware. El control de
-cuidado de batería, Cafeína y privacidad aprovecha sus extensiones externas si
-están instaladas. No desinstalarlas para activar Aurea. La conexión de red es
+cuidado de batería, Cafeína y privacidad usa los módulos incluidos en Aurea.
+El auxiliar privilegiado de batería conserva su contrato y permisos originales;
+la migración no cambia los límites de carga. Emoji Copy permanece independiente. La conexión de red es
 necesaria para clima, noticias y podcasts. Los controles ausentes no se resuelven
 activando servicios al azar: revisar primero su dependencia concreta.
 
@@ -115,7 +126,7 @@ Para instalar todo el escritorio:
 Para actualizar únicamente bloqueo y GDM, usar la receta de abajo.
 
 El primer comando solo muestra destinos. `--apply` reemplaza archivos y migra los
-tres UUID antiguos de tienda, conservando su estado activado/desactivado y sus
+UUID antiguos declarados en `stack.json`, conservando su estado activado/desactivado y sus
 preferencias. `--check` compara archivos instalados; no prueba su comportamiento
 ni que GNOME ya haya cargado la versión nueva. No combinar las dos opciones.
 
@@ -144,6 +155,16 @@ Estos son los identificadores que se usan con `gnome-extensions`:
 | Fondo animado | `aurea-wallpaper@local` |
 | Iconos de escritorio | `aurea-desktop-icons@local` |
 | Centro de aplicaciones | `aurea-app-center@local` |
+| Cuidado de batería | `aurea-battery-care@local` |
+| Cafeína | `aurea-caffeine@local` |
+| Efecto lámpara | `aurea-magic-lamp@local` |
+| Movimiento de ventanas | `aurea-window-motion@local` |
+| Selector de ventanas | `aurea-window-switcher@local` |
+| Cubo de escritorios | `aurea-desktop-cube@local` |
+| Privacidad | `aurea-privacy@local` |
+| Indicadores de aplicaciones | `aurea-app-indicators@local` |
+| Desinstalar aplicaciones | `aurea-app-uninstall@local` |
+| Tema del sistema | `aurea-shell-theme@local` |
 
 Para un componente concreto, por ejemplo los widgets:
 
@@ -311,7 +332,8 @@ for uuid in dash-to-dock@micxgx.gmail.com dash-to-panel@jderose9.github.com ding
 done
 ```
 
-La migración del instalador ya retira los tres forks antiguos. El bloque sirve
+La migración del instalador desactiva los UUID originales y retira sus copias
+de usuario; los paquetes RPM del sistema se retiran por separado. El bloque sirve
 para instalaciones previas o alternativas adicionales; no borra sus archivos.
 No desactivar indiscriminadamente todas las extensiones del sistema.
 
@@ -328,6 +350,38 @@ gnome-extensions list --enabled
 El ajuste global permite también otras extensiones previamente habilitadas;
 no cambia cuáles estaban seleccionadas. Si aparece «no existe», no repetir
 reinstalaciones a ciegas: comprobar el UUID y cerrar/abrir sesión tras instalar.
+
+### Módulos integrados y extensiones del sistema
+
+El pack incluye 19 componentes de usuario. La migración conserva qué módulos
+estaban habilitados; en una instalación nueva puedes activar los adicionales
+individualmente con los UUID de la tabla. Los efectos son opcionales, no requisitos
+del tema. Emoji Copy no se importa, desinstala ni configura.
+
+Los fuentes originales, revisiones y licencias están registrados en
+[procedencia del pack](docs/extension-pack.md) y `docs/upstream-extensions.json`.
+Aurea Login aparece desactivada en la sesión del usuario porque funciona **solo
+en GDM**. No borrarla ni activarla como extensión de usuario.
+
+Después de instalar y verificar los sustitutos Aurea, los tres RPM redundantes
+pueden retirarse sin eliminación automática de dependencias. Primero previsualizar:
+
+```bash
+dnf remove --assumeno --no-autoremove gnome-shell-extension-dash-to-dock gnome-shell-extension-appindicator gnome-shell-extension-user-theme
+```
+
+La transacción debe retirar únicamente esos tres paquetes. Si muestra otros,
+detenerse y revisar. Para aplicar esa misma retirada:
+
+```bash
+sudo dnf remove --no-autoremove gnome-shell-extension-dash-to-dock gnome-shell-extension-appindicator gnome-shell-extension-user-theme
+```
+
+Conservar `gnome-shell-extension-common`, GNOME Shell, GDM y Aurea Login.
+No borrar carpetas de `/usr/share/gnome-shell/extensions` manualmente. Para volver
+a las extensiones de Fedora, desactivar primero sus equivalentes Aurea y usar
+`sudo dnf install` con los tres nombres anteriores. No se restauran los UUID
+originales automáticamente: la guía de migración explica cómo elegirlos.
 
 ## Seleccionar tema e iconos
 
@@ -347,14 +401,15 @@ si se desea: `gsettings set org.gnome.desktop.interface color-scheme 'prefer-dar
 Para volver al esquema predeterminado: `gsettings set org.gnome.desktop.interface
 color-scheme 'default'`. Esto no restaura automáticamente un estilo GTK4 anterior.
 
-El tema de Shell requiere la extensión externa User Themes. Si ya está instalada:
+El tema Shell lo gestiona **Aurea 27 · Tema del sistema**, incluido en el pack:
 
 ```bash
-gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
+gnome-extensions enable aurea-shell-theme@local
+gnome-extensions prefs aurea-shell-theme@local
 ```
 
-Elegir Aurea27-Light o Aurea27-Dark en sus preferencias. No forzar una ruta de
-esquema: cambia entre instalaciones del usuario y del sistema.
+Elegir Aurea27-Light o Aurea27-Dark en sus preferencias. Conserva la selección
+y el esquema de User Themes. No activar ambos gestores a la vez.
 
 El preset del dock es opcional y sobrescribe sus preferencias actuales:
 

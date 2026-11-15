@@ -38,3 +38,18 @@ El repositorio no guarda datos personales, recursos sintéticos temporales ni
 registros de la sesión del usuario. El paquete generado y sus hashes están en
 `dist/`, fuera del historial. La sesión gráfica requiere salir y entrar después
 de instalar para cargar todos los módulos e identificadores nuevos.
+
+## Pack integrado de 19 componentes
+
+- Comprobación general: 384 archivos de código, 25 278 enlaces y 28 archivos de
+  pruebas, además de esquemas, CSS y pruebas de GDM/GRUB.
+- GNOME 50 aislado: diez módulos importados junto a la barra, dos ciclos completos
+  de activación/desactivación y recarga del tema sin hojas temporales huérfanas.
+- Diez ventanas de preferencias construidas y mostradas sin avisos críticos.
+  Se verificó que abrir Indicadores no cambia su valor decimal de brillo.
+- Migración con D-Bus privado repetida dos veces: cambia un UUID de prueba,
+  conserva los demás módulos y termina la desactivación antes de retirar archivos.
+- Carga y descarga conjunta de los 19 componentes. El controlador de límites de
+  batería está simulado exclusivamente en estas pruebas; no se escribe hardware.
+- La nueva sesión real debe confirmar periféricos, límites de carga, vídeo y
+  animaciones con las aplicaciones del usuario. No se fuerza cierre de sesión.

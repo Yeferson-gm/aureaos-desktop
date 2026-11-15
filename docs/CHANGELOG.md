@@ -1,5 +1,17 @@
 # Cambios
 
+## 0.6.0
+
+- Pack de 19 componentes: incorpora diez extensiones desde revisiones upstream
+  compatibles con GNOME 50, con nombres y UUID Aurea, licencias y procedencia.
+- Migración de activación y preferencias; Emoji Copy permanece independiente y
+  Aurea Login se conserva para GDM. Retirada de RPM redundantes documentada.
+- Corrige hojas CSS temporales de la barra que podían romper la recarga del tema.
+- Corrige controles decimales de Indicadores, grupo duplicado en preferencias del
+  Selector y desactivación de Cuidado de batería sin indicador inicializado.
+- Compila traducciones y recursos; prueba ventanas de ajustes, recarga de temas,
+  ciclos de activación y carga/descarga del stack en GNOME aislado.
+
 ## 0.5.0
 
 - Integra el tema completo de arranque como Aurea 27 · Arranque, con instalador
