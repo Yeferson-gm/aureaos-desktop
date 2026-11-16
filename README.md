@@ -566,6 +566,7 @@ recuperación están en [la guía de arranque](integrations/boot-menu/README.md)
 ## Documentación
 
 - [Arquitectura e identificadores](docs/arquitectura.md)
+- [Evaluación y propuesta de la isla de favoritas](docs/isla-aplicaciones-evaluacion.md)
 - [Procedencia y licencias](docs/procedencia.md)
 - [Migración y recuperación](docs/migracion.md)
 - [Verificación y límites](docs/verificacion.md)
