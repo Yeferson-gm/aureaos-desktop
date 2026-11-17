@@ -48,3 +48,6 @@ El arrastre utiliza el mecanismo nativo de GNOME, sin ampliar los vecinos. No se
 inventan insignias de notificaciones ni se garantiza restauración de pestañas o
 proyectos de aplicaciones externas. Las pruebas de interacción y el alcance de
 compatibilidad están en [GNOME 51](gnome51.md).
+
+Las previsualizaciones de carpetas y grupos fijados, las estadísticas detalladas y
+su uso con la isla superior se describen en [Espacios contextuales](experiencia-contextual.md).

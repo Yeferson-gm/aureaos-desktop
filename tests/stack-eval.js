@@ -22,6 +22,20 @@ export async function run() {
         }
         Main.overview.hide();
         await wait(1500);
+        const island = Main.extensionManager.lookup('dynamic-island-gnome50@local').stateObj;
+        const widgets = Main.extensionManager.lookup('lintel-widgets@local').stateObj._esc;
+        const frame = widgets.marcos.find(item => ['reloj', 'calendario', 'baterias', 'clima'].includes(item.META.id));
+        if (!frame) throw new Error('Falta un widget con detalles');
+        widgets.menuWidget(frame, 100, 100);
+        await wait(150);
+        const action = widgets._menu.get_children().find(item => item.label === 'Ver detalles en la isla');
+        if (!action) throw new Error('Falta integración de widget e isla');
+        action.emit('clicked', 1);
+        await wait(250);
+        const target = {reloj: 'clock', calendario: 'today', baterias: 'system', clima: 'weather'}[frame.META.id];
+        if (!island._menu.isOpen || island._tab !== target) throw new Error('Widget no abre su módulo');
+        island._closeIsland();
+        await wait(200);
         const output = Gio.File.new_for_path(directory + '/stack.png').replace(null, false, Gio.FileCreateFlags.NONE, null);
         await new Shell.Screenshot().screenshot(false, output);
         output.close(null);

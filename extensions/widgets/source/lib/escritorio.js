@@ -472,7 +472,10 @@ export class Escritorio {
 
     menuWidget(m, x, y) {
         const est = m.cfg.estilo;
+        const module = {clima: 'weather', calendario: 'today', musica: 'music', baterias: 'system', reloj: 'clock', notas: 'notes', recordatorios: 'notes'}[m.META.id];
+        const island = Main.extensionManager.lookup('dynamic-island-gnome50@local')?.stateObj;
         this._menuDe([
+            ...(module && island?._alive && island.openModule ? [{t: 'Ver detalles en la isla', cb: () => island.openModule(module)}] : []),
             {t: `Editar «${m.META.nombre}»…`, cb: () => this.abrirAjustes(m.cfg.id)},
             {t: est.estilo === 'glass' ? 'Cambiar a sólido' : 'Cambiar a vidrio', cb: () => this.alternarEstilo(m)},
             'sep',

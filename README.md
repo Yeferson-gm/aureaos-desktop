@@ -66,6 +66,8 @@ la carga y desactivación de los 19 módulos en ambos, con pruebas específicas 
 interacción. No desactivar la validación de compatibilidad. Consultar
 [instalación y mantenimiento en GNOME 51](docs/gnome51.md) y la
 [guía de la isla de favoritas](docs/isla-aplicaciones-uso.md).
+Las nuevas vistas de carpetas, grupos, estadísticas, clima y asistentes se explican
+en [Espacios contextuales](docs/experiencia-contextual.md), con comandos y límites.
 
 Herramientas necesarias: Node.js, Git, GJS, GLib (`gsettings`, `gio`,
 `glib-compile-schemas`, `glib-compile-resources`), gettext (`msgfmt`), `gtk-update-icon-cache` y `gnome-extensions`.
