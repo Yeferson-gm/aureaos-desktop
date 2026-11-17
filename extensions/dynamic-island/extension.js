@@ -392,6 +392,7 @@ export default class DynamicIsland extends Extension {
         else this._button?.destroy();
         this._host = null;
         this._button = null;
+        this._pill = null;
         if (this._movedClock?.actor.get_parent() === Main.panel._rightBox) {
             Main.panel._rightBox.remove_child(this._movedClock.actor);
             Main.panel._centerBox.insert_child_at_index(this._movedClock.actor, this._movedClock.index);

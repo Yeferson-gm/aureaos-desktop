@@ -56,3 +56,7 @@ Pruebas de Shell aislado en GNOME 50.6 y 51.1: temas, menús, clics reales,
 reapertura interrumpida, recursos y estadísticas. El sondeo de estadísticas se
 comprueba detenido al cerrar. La prueba del paquete comprueba carga de los
 19 módulos; el equipo habitual sigue en GNOME 51.1.
+
+La barra deja de consultar la cápsula cuando la isla está desactivada y la isla
+libera esa referencia al cerrar. La lectura asíncrona de carpetas solo actualiza
+el menú que inició la consulta, evitando accesos a controles ya destruidos.

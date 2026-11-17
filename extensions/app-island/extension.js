@@ -548,6 +548,7 @@ export default class AppIsland extends Extension {
     }
     _folder(item) {
         const box = this._popupBox(this._name(item));
+        const popup = this._popup;
         box.add_child(button('Abrir carpeta', () => this._launch(item)));
         const file = Gio.File.new_for_uri(item.target);
         file.enumerate_children_async('standard::name,standard::display-name,standard::icon', Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, null, (source, result) => {
@@ -557,7 +558,7 @@ export default class AppIsland extends Extension {
                 enumerator.next_files_async(40, GLib.PRIORITY_DEFAULT, null, (cursor, batch) => {
                     try {
                         const entries = cursor.next_files_finish(batch);
-                        if (!this._root || !box.get_stage()) return;
+                        if (!this._root || this._popup !== popup) return;
                         if (!entries.length) box.add_child(label('Esta carpeta está vacía', 'ai-muted'));
                         for (const info of entries) {
                             const target = {id: GLib.uuid_string_random(), type: 'uri', target: file.get_child(info.get_name()).get_uri(), alias: info.get_display_name()};

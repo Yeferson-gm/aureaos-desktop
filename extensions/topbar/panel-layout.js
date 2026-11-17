@@ -61,7 +61,7 @@ export class PanelLayout {
         const values = this.ctx.config.values;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         const island = Main.extensionManager.lookup('dynamic-island-gnome50@local')?.stateObj;
-        const pill = island?._pill ?? null;
+        const pill = island?._alive ? island._pill : null;
         if (pill !== this.pill) {
             this.pillSignals?.forEach(id => this.pill?.disconnect(id));
             this.pill = pill;
