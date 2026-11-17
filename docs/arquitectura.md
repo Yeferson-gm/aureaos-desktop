@@ -66,7 +66,7 @@ anterior; sus referencias históricas no son instrucciones actuales de instalaci
 
 ## Presentación del bloqueo y materiales compartidos
 
-`lock-screen` se ejecuta en `user`, `unlock-dialog` y `gdm` de GNOME 50.
+`lock-screen` se ejecuta en `user`, `unlock-dialog` y `gdm` de GNOME 50 y 51.
 Su entrada selecciona la presentación del acceso o del bloqueo según la sesión.
 Decora el `UnlockDialog` nativo mediante `InjectionManager`: fondo estático,
 layout, reloj y estilo. No sustituye el verificador ni el formulario nativo.

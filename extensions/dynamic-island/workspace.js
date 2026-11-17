@@ -31,9 +31,9 @@ export class IslandWorkspace {
         page.add_style_class_name('di-dashboard');
         this.date = e._label('', 'di-dashboard-date');
         page.add_child(this.date);
-        this.cardsBox = new St.BoxLayout({vertical: true, style_class: 'di-dashboard-cards'});
+        this.cardsBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-dashboard-cards'});
         page.add_child(this.cardsBox);
-        this.liveBox = new St.BoxLayout({vertical: true, style_class: 'di-live-list'});
+        this.liveBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-live-list'});
         page.add_child(this.liveBox);
         this.rebuild();
     }
@@ -51,7 +51,7 @@ export class IslandWorkspace {
                 reactive: true, can_focus: true, x_expand: true, accessible_name: name});
             const row = new St.BoxLayout({style_class: 'di-dashboard-row'});
             row.add_child(new St.Icon({icon_name: icon, icon_size: index === 0 ? 30 : 20, y_align: Clutter.ActorAlign.CENTER}));
-            const column = new St.BoxLayout({vertical: true, x_expand: true, style_class: 'di-dashboard-column'});
+            const column = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style_class: 'di-dashboard-column'});
             column.add_child(e._label(name, 'di-dashboard-caption'));
             const title = e._label('', index === 0 ? 'di-dashboard-title' : 'di-dashboard-detail', {width: 270});
             title.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
@@ -100,7 +100,7 @@ export class IslandWorkspace {
         page.add_style_class_name('di-library');
         const search = new St.Entry({style_class: 'di-search', hint_text: 'Buscar una herramienta…', can_focus: true});
         page.add_child(search);
-        const list = new St.BoxLayout({vertical: true, style_class: 'di-library-list'});
+        const list = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-library-list'});
         page.add_child(list);
         const render = () => {
             list.destroy_all_children();

@@ -41,7 +41,7 @@ export class Marco {
 
         a.connect('destroy', () => this._liberar());
         this._blur = new St.Widget({x_expand: true, y_expand: true, style: 'background-color: rgba(0,0,0,0.004);'});
-        this._cont = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, clip_to_allocation: true});
+        this._cont = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_expand: true, clip_to_allocation: true});
         this._capa = this._crearCapa();
         this._surface = new St.Widget({x_expand: true, y_expand: true});
         a.add_child(this._blur);

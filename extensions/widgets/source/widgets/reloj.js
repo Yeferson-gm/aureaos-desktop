@@ -129,7 +129,7 @@ export class Widget extends WidgetBase {
         const tz = zona(this.o.zona);
         const tam = Math.min(this.w / 3.6, this.h * 0.5);
         const centro = {align: Clutter.ActorAlign.CENTER};
-        const col = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 2px;'});
+        const col = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 2px;'});
         const hora = this.t('', 10, {peso: '200', align: centro.align, extra: `font-size: ${Math.round(tam)}px; letter-spacing: -2px;`});
         const fecha = this.t('', 13, {c: 'texto2', align: centro.align});
         col.add_child(hora);

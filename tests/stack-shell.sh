@@ -13,6 +13,7 @@ if [[ ${1:-} != --session ]]; then
     exec dbus-run-session -- bash "$0" --session
 fi
 enabled=$(node -e 'const r=require(process.env.AUREA_PROJECT+"/stack.json"); const fs=require("fs"); const a=Object.keys(r.extensions).map(n=>JSON.parse(fs.readFileSync(process.env.AUREA_PROJECT+"/extensions/"+n+(n==="widgets"?"/source":"")+"/metadata.json")).uuid); a.push("island-test-driver@local"); console.log(JSON.stringify(a));')
+gsettings set org.gnome.shell welcome-dialog-last-shown-version '99'
 gsettings set org.gnome.shell enabled-extensions "$enabled"
 gsettings set org.gnome.shell disable-user-extensions false
 gnome-shell --headless --wayland --wayland-display aurea-test --no-x11 --virtual-monitor 1920x1080 --debug-control > "$DI_TEST_DIR/shell.log" 2>&1 &

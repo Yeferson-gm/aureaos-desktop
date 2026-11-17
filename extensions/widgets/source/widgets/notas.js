@@ -31,7 +31,7 @@ export class Widget extends WidgetBase {
     _pintar() {
         this.box.destroy_all_children();
         const n = this._nota();
-        const tarjeta = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, style: `spacing: ${this.px(4)}px;`});
+        const tarjeta = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_expand: true, style: `spacing: ${this.px(4)}px;`});
         let cuerpo;
         if (!n) {
             cuerpo = this.columna();

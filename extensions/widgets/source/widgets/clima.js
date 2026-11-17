@@ -267,7 +267,7 @@ export class Widget extends WidgetBase {
                 if (k >= d.hourly.time.length)
                     break;
                 const hora = parseInt(d.hourly.time[k].slice(11, 13), 10);
-                const col = new St.BoxLayout({vertical: true, x_expand: true, style: 'spacing: 3px;'});
+                const col = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style: 'spacing: 3px;'});
                 col.add_child(this.t(i === 0 ? 'Ahora' : `${hora}h`, 10, {c: 'texto2', align: Clutter.ActorAlign.CENTER}));
                 col.add_child(this._icono(wmo(d.hourly.weather_code[k])[1], this.px(compacto ? 20 : 26), hora >= 6 && hora < 18, false));
                 col.add_child(this.t(`${Math.round(d.hourly.temperature_2m[k])}°`, 12, {peso: 'bold', align: Clutter.ActorAlign.CENTER}));

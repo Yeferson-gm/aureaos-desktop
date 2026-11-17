@@ -1,3 +1,4 @@
+import {popupAnimation} from './popup-compat.js';
 /* -*- mode: js2 - indent-tabs-mode: nil - js2-basic-offset: 4 -*- */
 /* jshint multistr:true */
 /* jshint esnext:true */
@@ -1125,7 +1126,7 @@ export default class CaffeineExtension extends Extension {
         if (ShellVersion >= 51) {
             QuickSettingsMenu.menu.close({ fadeOnly: true });
         } else {
-            QuickSettingsMenu.menu.close(PopupAnimation.FADE);
+            QuickSettingsMenu.menu.close(popupAnimation(PopupAnimation.FADE));
         }
     }
 }

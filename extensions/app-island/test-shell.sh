@@ -9,11 +9,12 @@ if [[ ${1:-} != --session ]]; then
   unset DISPLAY
   mkdir -m 0700 "$XDG_RUNTIME_DIR"
   mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions"
-  cp -a "$project" "$XDG_DATA_HOME/gnome-shell/extensions/side-dock-gnome50@local"
+  cp -aL "$project" "$XDG_DATA_HOME/gnome-shell/extensions/side-dock-gnome50@local"
   cp -a "$project/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
   echo "$DI_TEST_DIR"
   exec dbus-run-session -- bash "$0" --session
 fi
+gsettings set org.gnome.shell welcome-dialog-last-shown-version '99'
 gsettings set org.gnome.shell enabled-extensions "['island-test-driver@local', 'side-dock-gnome50@local']"
 monitors=(--virtual-monitor 1280x800)
 if [[ ${SIDE_TEST_MONITORS:-1} == 2 ]]; then monitors+=(--virtual-monitor 1280x800); fi

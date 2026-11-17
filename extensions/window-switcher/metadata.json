@@ -8,7 +8,8 @@
   "name": "Aurea 27 · Selector de ventanas",
   "settings-schema": "org.gnome.shell.extensions.coverflowalttab",
   "shell-version": [
-    "50"
+    "50",
+    "51"
   ],
   "uuid": "aurea-window-switcher@local",
   "description": "Selector de ventanas integrado en Aurea 27. Procedencia y licencia en UPSTREAM.md.",

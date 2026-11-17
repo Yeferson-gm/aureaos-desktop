@@ -71,7 +71,11 @@ export async function testLayout(dockManager, wait) {
                 for (let i = 0; i < 5; i++) {
                     dash._updateLocationSeparator();
                     const order = dash._box.get_children();
-                    if (order[order.indexOf(trash) - 1] !== dash._locSeparator)
+                    const firstLocation = order.findIndex(actor => {
+                        const app = actor.child?.app ?? actor.child?._delegate?.app;
+                        return app && (app.isTrash || app.location) && !actor.animatingOut;
+                    });
+                    if (order[firstLocation - 1] !== dash._locSeparator)
                         throw new Error('El separador cambia de lado al actualizarse');
                 }
             } finally {

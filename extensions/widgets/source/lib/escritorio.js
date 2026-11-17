@@ -492,7 +492,7 @@ export class Escritorio {
 
     _menuDe(items, x, y) {
         this._cerrarMenu();
-        const menu = new St.BoxLayout({style_class: 'lintel-ctx', vertical: true});
+        const menu = new St.BoxLayout({style_class: 'lintel-ctx', orientation: Clutter.Orientation.VERTICAL});
         for (const it of items) {
             if (it === 'sep') {
                 menu.add_child(new St.Widget({style_class: 'lintel-ctx-sep', x_expand: true}));

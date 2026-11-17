@@ -1,3 +1,4 @@
+import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import Pango from 'gi://Pango';
 import {parseLyrics, currentLyric} from './content-models.js';
@@ -19,7 +20,7 @@ export class MediaExtras {
             e._resizeIsland();
         }, 'view-list-symbolic');
         page.add_child(this.button);
-        this.box = new St.BoxLayout({vertical: true, visible: false, style_class: 'di-lyrics'});
+        this.box = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, visible: false, style_class: 'di-lyrics'});
         this.labels = ['di-hint', 'di-lyric-current', 'di-hint'].map(cls => {
             const label = e._label('', cls, {width: 360});
             label.clutter_text.set_line_wrap(true);

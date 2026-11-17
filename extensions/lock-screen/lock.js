@@ -1,7 +1,5 @@
 import {PasswordKeyboardPolicy} from './keyboardPolicy.js';
 import Clutter from 'gi://Clutter';
-import GDesktopEnums from 'gi://GDesktopEnums';
-import Meta from 'gi://Meta';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as UnlockDialog from 'resource:///org/gnome/shell/ui/unlockDialog.js';
@@ -22,11 +20,8 @@ export default class LockScreen extends Extension {
         this._injections.overrideMethod(proto, '_createBackground', () => function (index) {
             const monitor = Main.layoutManager.monitors[index];
             const container = new St.Widget({x: monitor.x, y: monitor.y, width: monitor.width, height: monitor.height});
-            const background = new Meta.Background({meta_display: global.display});
-            background.set_file(extension.dir.get_child('assets/WhiteSur-dark.jpg'), GDesktopEnums.BackgroundStyle.ZOOM);
-            const actor = new Meta.BackgroundActor({meta_display: global.display, monitor: index, width: monitor.width, height: monitor.height});
-            actor.content.set({background, vignette: false, brightness: 1});
-            container.add_child(actor);
+            const file = extension.dir.get_child('assets/WhiteSur-dark.jpg');
+            container.set_style(`background-image: url("${file.get_uri()}"); background-size: cover; background-position: center;`);
             this._backgroundGroup.add_child(container);
         });
         this._injections.overrideMethod(proto, '_setTransitionProgress', original => function (progress) {

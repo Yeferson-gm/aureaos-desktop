@@ -32,7 +32,7 @@ export class ControlCenter {
         this.signals.push([this.settings.appearance, this.settings.appearance.connect('changed::text-scaling-factor', () => this.showPage(this.page))]);
         this.holder = new PopupMenu.PopupBaseMenuItem({activate: false, hover: false, can_focus: false});
         this.holder.add_style_class_name('lintel-cc-holder');
-        this.root = new St.BoxLayout({vertical: true, style_class: 'aurea-controls', x_expand: true});
+        this.root = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'aurea-controls', x_expand: true});
         this.holder.add_child(this.root); button.menu.addMenuItem(this.holder);
         this.header = new St.BoxLayout({style_class: 'aurea-controls-header'}); this.root.add_child(this.header);
         this.back = this.action('go-previous-symbolic', 'Volver al Centro de Control', () => this.showPage(null));
@@ -40,7 +40,7 @@ export class ControlCenter {
         this.header.add_child(this.back); this.header.add_child(this.title);
         this.header.add_child(this.action('document-edit-symbolic', 'Editar controles', () => { button.menu.close(); ctx.openPreferences(); }));
         this.scroll = new St.ScrollView({style_class: 'aurea-controls-scroll', overlay_scrollbars: true, hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
-        this.body = new St.BoxLayout({vertical: true, style_class: 'aurea-controls-body', x_expand: true});
+        this.body = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'aurea-controls-body', x_expand: true});
         this.scroll.set_child(this.body); this.root.add_child(this.scroll);
         this.footer = this.row('Ajustes del Sistema', 'Abrir Ajustes ↗', () => { button.menu.close(); run('gnome-control-center'); });
         this.root.add_child(this.footer);
@@ -62,7 +62,7 @@ export class ControlCenter {
     row(title, subtitle, callback, checked = false, enabled = true) {
         const button = new St.Button({style_class: 'aurea-detail-row', can_focus: enabled, reactive: enabled, x_expand: true, accessible_name: `${title}. ${subtitle}${checked ? '. Seleccionado' : ''}`});
         const content = new St.BoxLayout({style_class: 'aurea-detail-content'});
-        const labels = new St.BoxLayout({vertical: true, x_expand: true});
+        const labels = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true});
         labels.add_child(new St.Label({text: title, style_class: 'aurea-detail-title'}));
         if (subtitle) labels.add_child(new St.Label({text: subtitle, style_class: 'aurea-detail-subtitle'}));
         content.add_child(labels);
@@ -149,7 +149,7 @@ export class ControlCenter {
         const content = new St.BoxLayout({style_class: 'aurea-control-content', x_expand: true});
         const icon = new St.Icon({icon_name: ICONS[id], icon_size: 18, style_class: 'aurea-control-icon', y_align: Clutter.ActorAlign.CENTER});
         content.add_child(icon);
-        const labels = new St.BoxLayout({vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
+        const labels = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
         labels.add_child(new St.Label({text: MODULES[id], style_class: 'aurea-control-label'}));
         const status = new St.Label({style_class: 'aurea-control-status'}); labels.add_child(status); content.add_child(labels);
         if (['wifi', 'bluetooth', 'appearance', 'focus', 'night', 'airplane', 'caffeine'].includes(id)) toggle.accessible_role = Atk.Role.TOGGLE_BUTTON;
@@ -159,7 +159,7 @@ export class ControlCenter {
     }
     sliderCard(id) {
         const c = this.ctx, mic = id === 'microphone', bright = id === 'brightness';
-        const card = new St.BoxLayout({vertical: true, x_expand: true, style_class: 'aurea-slider-card'});
+        const card = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style_class: 'aurea-slider-card'});
         const header = new St.BoxLayout();
         header.add_child(new St.Label({text: MODULES[id], x_expand: true, style_class: 'aurea-control-label', y_align: Clutter.ActorAlign.CENTER}));
         const value = new St.Label({style_class: 'aurea-control-status', y_align: Clutter.ActorAlign.CENTER}); header.add_child(value);

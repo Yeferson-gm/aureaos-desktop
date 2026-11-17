@@ -59,7 +59,7 @@ export class WidgetBase {
     }
 
     columna(estilo = '') {
-        return new St.BoxLayout({vertical: true, x_expand: true, style: `spacing: ${this.px(4)}px; ${estilo}`});
+        return new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style: `spacing: ${this.px(4)}px; ${estilo}`});
     }
 
     cada(ms, fn, ahora = false) {

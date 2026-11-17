@@ -17,4 +17,10 @@ assert.equal(preferences({edge: -100, delay: 99999, theme: 'nonsense'}).edge, 1)
 assert.equal(preferences({delay: 99999}).delay, 800);
 assert.throws(() => migrate({format: 999, profiles: []}));
 assert.throws(() => migrate(null));
+const quick = new IslandModel({favoritos: ['a', 'b', 'c']});
+quick.reorderQuick('c', -1); assert.deepEqual(quick.quickItems().map(i => i.id), ['a', 'c', 'b']);
+assert.deepEqual(quick.profile.items.map(i => i.id), ['a', 'b', 'c']);
+const quickReload = new IslandModel(quick.data); assert.deepEqual(quickReload.quickItems().map(i => i.id), ['a', 'c', 'b']);
+assert.equal(preferences(null).theme, 'auto');
+assert.throws(() => migrate({...quick.data, profiles: Array(21).fill(quick.profile)}));
 console.log('PASS: migration, deduplication, categories, moves, undo, profiles, aliases and validated preferences');

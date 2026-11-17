@@ -113,7 +113,7 @@ export class Widget extends WidgetBase {
         const filas = Math.max(1, Math.floor((this.h - this.px(34)) / (tam + this.px(30))));
         const cuad = new St.Widget({layout_manager: new Clutter.GridLayout({column_homogeneous: true}), x_expand: true, y_expand: true});
         lista.slice(0, cols * filas).forEach((c, i) => {
-            const col = new St.BoxLayout({vertical: true, x_align: Clutter.ActorAlign.CENTER, style: 'spacing: 3px;'});
+            const col = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_align: Clutter.ActorAlign.CENTER, style: 'spacing: 3px;'});
             const av = this._avatar(c, tam);
             av.x_align = Clutter.ActorAlign.CENTER;
             col.add_child(av);
@@ -190,7 +190,7 @@ export class Widget extends WidgetBase {
     _gestor() {
         const h = new Hoja(this.core, {titulo: 'Contactos', ancho: 480, alto: 540, sinScroll: true});
         let q = '';
-        const lista = new St.BoxLayout({vertical: true, x_expand: true, style: 'spacing: 2px;'});
+        const lista = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style: 'spacing: 2px;'});
         const sc = new St.ScrollView({x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER, overlay_scrollbars: true});
         sc.add_child(lista);
         const pintar = () => {
@@ -201,7 +201,7 @@ export class Widget extends WidgetBase {
             for (const c of f) {
                 const fila = new St.BoxLayout({style: 'spacing: 10px; padding: 6px;'});
                 fila.add_child(this._avatar(c, 34));
-                const col = new St.BoxLayout({vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
+                const col = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
                 col.add_child(etiqueta(c.nombre, 'lintel-card-t'));
                 col.add_child(etiqueta(c.tel || c.email || '', 'lintel-ayuda'));
                 fila.add_child(col);
@@ -217,7 +217,7 @@ export class Widget extends WidgetBase {
             q = v;
             pintar();
         }, {ancho: 440});
-        h.cuerpo.vertical = true;
+        h.cuerpo.orientation = Clutter.Orientation.VERTICAL;
         h.cuerpo.add_child(e);
         h.cuerpo.add_child(sc);
         h.abrir();

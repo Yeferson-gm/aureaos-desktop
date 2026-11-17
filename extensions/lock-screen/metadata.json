@@ -1,9 +1,10 @@
 {
   "uuid": "aurea-lock-screen@local",
-  "name": "Aurea 27 \u00b7 Acceso y bloqueo",
-  "description": "Dise\u00f1o del acceso GDM y bloqueo de sesi\u00f3n con un \u00fanico m\u00f3dulo Aurea.",
+  "name": "Aurea 27 · Acceso y bloqueo",
+  "description": "Diseño del acceso GDM y bloqueo de sesión con un único módulo Aurea.",
   "shell-version": [
-    "50"
+    "50",
+    "51"
   ],
   "session-modes": [
     "user",

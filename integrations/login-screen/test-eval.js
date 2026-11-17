@@ -11,7 +11,8 @@
     const {default: Shell} = await import('gi://Shell');
     const Main = await import('resource:///org/gnome/shell/ui/main.js');
     const {AuthPrompt, AuthPromptMode} = await import('resource:///org/gnome/shell/gdm/authPrompt.js');
-    const {MessageType} = await import('resource:///org/gnome/shell/gdm/util.js');
+    const {PACKAGE_VERSION} = await import('resource:///org/gnome/shell/misc/config.js');
+    const {MessageType} = await import(Number.parseInt(PACKAGE_VERSION) >= 51 ? 'resource:///org/gnome/shell/gdm/userVerifier.js' : 'resource:///org/gnome/shell/gdm/util.js');
     const dir = GLib.getenv('DI_TEST_DIR');
     if (!dir) throw new Error('Solo sesión aislada');
     const wait = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {resolve(); return GLib.SOURCE_REMOVE;}));
@@ -41,7 +42,6 @@
     const extension = new LoginPresentation({uuid: 'aurea-lock-screen@local', path: GLib.getenv('AUREA_LOGIN_SOURCE'), dir: Gio.File.new_for_path(GLib.getenv('AUREA_LOGIN_SOURCE'))});
     const originalCenter = LoginDialog.prototype._getCenterActorAllocation;
     extension.enable();
-    extension._decorate(login, actions);
     screen.add_child(login);
     Main.uiGroup.add_child(screen);
     const createVerifier = AuthPrompt.prototype._createUserVerifier;
@@ -54,12 +54,16 @@
     prompt.y_align = Clutter.ActorAlign.CENTER;
     login._authPrompt = prompt;
     login.add_child(prompt);
+    extension._decorate(login, actions);
     const profile = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'user-widget vertical', x_align: Clutter.ActorAlign.CENTER});
     const {Avatar} = await import('resource:///org/gnome/shell/ui/userWidget.js');
     profile.add_child(new Avatar(null, {styleClass: 'user-icon'}));
     profile.add_child(new St.Label({text: 'Aurea', style_class: 'user-widget-label', x_align: Clutter.ActorAlign.CENTER}));
+    profile.showAvatar = () => profile.get_first_child().show();
     prompt._userWell.set_child(profile);
-    prompt._onAskQuestion('gdm-password', 'Contraseña', true);
+    if (Number.parseInt(PACKAGE_VERSION) >= 51)
+        prompt._onAskQuestion({serviceName: 'gdm-password', question: 'Contraseña', secret: true, answerHandler() {}});
+    else prompt._onAskQuestion('gdm-password', 'Contraseña', true);
     const capture = async name => {
         await wait(300);
         const stream = Gio.File.new_for_path(`${dir}/${name}.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
@@ -95,6 +99,8 @@
     prompt.setMessage('Mensaje de prueba: revisa la contraseña', MessageType.ERROR);
     await capture('login-error');
     if (!prompt._message.visible || prompt._message.opacity !== 255) throw new Error('Mensaje de acceso invisible');
+    global.stage.set_key_focus(null);
+    await wait(100);
     prompt.hide();
     const list = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'login-dialog-user-list-view', x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER});
     const items = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'login-dialog-user-list'});
@@ -108,6 +114,8 @@
     extension.disable();
     if (Keyboard.prototype.open !== originalKeyboardOpen) throw new Error('No se restauró la política del teclado');
     if (signals.size || LoginDialog.prototype._getCenterActorAllocation !== originalCenter) throw new Error('Restauración incompleta');
+    global.stage.set_key_focus(null);
+    await wait(100);
     screen.destroy();
     context.set_theme(oldTheme); resource._unregister();
     return 'PASS: GDM, posición nativa, fondo a color, contraseña, mensajes, usuarios, energía y limpieza';

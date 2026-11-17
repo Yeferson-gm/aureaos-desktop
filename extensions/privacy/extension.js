@@ -1,3 +1,4 @@
+import {popupAnimation} from './popup-compat.js';
 //Main imports
 import St from 'gi://St';
 import Gio from 'gi://Gio';
@@ -222,7 +223,7 @@ const PrivacyQuickGroup = GObject.registerClass(
         if (ShellVersion >= 51) {
           QuickSettingsMenu.menu.close({fadeOnly: true});
         } else {
-          QuickSettingsMenu.menu.close(PopupAnimation.FADE);
+          QuickSettingsMenu.menu.close(popupAnimation(PopupAnimation.FADE));
         }
       });
 

@@ -1,3 +1,4 @@
+import {popupAnimation} from './popup-compat.js';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Shell from 'gi://Shell';
@@ -23,7 +24,7 @@ export class MenuSurface {
             const opacity = menu.actor.opacity;
             before(); this.apply();
             menu.actor.remove_all_transitions(); menu.actor.translation_y = 0; menu.actor.scale_x = menu.actor.scale_y = 1;
-            open(BoxPointer.PopupAnimation.NONE);
+            open(popupAnimation(BoxPointer.PopupAnimation.NONE));
             const event = Clutter.get_current_event();
             const keyboard = [Clutter.EventType.KEY_PRESS, Clutter.EventType.KEY_RELEASE].includes(event?.type());
             const duration = keyboard ? 0 : resuming ? Math.min(120, this.duration()) : GLib.get_monotonic_time() - lastClosed < 180000 ? 0 : this.duration();
@@ -37,7 +38,7 @@ export class MenuSurface {
             if (!menu.isOpen) return;
             lastClosed = GLib.get_monotonic_time();
             menu.actor.remove_all_transitions(); menu.actor.translation_y = 0;
-            close(this.duration() ? BoxPointer.PopupAnimation.FADE : BoxPointer.PopupAnimation.NONE);
+            close(popupAnimation(this.duration() ? BoxPointer.PopupAnimation.FADE : BoxPointer.PopupAnimation.NONE));
             this.blur.set_enabled(false);
         };
         const destroy = menu.destroy.bind(menu);
@@ -45,7 +46,7 @@ export class MenuSurface {
             if (this.dead) return;
             this.dead = true;
             menu.actor.remove_all_transitions();
-            close(BoxPointer.PopupAnimation.NONE);
+            close(popupAnimation(BoxPointer.PopupAnimation.NONE));
             this.stack.disconnect(this.allocation);
             menu.actor.hide();
             GLib.idle_add(GLib.PRIORITY_LOW, () => {

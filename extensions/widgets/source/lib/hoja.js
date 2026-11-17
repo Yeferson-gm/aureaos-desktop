@@ -17,7 +17,7 @@ export class Hoja {
     constructor(core, o = {}) {
         this.core = core;
         this.o = {titulo: '', ancho: 560, alto: 0, cerrarFuera: true, sinScroll: false, ...o};
-        this.cuerpo = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, style: 'spacing: 10px;'});
+        this.cuerpo = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_expand: true, style: 'spacing: 10px;'});
         this.cerrada = false;
     }
 
@@ -36,7 +36,7 @@ export class Hoja {
         ov.add_child(dim);
 
         const caja = this.caja = new St.BoxLayout({
-            style_class: 'lintel-hoja', vertical: true, reactive: true,
+            style_class: 'lintel-hoja', orientation: Clutter.Orientation.VERTICAL, reactive: true,
             width: Math.min(this.o.ancho, m.width - 60), x_expand: true, y_expand: true,
             x_align: CENTER, y_align: CENTER,
         });
@@ -126,7 +126,7 @@ export function seccion(texto) {
 
 export function fila(etq, control, ayuda = '') {
     const f = new St.BoxLayout({style_class: 'lintel-fila', x_expand: true});
-    const izq = new St.BoxLayout({vertical: true, x_expand: true, y_align: CENTER});
+    const izq = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_align: CENTER});
     izq.add_child(etiqueta(etq));
     if (ayuda)
         izq.add_child(etiqueta(ayuda, 'lintel-ayuda'));

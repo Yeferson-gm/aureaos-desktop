@@ -1,3 +1,4 @@
+import {popupAnimation} from './popup-compat.js';
 
 
 
@@ -82,7 +83,7 @@ export class WindowPreviewMenu extends PopupMenu.PopupMenu {
         const windows = this._source.getInterestingWindows();
         if (windows.length > 0) {
             this._redisplay();
-            this.open(BoxPointer.PopupAnimation.FULL);
+            this.open(popupAnimation(BoxPointer.PopupAnimation.FULL));
             this.actor.navigate_focus(null, St.DirectionType.TAB_FORWARD, false);
             this._source.emit('sync-tooltip');
         }
@@ -281,7 +282,7 @@ class WindowPreviewList extends PopupMenu.PopupMenuSection {
             addedItems[i].item.show(animate);
 
         if (newWin.length < 1)
-            this._getTopMenu().close(~0);
+            this._getTopMenu().close(popupAnimation(~0));
 
 
 
@@ -393,7 +394,7 @@ class WindowPreviewMenuItem extends PopupMenu.PopupBaseMenuItem {
         if (box.orientation !== undefined)
             box.orientation = Clutter.Orientation.VERTICAL;
         else
-            box.vertical = true;
+            box.orientation = Clutter.Orientation.VERTICAL;
 
         if (box.add) {
             box.add(overlayGroup);

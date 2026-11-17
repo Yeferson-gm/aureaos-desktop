@@ -74,7 +74,7 @@ for (const name of ['dark','light','high-contrast']) {
     theme.load_stylesheet(Gio.File.new_for_uri(`resource:///org/gnome/shell/theme/gnome-shell-${name}.css`));
 }
 resource._unregister();'''
-    env = {**os.environ, 'GI_TYPELIB_PATH': '/usr/lib64/gnome-shell:/usr/lib64/mutter-18', 'LD_LIBRARY_PATH': '/usr/lib64/gnome-shell'}
+    env = {**os.environ, 'GI_TYPELIB_PATH': ':'.join(['/usr/lib64/gnome-shell', *map(str, sorted(Path('/usr/lib64').glob('mutter-*')))]), 'LD_LIBRARY_PATH': '/usr/lib64/gnome-shell'}
     subprocess.run(['gjs', '-c', script, str(bundle)], env=env, check=True)
 
 
@@ -205,7 +205,7 @@ def remove_system():
 
 def main():
     parser = argparse.ArgumentParser(description='Tema Aurea para la pantalla de inicio de sesión GDM')
-    parser.add_argument('action', choices=['build', 'apply', 'remove', 'status'])
+    parser.add_argument('action', choices=['build', 'apply', 'remove', 'status', 'refresh'])
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     if args.action == 'build':
@@ -228,9 +228,17 @@ def main():
         if os.geteuid() != 0:
             raise SystemExit('Esta acción requiere autorización de administrador mediante sudo o pkexec.')
         major = subprocess.check_output(['gnome-shell', '--version'], text=True).split()[-1].split('.')[0]
-        if args.action == 'apply' and major != '50':
-            raise SystemExit('Esta integración se ha probado con GNOME 50; no se aplicará en otra versión.')
-        print(apply_system() if args.action == 'apply' else remove_system())
+        if args.action in ('apply', 'refresh') and major not in ('50', '51'):
+            raise SystemExit('Esta integración se ha probado con GNOME 50 y 51; no se aplicará en otra versión.')
+        if args.action == 'refresh':
+            state = read_state(STATE)
+            if not state:
+                print('Sin instalación Aurea que mantener.')
+                return
+            if digest(SYSTEM.read_bytes()) == state['installed']:
+                print('El tema Aurea está actualizado.')
+                return
+        print(apply_system() if args.action in ('apply', 'refresh') else remove_system())
 
 
 if __name__ == '__main__':

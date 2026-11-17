@@ -1567,7 +1567,7 @@ class ClockButton extends LintelButton {
 
         const holder = new PopupMenu.PopupBaseMenuItem({activate: false, hover: false, can_focus: false});
         holder.add_style_class_name('lintel-cal-holder');
-        this._cal = new St.BoxLayout({vertical: true, style_class: 'lintel-cal'});
+        this._cal = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'lintel-cal'});
         holder.add_child(this._cal);
         this.menu.addMenuItem(holder);
         addSep(this.menu);

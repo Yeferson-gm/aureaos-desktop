@@ -1,3 +1,4 @@
+import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Pango from 'gi://Pango';
@@ -51,7 +52,7 @@ export class AgentBridge {
         const hint = e._label('Tareas locales mediante aurea-task.py. Sin lectura de conversaciones ni aprobaciones automáticas.', 'di-hint', {width: 370});
         hint.clutter_text.set_line_wrap(true);
         page.add_child(hint);
-        this.list = new St.BoxLayout({vertical: true, style_class: 'di-live-list'});
+        this.list = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-live-list'});
         page.add_child(this.list);
         this.render();
     }
@@ -65,7 +66,7 @@ export class AgentBridge {
         }
         if (!this.items.size) this.list.add_child(e._label('Las tareas iniciadas con aurea-task.py aparecerán aquí.', 'di-hint'));
         for (const item of this.items.values()) {
-            const row = new St.BoxLayout({vertical: true, style_class: 'di-agent-card'});
+            const row = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-agent-card'});
             const title = e._label(item.title, 'di-dashboard-detail', {width: 350});
             title.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
             row.add_child(title);

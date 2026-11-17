@@ -11,10 +11,10 @@ const CENTER = Clutter.ActorAlign.CENTER;
 
 function controlCiudad(core, marco, op) {
     const o = marco.cfg.opts;
-    const caja = new St.BoxLayout({vertical: true, style: 'spacing: 6px;'});
+    const caja = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style: 'spacing: 6px;'});
     const etiq = () => `${o[op.k].nombre} (${o[op.k].lat.toFixed(2)}, ${o[op.k].lon.toFixed(2)})`;
     const actual = etiqueta(etiq(), 'lintel-ayuda');
-    const res = new St.BoxLayout({vertical: true, style: 'spacing: 4px;'});
+    const res = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style: 'spacing: 4px;'});
     let q = '';
     const buscar = async () => {
         if (!q.trim())
@@ -228,14 +228,14 @@ function panelGeneral(core, redibujar) {
 
 export function abrirAjustes(core, sel = 'general') {
     const h = new Hoja(core, {titulo: 'Ajustes de widgets', ancho: 920, alto: 660, sinScroll: true});
-    h.cuerpo.vertical = false;
+    h.cuerpo.orientation = Clutter.Orientation.HORIZONTAL;
     h.cuerpo.style = 'spacing: 14px;';
-    const lado = new St.BoxLayout({vertical: true, width: 190, style: 'spacing: 2px;'});
+    const lado = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, width: 190, style: 'spacing: 2px;'});
     const der = new St.ScrollView({
         x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER,
         vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
     });
-    const cont = new St.BoxLayout({vertical: true, x_expand: true, style: 'spacing: 10px; padding-right: 12px;'});
+    const cont = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style: 'spacing: 10px; padding-right: 12px;'});
     der.add_child(cont);
     const sc = new St.ScrollView({
         hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC,
@@ -289,7 +289,7 @@ export function abrirGaleria(core) {
     const disponible = Math.min(880, Main.layoutManager.primaryMonitor.width - 60) - 60;
     const columnas = Math.max(1, Math.min(3, Math.floor((disponible + 12) / 268)));
     const anchoTarjeta = Math.floor((disponible - (columnas - 1) * 12) / columnas);
-    const cuad = new St.BoxLayout({vertical: true, x_expand: true, style: 'spacing: 12px;'});
+    const cuad = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style: 'spacing: 12px;'});
     let filaTarjetas;
     let indice = 0;
     for (const mod of LISTA) {
@@ -298,7 +298,7 @@ export function abrirGaleria(core) {
             cuad.add_child(filaTarjetas);
         }
         const M = mod.META;
-        const card = new St.BoxLayout({style_class: 'lintel-card', vertical: true, width: anchoTarjeta});
+        const card = new St.BoxLayout({style_class: 'lintel-card', orientation: Clutter.Orientation.VERTICAL, width: anchoTarjeta});
         const cab = new St.BoxLayout({style: 'spacing: 10px;'});
         cab.add_child(new St.Icon({icon_name: M.icono, icon_size: 30, style_class: 'lintel-card-icono'}));
         cab.add_child(etiqueta(M.nombre, 'lintel-card-t'));

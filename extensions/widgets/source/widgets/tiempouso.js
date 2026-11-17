@@ -89,7 +89,7 @@ export class Widget extends WidgetBase {
         const altoMax = this.px(this.h >= 250 ? 80 : 54);
         const graf = new St.BoxLayout({style: 'spacing: 5px;', y_align: Clutter.ActorAlign.END, x_expand: this.w < 330});
         tot.forEach((s, i) => {
-            const col = new St.BoxLayout({vertical: true, style: 'spacing: 3px;', y_align: Clutter.ActorAlign.END});
+            const col = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style: 'spacing: 3px;', y_align: Clutter.ActorAlign.END});
             col.add_child(new St.Widget({
                 style: `width: ${this.px(this.w < 330 ? 16 : 20)}px; height: ${Math.max(3, Math.round(s / maxT * altoMax))}px; border-radius: 4px; background-color: ${i === 6 ? this.pal.acento : this.pal.superficie};`,
                 x_align: Clutter.ActorAlign.CENTER,

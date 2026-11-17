@@ -3,6 +3,7 @@
   "name": "Isolated test driver",
   "description": "Only for private smoke-test bus",
   "shell-version": [
-    "50"
+    "50",
+    "51"
   ]
 }

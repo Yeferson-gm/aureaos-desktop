@@ -229,7 +229,7 @@ export class Widget extends WidgetBase {
             this._siguiente(1);
             mostrar();
         }));
-        h.cuerpo.vertical = true;
+        h.cuerpo.orientation = Clutter.Orientation.VERTICAL;
         h.cuerpo.add_child(img);
         h.cuerpo.add_child(pie);
         h.abrir();

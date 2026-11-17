@@ -17,6 +17,7 @@ if [[ ${1:-} != --session ]]; then
     exec dbus-run-session -- bash "$0" --session
 fi
 gsettings set org.gnome.desktop.interface enable-hot-corners false
+gsettings set org.gnome.shell welcome-dialog-last-shown-version '99'
 gsettings set org.gnome.shell enabled-extensions "['island-test-driver@local']"
 gnome-shell --headless --wayland --wayland-display gdm-test --no-x11 --virtual-monitor "${AUREA_GDM_RESOLUTION:-1280x800}" --debug-control > "$DI_TEST_DIR/shell.log" 2>&1 &
 shell_pid=$!

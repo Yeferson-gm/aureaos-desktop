@@ -92,7 +92,7 @@ export class Widget extends WidgetBase {
                 h.cuerpo.add_child(etiqueta('Aún no tienes podcasts. Añade un feed RSS o usa los sugeridos.', 'lintel-ayuda'));
             for (const f of this.datos.feedsPodcast) {
                 const fila = new St.BoxLayout({style: 'spacing: 8px;', x_expand: true});
-                const c = new St.BoxLayout({vertical: true, x_expand: true});
+                const c = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true});
                 c.add_child(etiqueta(f.nombre, 'lintel-card-t'));
                 c.add_child(etiqueta(f.url, 'lintel-ayuda'));
                 fila.add_child(c);

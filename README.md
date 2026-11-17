@@ -61,9 +61,11 @@ gnome-extensions list --enabled
 gsettings get org.gnome.shell disable-user-extensions
 ```
 
-La integración completa se probó en Fedora 44, GNOME 50 y Wayland. Las versiones
-que declara cada extensión por separado no garantizan compatibilidad de todo el
-stack con otra versión de GNOME. No desactivar la validación de compatibilidad.
+La integración completa dispone de adaptaciones para GNOME 50 y 51. Se verificó
+la carga y desactivación de los 19 módulos en ambos, con pruebas específicas de
+interacción. No desactivar la validación de compatibilidad. Consultar
+[instalación y mantenimiento en GNOME 51](docs/gnome51.md) y la
+[guía de la isla de favoritas](docs/isla-aplicaciones-uso.md).
 
 Herramientas necesarias: Node.js, Git, GJS, GLib (`gsettings`, `gio`,
 `glib-compile-schemas`, `glib-compile-resources`), gettext (`msgfmt`), `gtk-update-icon-cache` y `gnome-extensions`.

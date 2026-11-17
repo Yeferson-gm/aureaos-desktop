@@ -1,3 +1,4 @@
+import {popupAnimation} from './popup-compat.js';
 // This file is part of the AppIndicator/KStatusNotifierItem GNOME Shell extension
 //
 // This program is free software; you can redistribute it and/or
@@ -652,11 +653,11 @@ const MenuItemFactory = {
             if (NEED_NESTED_SUBMENU_FIX) {
 
                 if (menu._openedSubMenu)
-                    menu._openedSubMenu.close(false);
+                    menu._openedSubMenu.close(popupAnimation(false));
 
 
                 if (menu._parent._openedSubMenu && menu._parent._openedSubMenu !== menu)
-                    menu._parent._openedSubMenu.close(true);
+                    menu._parent._openedSubMenu.close(popupAnimation(true));
 
                 menu._parent._openedSubMenu = menu;
             }
@@ -667,7 +668,7 @@ const MenuItemFactory = {
             if (NEED_NESTED_SUBMENU_FIX) {
 
                 if (menu._openedSubMenu)
-                    menu._openedSubMenu.close(false);
+                    menu._openedSubMenu.close(popupAnimation(false));
             }
 
             this._dbusItem.handleEvent('closed', null, 0).catch(logError);
@@ -910,7 +911,7 @@ export class Client extends Signals.EventEmitter {
             return;
 
         if (this._openedSubMenu && this._openedSubMenu.isOpen)
-            this._openedSubMenu.close(true);
+            this._openedSubMenu.close(popupAnimation(true));
 
         this._openedSubMenu = submenu;
     }

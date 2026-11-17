@@ -3,7 +3,8 @@
   "name": "Aurea 27 · Isla dinámica",
   "description": "Isla dinámica del escritorio Aurea 27.",
   "shell-version": [
-    "50"
+    "50",
+    "51"
   ],
   "settings-schema": "org.gnome.shell.extensions.dynamic-island"
 }

@@ -1,3 +1,4 @@
+import {popupAnimation} from './popup-compat.js';
 /* eslint-disable no-undef */
 /* DING: Desktop Icons New Generation for GNOME Shell
  *
@@ -947,7 +948,7 @@ var DingExtensionService = class {
             return;
 
         Main.layoutManager.setDummyCursorGeometry(X, Y, 0, 0);
-        backgroundMenu.open(BoxPointer.PopupAnimation.FULL);
+        backgroundMenu.open(popupAnimation(BoxPointer.PopupAnimation.FULL));
     }
 
     setWidgetLayerRaised(raised) {

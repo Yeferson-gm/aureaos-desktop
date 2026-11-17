@@ -553,7 +553,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _newPage(id, height = -1) {
-        const page = new St.BoxLayout({vertical: true, style_class: 'di-page', width: WIDTH, height, visible: false});
+        const page = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-page', width: WIDTH, height, visible: false});
         page._h = height;
         this._pages[id] = page;
         this._pagesBox.add_child(page);
@@ -978,7 +978,7 @@ export default class DynamicIsland extends Extension {
         this._connect(this._island, 'notify::height', () => this._syncIslandBackground());
         this._island.add_child(this._islandBackground);
 
-        const body = new St.BoxLayout({vertical: true, style_class: 'di-body', width: ISLAND_W});
+        const body = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-body', width: ISLAND_W});
         this._content = body;
         this._topSpacer = new St.Widget({height: 28});
         body.add_child(this._topSpacer);
@@ -1003,7 +1003,7 @@ export default class DynamicIsland extends Extension {
         this._sectionTitle = this._label('', 'di-section-title');
         body.add_child(this._sectionTitle);
 
-        this._pagesBox = new St.BoxLayout({vertical: true, width: WIDTH});
+        this._pagesBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, width: WIDTH});
         this._pageViewport = this._scroll(-1);
         this._pageViewport.set_child(this._pagesBox);
         body.add_child(this._pageViewport);
@@ -1324,11 +1324,11 @@ export default class DynamicIsland extends Extension {
             hint_text: 'Buscar aplicaciones o archivos de la bandeja…'});
         this._toolSearch.clutter_text.connect('text-changed', () => this._renderToolSearch());
         page.add_child(this._toolSearch);
-        this._toolResults = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._toolResults = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
         const scroll = this._scroll(180);
         scroll.set_child(this._toolResults);
         page.add_child(scroll);
-        this._captureHistory = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._captureHistory = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
         page.add_child(this._captureHistory);
         const display = this._chip('Ajustes de pantalla', () => {
             this._closeIsland();
@@ -1461,7 +1461,7 @@ export default class DynamicIsland extends Extension {
         this._art.set_child(this._cover);
         main.add_child(this._art);
 
-        const right = new St.BoxLayout({vertical: true, style_class: 'di-right', width: RIGHT, height: ART});
+        const right = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-right', width: RIGHT, height: ART});
         this._title = new St.Label({text: 'Sin música', style_class: 'di-title', width: RIGHT});
         this._title.clutter_text.set_ellipsize(3);
         this._artist = new St.Label({text: 'Abre un reproductor', style_class: 'di-artist', width: RIGHT});
@@ -1545,7 +1545,7 @@ export default class DynamicIsland extends Extension {
         }));
         page.add_child(audioTools);
         this._mediaExtras.build(page);
-        this._appAudio = new St.BoxLayout({vertical: true, style_class: 'di-list', visible: false});
+        this._appAudio = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list', visible: false});
         page.add_child(this._appAudio);
     }
 
@@ -1582,7 +1582,7 @@ export default class DynamicIsland extends Extension {
         page.add_child(this._head('Estante de archivos',
             this._chip('Añadir copiados', () => this._shelfAddFromClipboard(), 'edit-paste-symbolic'),
             this._iconBtn('user-trash-symbolic', () => this._shelfClear())));
-        this._shelfList = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._shelfList = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
         this._shelfScroll = this._scroll(PAGE_H - 34);
         this._shelfScroll.add_child(this._shelfList);
         page.add_child(this._shelfScroll);
@@ -1799,7 +1799,7 @@ export default class DynamicIsland extends Extension {
 
     _sendFile(path, uri) {
         this._shareChoices?.destroy();
-        this._shareChoices = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._shareChoices = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
         this._pages.files.add_child(this._shareChoices);
         this._shareChoices.add_child(this._label('Elige una herramienta; el destino se selecciona en ella.', 'di-hint'));
         let count = 0;
@@ -2100,7 +2100,7 @@ export default class DynamicIsland extends Extension {
             filters.add_child(this._chip(name, () => { this._clipFilter = value; this._renderClips(); }));
         page.add_child(filters);
 
-        this._clipList = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._clipList = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
         this._clipScroll = this._scroll(PAGE_CLIP_LIST);
         this._clipScroll.add_child(this._clipList);
         page.add_child(this._clipScroll);
@@ -2281,7 +2281,7 @@ export default class DynamicIsland extends Extension {
             this._renderTasks();
         });
         page.add_child(input);
-        this._taskList = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._taskList = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
         const scroll = this._scroll(108);
         scroll.set_child(this._taskList);
         page.add_child(scroll);
@@ -2353,7 +2353,7 @@ export default class DynamicIsland extends Extension {
 
         const scroll = this._scroll(168);
         this._notificationList = new St.BoxLayout({
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style_class: 'di-notification-list',
             width: WIDTH,
         });
@@ -2482,7 +2482,7 @@ export default class DynamicIsland extends Extension {
 
         if (entries.length === 0) {
             const empty = new St.BoxLayout({
-                vertical: true,
+                orientation: Clutter.Orientation.VERTICAL,
                 style_class: 'di-notification-empty',
                 width: WIDTH,
                 height: 150,
@@ -2532,7 +2532,7 @@ export default class DynamicIsland extends Extension {
             } catch (e) {                                 }
             row.add_child(icon);
 
-            const texts = new St.BoxLayout({vertical: true, style_class: 'di-notification-texts', x_expand: true});
+            const texts = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-notification-texts', x_expand: true});
             const title = String(notification.title ?? source.title ?? 'Notificación');
             const body = String(notification.body ?? '');
             const titleLabel = this._label(title, 'di-notification-title');
@@ -2551,7 +2551,7 @@ export default class DynamicIsland extends Extension {
                 this._closeIsland();
             });
             this._notificationList.add_child(button);
-            const actions = new St.BoxLayout({vertical: true, style_class: 'di-notification-actions'});
+            const actions = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-notification-actions'});
             for (const action of (notification.actions ?? []).slice(0, 3)) {
                 actions.add_child(this._chip(action.label, () => {
                     try { action.activate(); } catch { this._toast({text: 'Esta acción ya no está disponible', warn: true}); }
@@ -2651,7 +2651,7 @@ export default class DynamicIsland extends Extension {
         this._hardwareLabel = this._label('Sensores · Consultando…', 'di-hint', {width: WIDTH});
         this._hardwareLabel.clutter_text.set_line_wrap(true);
         page.add_child(this._hardwareLabel);
-        this._connections = new St.BoxLayout({vertical: true, style_class: 'di-list'});
+        this._connections = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
         this._wifiButton = this._chip('Wi-Fi · Consultando…', () => {
             if (this._nm) this._nm.wireless_enabled = !this._nm.wireless_enabled;
         }, 'network-wireless-symbolic');
@@ -3347,14 +3347,14 @@ export default class DynamicIsland extends Extension {
                 this._renderCalendarGrid();
             }));
         page.add_child(calendarHead);
-        this._calendarGrid = new St.BoxLayout({vertical: true, style_class: 'di-calendar'});
+        this._calendarGrid = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-calendar'});
         page.add_child(this._calendarGrid);
         this._renderCalendarGrid();
 
         const top = new St.BoxLayout({style_class: 'di-today-top', width: WIDTH});
         const left = new St.BoxLayout({style_class: 'di-today-left', width: 170, y_align: Clutter.ActorAlign.CENTER});
         this._todayDay = new St.Label({text: '1', style_class: 'di-today-day', y_align: Clutter.ActorAlign.CENTER});
-        const dateCol = new St.BoxLayout({vertical: true, y_align: Clutter.ActorAlign.CENTER});
+        const dateCol = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, y_align: Clutter.ActorAlign.CENTER});
         this._todayWeek = new St.Label({text: '', style_class: 'di-today-week'});
         this._todayMonth = new St.Label({text: '', style_class: 'di-today-month'});
         dateCol.add_child(this._todayWeek);
@@ -3366,7 +3366,7 @@ export default class DynamicIsland extends Extension {
 
         const right = new St.BoxLayout({style_class: 'di-today-right', y_align: Clutter.ActorAlign.CENTER});
         this._wIcon = new St.Icon({icon_name: 'weather-overcast-symbolic', icon_size: 34, y_align: Clutter.ActorAlign.CENTER});
-        const wCol = new St.BoxLayout({vertical: true, y_align: Clutter.ActorAlign.CENTER});
+        const wCol = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, y_align: Clutter.ActorAlign.CENTER});
         this._wTemp = new St.Label({text: '--°', style_class: 'di-w-temp'});
         this._wDesc = new St.Label({text: 'Cargando clima…', style_class: 'di-w-desc', width: 120});
         this._wDesc.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
@@ -3385,7 +3385,7 @@ export default class DynamicIsland extends Extension {
         extra.add_child(this._aqiChip);
         page.add_child(extra);
 
-        this._eventsBox = new St.BoxLayout({vertical: true, style_class: 'di-events', width: WIDTH});
+        this._eventsBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-events', width: WIDTH});
         page.add_child(this._eventsBox);
     }
 

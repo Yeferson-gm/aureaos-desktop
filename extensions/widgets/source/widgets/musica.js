@@ -110,7 +110,7 @@ export class Widget extends WidgetBase {
         this._barra = null;
         const p = this._p;
         if (!p) {
-            const c = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 6px;'});
+            const c = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 6px;'});
             c.add_child(this.icono('audio-x-generic-symbolic', 34, 'texto2'));
             c.add_child(this.t('Nada en reproducción', 14, {peso: 'bold', align: Clutter.ActorAlign.CENTER}));
             c.add_child(this.t('Abre un reproductor compatible', 11, {c: 'texto2', align: Clutter.ActorAlign.CENTER}));

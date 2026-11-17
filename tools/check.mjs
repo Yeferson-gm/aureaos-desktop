@@ -35,7 +35,7 @@ for (const name of Object.keys(stack.extensions)) {
         run('glib-compile-schemas', ['--strict', '--dry-run', path.join(source, 'schemas')]);
     if (fs.existsSync(path.join(source, 'stylesheet.css')))
         run('gjs', ['-c', 'const {St,Gio}=imports.gi; new St.Theme().load_stylesheet(Gio.File.new_for_path(ARGV[0]));', path.join(source, 'stylesheet.css')],
-            {env: {...process.env, GI_TYPELIB_PATH: '/usr/lib64/gnome-shell:/usr/lib64/mutter-18', LD_LIBRARY_PATH: '/usr/lib64/gnome-shell'}});
+            {env: {...process.env, GI_TYPELIB_PATH: ['/usr/lib64/gnome-shell', ...fs.readdirSync('/usr/lib64').filter(n => /^mutter-\d+$/.test(n)).map(n => '/usr/lib64/' + n)].join(':'), LD_LIBRARY_PATH: '/usr/lib64/gnome-shell'}});
 }
 const tests = [
     'tests/version.test.mjs',
@@ -47,6 +47,7 @@ const tests = [
     'extensions/dynamic-island/tests/studio-lifecycle.mjs',
     'extensions/dynamic-island/tests/native-banners.mjs',
     'extensions/dynamic-island/tests/validate-notifications.mjs',
+    'extensions/app-island/test-model.mjs',
     'extensions/app-island/test-panel.mjs',
     'extensions/app-island/test-autohide.mjs',
     'extensions/app-island/test-monitor-clip.mjs',

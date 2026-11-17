@@ -10,7 +10,7 @@ export function buildAppLauncher(island) {
     page.add_child(hint);
     const search = new St.Entry({style_class: 'di-search', hint_text: 'Buscar aplicación…', can_focus: true});
     page.add_child(search);
-    const list = new St.BoxLayout({vertical: true, style_class: 'di-library-list'});
+    const list = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-library-list'});
     page.add_child(list);
     const system = Shell.AppSystem.get_default();
     const render = () => {

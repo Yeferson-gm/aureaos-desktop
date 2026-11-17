@@ -133,7 +133,7 @@ export class Widget extends WidgetBase {
             return;
         }
         if (!this._lista.length) {
-            const c = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 6px;'});
+            const c = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 6px;'});
             c.add_child(this.icono('battery-full-charged-symbolic', 34, 'texto2'));
             c.add_child(this.t('Conectado a la corriente', 14, {peso: 'bold', align: Clutter.ActorAlign.CENTER}));
             c.add_child(this.t('Este equipo no tiene batería', 11, {c: 'texto2', align: Clutter.ActorAlign.CENTER}));
@@ -143,7 +143,7 @@ export class Widget extends WidgetBase {
         const lista = this._lista;
         if (this.h < 220 && this.w < 250) {
             const d = lista[0];
-            const c = new St.BoxLayout({vertical: true, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 4px;'});
+            const c = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 4px;'});
             const a = this._anillo(d, Math.min(this.w, this.h) - this.px(46));
             a.x_expand = true;
             c.add_child(a);
@@ -157,7 +157,7 @@ export class Widget extends WidgetBase {
             fila.y_expand = true;
             const n = Math.max(1, Math.floor(this.w / this.px(88)));
             for (const d of lista.slice(0, n)) {
-                const c = new St.BoxLayout({vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 4px;'});
+                const c = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 4px;'});
                 c.add_child(this._anillo(d, this.px(64)));
                 c.add_child(this.t(`${d.pct}%`, 16, {peso: 'bold', align: Clutter.ActorAlign.CENTER}));
                 c.add_child(this.t(d.nombre, 10, {c: 'texto2', align: Clutter.ActorAlign.CENTER}));

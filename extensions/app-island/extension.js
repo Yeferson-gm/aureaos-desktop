@@ -1,662 +1,569 @@
 import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import Pango from 'gi://Pango';
+import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {DEFAULTS, normalize, categoryFor} from './model.js';
+import {Store} from './store.js';
+import {column, label, button, entry, edit} from './ui.js';
+import {createRoundedMask} from './rounded-clip.js';
 
+const Mask = createRoundedMask('AureaFavoritesMask');
+const PRIMARY = St.ButtonMask.PRIMARY ?? St.ButtonMask.ONE;
+const MIDDLE = St.ButtonMask.MIDDLE ?? St.ButtonMask.TWO;
+const SECONDARY = St.ButtonMask.SECONDARY ?? St.ButtonMask.THREE;
 
-const LADO = 'derecha';
-const MAX_FAVS = 5;
-const MAX_GUARDADOS = 24;
-const ICONO = 28;
-const BOTON = 40;
-const OFFSET_Y = 0;
-const CURVA = 8;
-const RADIO = 8;
-const ANCHO_BARRA = 54;
-const ANCHO_PANEL = 360;
-const ALTO_PANEL = 560;
-const COLOR = [0.12, 0.14, 0.17, 0.78];
-const AUTO_OCULTAR = true;
-const BORDE_VISIBLE = 6;
-
-
-const CATEGORIAS = [
-    ['Internet', ['WebBrowser', 'Network', 'Email', 'InstantMessaging', 'Chat', 'P2P']],
-    ['Multimedia', ['AudioVideo', 'Audio', 'Video', 'Player', 'Music']],
-    ['Gráficos', ['Graphics', 'Photography']],
-    ['Oficina', ['Office', 'Calendar', 'Spreadsheet']],
-    ['Desarrollo', ['Development', 'IDE', 'Debugger']],
-    ['Juegos', ['Game']],
-    ['Sistema', ['System', 'Settings', 'Monitor', 'TerminalEmulator', 'PackageManager']],
-    ['Utilidades', ['Utility', 'Accessibility', 'TextEditor', 'Archiving', 'FileManager']],
-];
-const HINT = 'Clic: abrir · Botón central: nueva ventana';
-
-export default class SideDock extends Extension {
+export default class AppIsland extends Extension {
     enable() {
-        this._alive = true;
-        this._signals = [];
-        this._sources = new Set();
-        this._hintTimer = 0;
-        this._queueId = 0;
-        this._open = false;
-        this._grab = null;
-        this._captureSignal = 0;
-        this._scroll = null;
-        this._hint = null;
-        this._view = 'favorites';
-        this._collapsed = new Set();
+        this._signals = []; this._sources = new Set(); this._rows = new Map(); this._pending = new Map();
         this._appSystem = Shell.AppSystem.get_default();
-
-        this._file = GLib.build_filenamev([GLib.get_user_data_dir(), 'side-dock', 'favoritos.json']);
-        GLib.mkdir_with_parents(GLib.path_get_dirname(this._file), 0o755);
-        this._loadFavs();
-
-        const side = LADO === 'derecha' ? Clutter.ActorAlign.END : Clutter.ActorAlign.START;
-
-        this._root = new St.Widget({
-            style_class: 'sd-root',
-            layout_manager: new Clutter.BinLayout(),
-            reactive: true,
-            track_hover: true,
-            clip_to_allocation: true,
-        });
-        this._bg = new St.DrawingArea({x_expand: true, y_expand: true});
-        this._bg.connect('repaint', a => this._paint(a));
-        this._root.add_child(this._bg);
-        this._connect(this._root, 'notify::width', () => this._bg?.queue_repaint());
-        this._connect(this._root, 'notify::height', () => this._bg?.queue_repaint());
-        for (const property of ['x', 'y', 'width', 'height', 'translation-x', 'translation-y'])
-            this._connect(this._root, `notify::${property}`, () => this._syncMonitorClip());
-        this._connect(this._root, 'notify::hover', () => {
-            this._clear(this._hideTimer);
-            this._hideTimer = 0;
-            if (this._root.hover || this._open)
-                this._syncAutoHide(true);
-            else
-                this._hideTimer = this._timeout(650, () => {
-                    this._hideTimer = 0;
-                    this._syncAutoHide(true);
-                });
-        });
-
-        this._bar = new St.BoxLayout({
-            name: 'sideDockBar',
-            style_class: 'sd-bar', orientation: Clutter.Orientation.VERTICAL, width: ANCHO_BARRA,
-            x_expand: true, y_expand: true, x_align: side, y_align: Clutter.ActorAlign.CENTER,
-        });
-        this._bar.set_style(`padding: ${CURVA + 5}px 0;`);
+        this._interface = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'});
+        this._a11y = new Gio.Settings({schema_id: 'org.gnome.desktop.a11y.interface'});
+        this._store = new Store(GLib.build_filenamev([GLib.get_user_data_dir(), 'side-dock', 'favoritos.json']),
+            AppFavorites.getAppFavorites().getFavorites().map(a => a.get_id()).slice(0, 5), id => {
+                const app = this._appSystem.lookup_app(id); return {categories: app?.get_app_info()?.get_categories()};
+            });
+        this._model = this._store.model;
+        this._view = 'favorites'; this._query = ''; this._open = false; this._scrollValues = new Map();
+        this._root = new St.Widget({name: 'aureaFavorites', layout_manager: new Clutter.BinLayout(), reactive: true, track_hover: true, clip_to_allocation: true});
+        this._glass = new St.Widget({x_expand: true, y_expand: true, style: 'background-color: rgba(0,0,0,0.004);'});
+        this._mask = new Mask(); this._glass.add_effect(this._mask);
+        this._blur = new Shell.BlurEffect({mode: Shell.BlurMode.BACKGROUND, radius: 24, brightness: 1});
+        this._glass.add_effect(this._blur); this._blur.set_enabled(false);
+        this._root.add_child(this._glass);
+        this._surface = new St.Widget({style_class: 'ai-surface', x_expand: true, y_expand: true});
+        this._root.add_child(this._surface);
+        this._bar = column({style_class: 'ai-bar', x_expand: true, y_expand: true});
         this._root.add_child(this._bar);
-
-        this._panel = new St.BoxLayout({
-            name: 'sideDockPanel',
-            style_class: 'sd-panel', orientation: Clutter.Orientation.VERTICAL, width: ANCHO_PANEL,
-            x_expand: true, y_expand: true, x_align: side, y_align: Clutter.ActorAlign.CENTER,
-            visible: false, opacity: 0,
-        });
-        this._panel.set_style(`padding: ${CURVA + 12}px 20px;`);
+        this._panel = column({style_class: 'ai-panel', visible: false, x_expand: true, y_expand: true});
         this._root.add_child(this._panel);
-
-
-        this._handle = new St.Button({
-            name: 'sideDockHandle', style_class: 'sd-handle', width: 7,
-            reactive: true, can_focus: true, x_expand: true, y_expand: true,
-            x_align: LADO === 'derecha' ? Clutter.ActorAlign.START : Clutter.ActorAlign.END,
-            accessible_name: 'Abrir isla de favoritas',
-            child: new St.Widget({style_class: 'sd-grip', width: 2, height: 26, x_expand: true, y_expand: true,
-                x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER}),
-        });
-        this._handle.connect('clicked', () => this._setOpen(true));
+        this._handle = button('Abrir favoritas', () => this._setOpen(true));
+        this._handle.set_style('padding: 0; width: 7px; background-color: transparent;');
+        this._handle.set_child(new St.Widget({width: 2, height: 24, style_class: 'ai-grip', y_align: Clutter.ActorAlign.CENTER}));
         this._root.add_child(this._handle);
-
-
-
-
         Main.layoutManager.addChrome(this._root, {trackFullscreen: true});
-
-        this._connect(this._appSystem, 'app-state-changed', () => this._queue());
-        this._connect(this._appSystem, 'installed-changed', () => this._queue());
-        this._connect(Main.layoutManager, 'monitors-changed', () => this._relayout());
-        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root?.hide(); });
-        this._connect(Main.overview, 'hidden', () => this._root?.show());
-        this._rebuildBar();
-        this._apply(false);
-        this._syncAutoHide(false);
+        for (const prop of ['x', 'y', 'width', 'height', 'translation-x'])
+            this._connect(this._root, `notify::${prop}`, () => this._clip());
+        this._connect(this._root, 'notify::hover', () => {
+            this._clear(this._edgeTimer);
+            if (this._open || this._dragging) return;
+            this._edgeTimer = this._timeout(this._root.hover ? this.settings.delay : this.settings.hideDelay,
+                () => this._reveal(this._root.hover));
+        });
+        this._connect(this._appSystem, 'app-state-changed', () => this._updateStates());
+        this._connect(this._appSystem, 'installed-changed', () => this._render());
+        this._connect(Main.layoutManager, 'monitors-changed', () => { this._setOpen(false); this._layout(); });
+        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); });
+        this._connect(Main.overview, 'hidden', () => this._root.show());
+        this._connect(this._interface, 'changed', () => { this._theme(); this._layout(); });
+        this._connect(this._a11y, 'changed', () => this._theme());
+        this._connect(global.display, 'accelerator-activated', (_d, action) => {
+            if (action === this._accelerator) this._setOpen(!this._open);
+        });
+        this._shortcut(); this._buildPanel(); this._renderBar(); this._layout(); this._theme();
         if (Main.overview.visible) this._root.hide();
     }
-
-    disable() {
-        this._alive = false;
-        this._releaseInteraction();
-        for (const id of [...this._sources]) { try { GLib.Source.remove(id); } catch (e) {            } }
-        this._sources.clear();
-        for (const [obj, id] of this._signals) { try { obj.disconnect(id); } catch (e) {            } }
-        this._signals = [];
-        if (this._root) {
-            this._root.remove_all_transitions();
-            try { Main.layoutManager.removeChrome(this._root); } catch (e) {            }
-            this._root.destroy();
-            this._root = null;
-        }
-        this._bar = this._panel = this._bg = this._scroll = this._hint = null;
-        this._handle = this._list = this._entry = this._tabs = this._subtitle = null;
-        this._appSystem = null;
-    }
-
-
-    _connect(obj, signal, fn) {
-        this._signals.push([obj, obj.connect(signal, fn)]);
-    }
-
+    get settings() { return this._model.settings; }
+    _connect(obj, signal, fn) { this._signals.push([obj, obj.connect(signal, fn)]); }
     _timeout(ms, fn) {
         const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
-            this._sources.delete(id);
-            if (this._alive) { try { fn(); } catch (e) { console.error(`Side Dock timer: ${e.message}`); } }
-            return GLib.SOURCE_REMOVE;
-        });
-        this._sources.add(id);
-        return id;
+            this._sources.delete(id); if (this._root) fn(); return GLib.SOURCE_REMOVE;
+        }); this._sources.add(id); return id;
     }
-
-    _clear(id) {
-        if (id && this._sources.has(id)) { GLib.Source.remove(id); this._sources.delete(id); }
+    _clear(id) { if (this._sources.delete(id)) GLib.Source.remove(id); }
+    _duration(ms) {
+        const st = St.Settings.get();
+        return !st.enable_animations || (St.ReducedMotion && st.reduced_motion === St.ReducedMotion.REDUCE) ? 0 : ms;
     }
-
-    _queue() {
-        if (this._queueId) return;
-        this._queueId = this._timeout(100, () => {
-            this._queueId = 0;
-            this._rebuildBar();
-            if (this._open) this._renderContent();
-        });
+    _monitor() {
+        const all = Main.layoutManager.monitors;
+        return all.find(m => `${m.x},${m.y}` === this.settings.monitor) ?? Main.layoutManager.primaryMonitor;
     }
-
-    _adj() {
-        try { return this._scroll?.vadjustment ?? this._scroll?.vscroll?.adjustment ?? null; } catch (e) { return null; }
+    _side() {
+        this._sharedEdge = false;
+        const m = this._monitor(); if (!m) return this.settings.side;
+        const border = this.settings.side === 'right' ? m.x + m.width : m.x;
+        const shared = Main.layoutManager.monitors.some(n => n !== m && n.y < m.y + m.height && n.y + n.height > m.y &&
+            (this.settings.side === 'right' ? n.x === border : n.x + n.width === border));
+        if (!shared) return this.settings.side;
+        const opposite = this.settings.side === 'right' ? m.x : m.x + m.width;
+        const blocked = Main.layoutManager.monitors.some(n => n !== m && n.y < m.y + m.height && n.y + n.height > m.y &&
+            (this.settings.side === 'right' ? n.x + n.width === opposite : n.x === opposite));
+        this._sharedEdge = blocked;
+        return blocked ? this.settings.side : this.settings.side === 'right' ? 'left' : 'right';
     }
-
-
-    _loadFavs() {
-        this._favIds = null;
-        try {
-            const [ok, bytes] = GLib.file_get_contents(this._file);
-            if (ok) {
-                const d = JSON.parse(new TextDecoder().decode(bytes));
-                if (Array.isArray(d.favoritos)) this._favIds = [...new Set(d.favoritos.filter(x => typeof x === 'string'))];
-            }
-        } catch (e) {                   }
-        if (!this._favIds) {
-            this._favIds = AppFavorites.getAppFavorites().getFavorites().map(a => a.get_id()).slice(0, MAX_FAVS);
-            this._saveFavs();
-        }
+    _geometry() {
+        const m = this._monitor(); if (!m) return null;
+        const work = Main.layoutManager.getWorkAreaForMonitor(m.index);
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const width = this._open ? Math.min(360 * scale, work.width - 16) : 52 * scale;
+        const content = this._panel.get_preferred_height(width)[1];
+        const height = Math.max(56 * scale, Math.min(work.height - 24 * scale,
+            this._open ? Math.max(260 * scale, Math.min(content, 620 * scale)) : this._bar.get_preferred_height(width)[1]));
+        const side = this._side();
+        return {x: side === 'right' ? m.x + m.width - width : m.x,
+            y: work.y + Math.round((work.height - height) / 2), width, height};
     }
-
-    _saveFavs() {
-        try {
-            GLib.file_set_contents(this._file, JSON.stringify({favoritos: this._favIds}, null, 2));
-        } catch (e) { console.error(`Side Dock: no se pudo guardar favoritos: ${e.message}`); }
-    }
-
-    _favApps() {
-        return this._favIds.map(id => this._appSystem.lookup_app(id)).filter(Boolean);
-    }
-
-    _toggleFav(app) {
-        const id = app.get_id();
-        const i = this._favIds.indexOf(id);
-        if (i >= 0) {
-            this._favIds.splice(i, 1);
-        } else {
-            if (this._favApps().length >= MAX_GUARDADOS) {
-                this._flash(`Máximo ${MAX_GUARDADOS} favoritas. Quita una primero.`);
-                return;
-            }
-            this._favIds.push(id);
-        }
-        this._saveFavs();
-        this._rebuildBar();
-        if (this._open) this._renderContent();
-        this._flash(`${app.get_name()} ${i >= 0 ? 'quitada de' : 'añadida a'} favoritas`);
-    }
-
-    _flash(text) {
-        if (!this._hint) return;
-        this._hint.text = text;
-        this._clear(this._hintTimer);
-        this._hintTimer = this._timeout(2800, () => { if (this._hint) this._hint.text = this._baseHint; });
-    }
-
-
-    _paint(area) {
-        const cr = area.get_context();
-        const [w, h] = area.get_surface_size();
-        const F = Math.max(1, Math.min(CURVA, w - 1, h / 4));
-        const bh = h - 2 * F;
-        const R = Math.max(1, Math.min(RADIO, bh / 2, w - F));
-        if (LADO !== 'derecha') { cr.translate(w, 0); cr.scale(-1, 1); }
-        cr.newPath();
-        cr.moveTo(w, 0);
-        cr.arc(w - F, 0, F, 0, Math.PI / 2);
-        cr.lineTo(R, F);
-        cr.arcNegative(R, F + R, R, -Math.PI / 2, -Math.PI);
-        cr.lineTo(0, F + bh - R);
-        cr.arcNegative(R, F + bh - R, R, Math.PI, Math.PI / 2);
-        cr.lineTo(w - F, F + bh);
-        cr.arc(w - F, h, F, -Math.PI / 2, 0);
-        cr.setSourceRGBA(...COLOR);
-        cr.fillPreserve();
-        cr.setSourceRGBA(1, 1, 1, 0.12);
-        cr.setLineWidth(1);
-        cr.stroke();
-        cr.$dispose();
-    }
-
-
-    _syncMonitorClip() {
-        const actor = this._root;
-        const monitor = Main.layoutManager.primaryMonitor;
-        if (!actor || !monitor) return;
-
-
-
-        const x = actor.x + actor.translation_x;
-        const y = actor.y + actor.translation_y;
-        const left = Math.max(0, monitor.x - x);
-        const top = Math.max(0, monitor.y - y);
-        const right = Math.min(actor.width, monitor.x + monitor.width - x);
-        const bottom = Math.min(actor.height, monitor.y + monitor.height - y);
-        actor.set_clip(left, top, Math.max(0, right - left), Math.max(0, bottom - top));
-    }
-
-    _syncAutoHide(animate) {
+    _layout() {
         if (!this._root) return;
-        const hidden = AUTO_OCULTAR && !this._open && !this._root.hover;
-        const offset = hidden ? (ANCHO_BARRA - BORDE_VISIBLE) * (LADO === 'derecha' ? 1 : -1) : 0;
-        if (animate)
-            this._root.ease({translation_x: offset, duration: 220,
-                mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
-        else
-            this._root.translation_x = offset;
+        const g = this._geometry(); if (!g) return;
+        this._root.remove_all_transitions(); this._root.set_position(g.x, g.y); this._root.set_size(g.width, g.height);
+        this._handle.x_align = this._side() === 'right' ? Clutter.ActorAlign.START : Clutter.ActorAlign.END;
+        this._reveal(this._open || this._root.hover, false); this._clip();
     }
-
-    _geometry(open) {
-        const m = Main.layoutManager.primaryMonitor;
-        if (!m) return null;
-        let w, h;
-        if (open) {
-            w = ANCHO_PANEL;
-            h = Math.min(ALTO_PANEL, m.height - 120);
-        } else {
-            w = ANCHO_BARRA;
-            h = this._bar.get_preferred_height(ANCHO_BARRA)[1];
-        }
-        const x = LADO === 'derecha' ? m.x + m.width - w : m.x;
-        const y = Math.round(m.y + (m.height - h) / 2 + OFFSET_Y);
-        return {x, y, w, h};
-    }
-
-    _apply(animate) {
+    _clip() {
         if (!this._root) return;
-        const g = this._geometry(this._open);
-        if (!g) return;
-        if (animate) {
-            this._root.ease({x: g.x, y: g.y, width: g.w, height: g.h, duration: 340,
-                mode: Clutter.AnimationMode.EASE_OUT_QUART});
-        } else {
-            this._root.remove_all_transitions();
-            this._root.set_position(g.x, g.y);
-            this._root.set_size(g.w, g.h);
+        const m = this._monitor(); if (!m) return;
+        const a = this._root, x = a.x + a.translation_x, y = a.y;
+        const left = Math.max(0, m.x - x), top = Math.max(0, m.y - y);
+        a.set_clip(left, top, Math.max(0, Math.min(a.width, m.x + m.width - x) - left),
+            Math.max(0, Math.min(a.height, m.y + m.height - y) - top));
+        this._mask.resize(a.width, a.height, 18 * St.ThemeContext.get_for_stage(global.stage).scale_factor);
+    }
+    _reveal(show, animate = true) {
+        if (this._sharedEdge && !this._open) show = false;
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const offset = show ? 0 : (this._root.width - this.settings.edge * scale) * (this._side() === 'right' ? 1 : -1);
+        this._root.ease({translation_x: offset, duration: animate ? this._duration(180) : 0, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+    }
+    _shortcut() {
+        if (this._accelerator) {
+            Main.wm.allowKeybinding(Meta.external_binding_name_for_action(this._accelerator), Shell.ActionMode.NONE);
+            global.display.ungrab_accelerator(this._accelerator);
         }
+        this._accelerator = global.display.grab_accelerator(this.settings.shortcut, Meta.KeyBindingFlags.NONE);
+        if (this._accelerator) Main.wm.allowKeybinding(Meta.external_binding_name_for_action(this._accelerator), Shell.ActionMode.NORMAL | Shell.ActionMode.POPUP);
+        else this._message('El atajo está ocupado o no es válido. Puedes cambiarlo en Ajustes.');
     }
-
-    _relayout() {
-        if (!this._root) return;
-        this._apply(false);
-        const geometry = this._geometry(true);
-        if (this._open && geometry) this._panel.set_height(geometry.h);
-        this._syncAutoHide(false);
-        this._syncMonitorClip();
-    }
-
-
     _setOpen(open) {
         if (!this._root || this._open === open) return;
+        this._clear(this._edgeTimer); this._clear(this._previewTimer); this._clearPopup();
         this._open = open;
-        this._clear(this._hideTimer);
-        this._hideTimer = 0;
-        this._syncAutoHide(true);
-        const E = Clutter.AnimationMode;
-        this._bar.remove_all_transitions();
-        this._panel.remove_all_transitions();
-
         if (open) {
-            this._view = 'favorites';
-            this._handle.hide();
-            this._buildPanel(this._geometry(true)?.h);
-            this._panel.opacity = 0;
-            this._panel.show();
-            if (!this._acquireInteraction()) {
-                this._open = false;
-                this._panel.hide();
-                this._bar.show();
-                this._handle.show();
-                this._apply(false);
-                this._syncAutoHide(false);
-                return;
+            this._previousFocus = global.stage.get_key_focus();
+            this._grab = Main.pushModal(this._root, {actionMode: Shell.ActionMode.POPUP});
+            if (!this._grab) {
+                if (this._grab) Main.popModal(this._grab);
+                this._grab = null; this._open = false; return;
             }
-            this._bar.ease({opacity: 0, duration: 90, mode: E.LINEAR,
-                onComplete: () => { if (this._open && this._bar) this._bar.hide(); }});
-            this._panel.ease({opacity: 255, duration: 220, delay: 130, mode: E.EASE_OUT_CUBIC});
+            this._capture = this._root.connect('captured-event', (_actor, ev) => this._event(ev));
+            this._panel.show(); this._bar.hide(); this._handle.hide(); this._render();
+            this._timeout(0, () => { this._scroll.vadjustment.value = this._model.profile.scroll ?? 0; });
         } else {
-            this._clear(this._searchTimer);
-            this._clear(this._hintTimer);
-            this._searchTimer = this._hintTimer = 0;
-            this._releaseInteraction();
-            this._handle.show();
-            this._panel.ease({opacity: 0, duration: 90, mode: E.LINEAR,
-                onComplete: () => {
-                    if (this._open || !this._panel) return;
-                    this._panel.hide();
-                    this._panel.destroy_all_children();
-                    this._scroll = null;
-                    this._hint = null;
-                    this._list = this._entry = this._tabs = this._subtitle = null;
-                }});
-            this._bar.opacity = 0;
-            this._bar.show();
-            this._bar.ease({opacity: 255, duration: 220, delay: 130, mode: E.EASE_OUT_CUBIC});
+            this._model.profile.scroll = this._scroll.vadjustment.value; this._save();
+            this._release(); this._panel.hide(); this._bar.show(); this._handle.show();
         }
-        this._apply(true);
-        if (open) this._closeButton.grab_key_focus();
+        const g = this._geometry();
+        this._root.ease({...g, translation_x: 0, duration: this._duration(open ? 240 : 180), mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            onComplete: () => { if (!this._open) this._reveal(this._root.hover); }});
+        this._theme();
+        if (open) this._search.grab_key_focus();
     }
-
-    _acquireInteraction() {
-        if (!this._root) return false;
-        if (this._grab) return true;
-        try {
-            this._captureSignal = this._root.connect(
-                'captured-event', (_actor, event) => this._onEvent(event));
-            this._grab = Main.pushModal(this._root, {
-                actionMode: Shell.ActionMode.POPUP,
-            });
-            if (this._grab) return true;
-            this._releaseInteraction();
-            return false;
-        } catch (e) {
-            console.error(`Side Dock: no se pudo capturar la entrada: ${e.message}`);
-            this._releaseInteraction();
-            return false;
-        }
+    _release() {
+        if (this._capture) { this._root.disconnect(this._capture); this._capture = 0; }
+        if (this._grab) { Main.popModal(this._grab); this._grab = null; }
+        try { this._previousFocus?.grab_key_focus(); } catch {}
+        this._previousFocus = null;
     }
-
-    _releaseInteraction() {
-        if (this._captureSignal) {
-            try { this._root?.disconnect(this._captureSignal); } catch (e) {            }
-            this._captureSignal = 0;
-        }
-        if (this._grab) {
-            const grab = this._grab;
-            this._grab = null;
-            try { Main.popModal(grab); } catch (e) {
-                console.debug(`Side Dock: el grab ya había sido liberado: ${e.message}`);
+    _event(ev) {
+        if (ev.type() === Clutter.EventType.KEY_PRESS) {
+            const key = ev.get_key_symbol();
+            if (key === Clutter.KEY_Escape) {
+                if (this._popup) this._clearPopup();
+                else if (this._view !== 'favorites') this._switch('favorites');
+                else this._setOpen(false);
+                return Clutter.EVENT_STOP;
+            }
+            const focus = global.stage.get_key_focus();
+            const focused = [...this._rows.values()].find(r => focus && r.actor.contains(focus));
+            if (focused && [Clutter.KEY_Menu, Clutter.KEY_F10].includes(key)) { this._actions(focused.item); return Clutter.EVENT_STOP; }
+            if ([Clutter.KEY_Down, Clutter.KEY_Up, Clutter.KEY_Left, Clutter.KEY_Right].includes(key) && focused) {
+                this._panel.navigate_focus(global.stage.get_key_focus(), ({[Clutter.KEY_Down]: St.DirectionType.DOWN, [Clutter.KEY_Up]: St.DirectionType.UP, [Clutter.KEY_Left]: St.DirectionType.LEFT, [Clutter.KEY_Right]: St.DirectionType.RIGHT})[key], true);
+                return Clutter.EVENT_STOP;
             }
         }
-    }
-
-    _onEvent(ev) {
-        if (!this._open || !this._root) return Clutter.EVENT_PROPAGATE;
-        const t = ev.type();
-        if (t === Clutter.EventType.KEY_PRESS && ev.get_key_symbol() === Clutter.KEY_Escape) {
-            this._setOpen(false);
-            return Clutter.EVENT_STOP;
-        }
-        if (t === Clutter.EventType.BUTTON_PRESS || t === Clutter.EventType.TOUCH_BEGIN) {
-            const [x, y] = ev.get_coords();
-            const rx = this._root.x;
-            const ry = this._root.y;
-            const rw = this._root.width;
-            const rh = this._root.height;
-            let target = null;
-            try { target = global.stage.get_event_actor(ev); } catch (e) {                         }
-            const insideBounds = x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
-            const inside = target ? this._root.contains(target) && insideBounds : insideBounds;
-            if (!inside) {
-                this._setOpen(false);
-
-
-                return Clutter.EVENT_STOP;
+        if ([Clutter.EventType.BUTTON_PRESS, Clutter.EventType.TOUCH_BEGIN].includes(ev.type())) {
+            const [x, y] = ev.get_coords(), a = this._root;
+            if (x < a.x + a.translation_x || x > a.x + a.translation_x + a.width || y < a.y || y > a.y + a.height) {
+                this._setOpen(false); return Clutter.EVENT_STOP;
             }
         }
         return Clutter.EVENT_PROPAGATE;
     }
-
-
-    _rebuildBar() {
-        if (!this._bar) return;
+    _theme() {
+        const dark = this.settings.theme === 'dark' || (this.settings.theme === 'auto' && this._interface.get_string('color-scheme') === 'prefer-dark');
+        const contrast = this._a11y.get_boolean('high-contrast');
+        this._root.set_style_class_name(`ai-root ${dark ? 'ai-dark' : 'ai-light'}${contrast ? ' ai-contrast' : ''}${this.settings.density === 'compact' ? ' ai-compact' : ''}`);
+        const solid = contrast || this.settings.material === 'solid';
+        if (solid) this._root.add_style_class_name('ai-solid');
+        this._blur.set_enabled(this._open && !solid);
+    }
+    _save() {
+        try { this._store.save(); return true; }
+        catch (error) { this._message(error.message); return false; }
+    }
+    _change(fn, render = true) {
+        const before = JSON.stringify(this._model.data), undo = this._model.undo;
+        try {
+            fn();
+            if (!this._save()) { this._model.data = JSON.parse(before); this._model.undo = undo; return; }
+            this._renderBar(); if (render) this._render(); this._theme(); this._layout();
+        } catch (error) { this._model.data = JSON.parse(before); this._model.undo = undo; this._message(error.message); }
+    }
+    _name(item) { return item.alias || (item.type === 'app' ? this._appSystem.lookup_app(item.target)?.get_name() ?? item.target : Gio.File.new_for_uri(item.target).get_basename() ?? item.target); }
+    _icon(item, size = 38) {
+        if (item.type === 'app') return this._appSystem.lookup_app(item.target)?.create_icon_texture(size) ?? new St.Icon({icon_name: 'application-x-executable-symbolic', icon_size: size});
+        return new St.Icon({icon_name: item.target.startsWith('file:') ? 'folder' : 'web-browser', icon_size: size});
+    }
+    _message(text) { if (this._status) this._status.text = text; else this._initialMessage = text; }
+    _launch(item, newWindow = false, keep = false) {
+        try {
+            if (item.type === 'app') {
+                const app = this._appSystem.lookup_app(item.target);
+                if (!app) throw Error('La aplicación ya no está instalada.');
+                if (this._pending.has(item.id) && app.state !== Shell.AppState.RUNNING) return;
+                if (newWindow && app.can_open_new_window()) app.open_new_window(-1); else app.activate();
+                this._clear(this._pending.get(item.id));
+                this._pending.set(item.id, this._timeout(6000, () => { this._pending.delete(item.id); this._updateStates(); }));
+            } else {
+                const file = Gio.File.new_for_uri(item.target);
+                if (item.target.startsWith('file:') && !file.query_exists(null)) throw Error('El archivo o carpeta ya no existe.');
+                Gio.AppInfo.launch_default_for_uri(item.target, global.create_app_launch_context(0, -1));
+            }
+            this._updateStates();
+            if (!keep) this._setOpen(false);
+            return true;
+        } catch (error) { this._message(`${this._name(item)}: ${error.message}`); return false; }
+    }
+    _renderBar() {
         this._bar.destroy_all_children();
-        const favs = this._favApps().slice(0, MAX_FAVS);
-        for (const app of favs) this._bar.add_child(this._barButton(app));
-
-        if (!this._open) this._apply(this._root.mapped);
-    }
-
-    _barButton(app) {
-        const holder = new Clutter.Actor({layout_manager: new Clutter.FixedLayout(), width: BOTON, height: BOTON});
-        const icon = app.create_icon_texture(ICONO);
-        icon.set_position(Math.round((BOTON - ICONO) / 2), Math.round((BOTON - ICONO) / 2));
-        holder.add_child(icon);
-        const btn = new St.Button({
-            style_class: 'sd-btn', reactive: true, can_focus: true, child: holder,
-            x_align: Clutter.ActorAlign.CENTER, accessible_name: app.get_name(),
-            button_mask: St.ButtonMask.ONE | St.ButtonMask.TWO | St.ButtonMask.THREE,
-        });
-        btn.connect('clicked', (_b, button) => {
-            try {
-                if (button === 3) this._setOpen(true);
-                else if (button === 2 && app.can_open_new_window()) app.open_new_window(-1);
-                else app.activate();
-            } catch (e) { console.error(`Side Dock: ${e.message}`); }
-        });
-        return btn;
-    }
-
-
-    _groups(apps) {
-        const map = new Map(CATEGORIAS.map(([n]) => [n, []]));
-        const otras = [];
-        for (const app of apps) {
-            const info = app.get_app_info();
-            const cats = (info?.get_categories?.() ?? '').split(';');
-            const found = CATEGORIAS.find(([, keys]) => keys.some(k => cats.includes(k)));
-            (found ? map.get(found[0]) : otras).push(app);
+        for (const item of this._model.quickItems().slice(0, this.settings.quickCount)) {
+            const b = button(this._name(item), (_b, mouse) => {
+                if (mouse === 3) { this._setOpen(true); this._actions(item); }
+                else this._launch(item, mouse === 2);
+            });
+            b.button_mask = PRIMARY | MIDDLE | SECONDARY; b.set_child(this._icon(item, 28));
+            this._bar.add_child(b);
         }
-        const sort = l => l.sort((a, b) => a.get_name().localeCompare(b.get_name()));
-        return [...[...map.entries()].map(([n, l]) => [n, sort(l)]), ['Otras', sort(otras)]]
-            .filter(([, list]) => list.length > 0);
+        if (!this._bar.get_n_children()) this._bar.add_child(button('Añadir favoritas', () => this._setOpen(true), 'starred-symbolic'));
     }
-
-    _findCandidates(query) {
-        const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
-        const term = normalize(query.trim());
-        if (term.length < 2) return [];
-        return this._appSystem.get_installed()
-            .filter(info => info.should_show() && !this._favIds.includes(info.get_id()))
-            .map(info => this._appSystem.lookup_app(info.get_id()))
-            .filter(app => app && normalize(app.get_name()).includes(term))
-            .sort((a, b) => a.get_name().localeCompare(b.get_name()))
+    disable() {
+        this._clearPopup(); this._release();
+        for (const id of this._sources) GLib.Source.remove(id);
+        this._sources.clear();
+        for (const [object, id] of this._signals) object.disconnect(id);
+        if (this._accelerator) {
+            Main.wm.allowKeybinding(Meta.external_binding_name_for_action(this._accelerator), Shell.ActionMode.NONE);
+            global.display.ungrab_accelerator(this._accelerator);
+        }
+        this._root.remove_all_transitions(); Main.layoutManager.removeChrome(this._root); this._root.destroy(); this._root = null;
+        this._rows.clear(); this._pending.clear(); this._model = this._store = null;
+    }
+    _buildPanel() {
+        const head = new St.BoxLayout({style_class: 'ai-head'});
+        head.add_child(label('Favoritas', 'ai-title'));
+        head.get_first_child().x_expand = true;
+        head.add_child(button('Añadir', () => this._switch('add'), 'list-add-symbolic'));
+        head.add_child(button('Organizar y ajustar', () => this._switch('settings'), 'emblem-system-symbolic'));
+        head.add_child(button('Cerrar', () => this._setOpen(false), 'window-close-symbolic'));
+        this._panel.add_child(head);
+        this._profileButton = button('', () => this._switch('profiles'));
+        this._panel.add_child(this._profileButton);
+        this._search = entry('Buscar en tu isla');
+        this._search.clutter_text.connect('text-changed', () => {
+            this._query = this._search.get_text(); this._clear(this._searchTimer);
+            this._searchTimer = this._timeout(80, () => this._render());
+        });
+        this._search.clutter_text.connect('activate', () => {
+            if (this._view === 'add') { const app = this._candidates()[0]; if (app) this._addApp(app); }
+            else { const item = this._items()[0]; if (item) this._launch(item); }
+        });
+        this._panel.add_child(this._search);
+        const controls = new St.BoxLayout({style_class: 'ai-line'});
+        this._back = button('Volver', () => this._switch('favorites'));
+        this._filter = button('Solo abiertas', () => { this._onlyRunning = !this._onlyRunning; this._render(); });
+        controls.add_child(this._back); controls.add_child(this._filter); this._panel.add_child(controls);
+        this._scroll = new St.ScrollView({x_expand: true, y_expand: true, overlay_scrollbars: true,
+            hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
+        this._list = column({style_class: 'ai-list', x_expand: true}); this._scroll.set_child(this._list); this._panel.add_child(this._scroll);
+        this._status = label(this._store.error ?? this._initialMessage ?? '', 'ai-status');
+        this._status.clutter_text.line_wrap = true; this._panel.add_child(this._status);
+        this._undo = button('Deshacer', () => this._change(() => this._model.restore())); this._panel.add_child(this._undo);
+    }
+    _switch(view) {
+        this._scrollValues.set(`${this._model.data.active}:${this._view}`, this._scroll.vadjustment.value);
+        this._view = view; this._clearPopup();
+        this._search.set_text(''); this._query = ''; this._render(); this._layout();
+        const position = this._scrollValues.get(`${this._model.data.active}:${view}`) ?? 0;
+        this._timeout(0, () => { this._scroll.vadjustment.value = position; });
+        if (view === 'add' || view === 'favorites') this._search.grab_key_focus();
+    }
+    _items() {
+        return this._model.filter(this._query, item => this._name(item)).filter(item => !this._onlyRunning ||
+            (item.type === 'app' && this._appSystem.lookup_app(item.target)?.state === Shell.AppState.RUNNING));
+    }
+    _candidates() {
+        const query = normalize(this._query.trim()); if (query.length < 2) return [];
+        return this._appSystem.get_installed().filter(i => i.should_show())
+            .map(i => this._appSystem.lookup_app(i.get_id()))
+            .filter(app => app && normalize(app.get_name()).includes(query) && !this._model.profile.items.some(i => i.type === 'app' && i.target === app.get_id()))
             .slice(0, 8);
     }
-
-    _buildPanel(height) {
-        if (!this._panel) return;
-        this._panel.destroy_all_children();
-        if (height) this._panel.set_height(height);
-
-        const head = new St.BoxLayout({style_class: 'sd-head'});
-        const title = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true});
-        title.add_child(new St.Label({text: 'Tu isla', style_class: 'sd-title'}));
-        this._subtitle = new St.Label({text: 'Tus accesos, por categoría', style_class: 'sd-subtitle'});
-        title.add_child(this._subtitle);
-        head.add_child(title);
-        head.add_child(this._action('list-add-symbolic', 'Añadir favorita', () => this._switchView('add')));
-        this._closeButton = this._action('window-close-symbolic', 'Cerrar isla', () => this._setOpen(false));
-        head.add_child(this._closeButton);
-        this._panel.add_child(head);
-
-        const tabs = new St.BoxLayout({style_class: 'sd-tabs'});
-        this._tabs = new Map();
-        for (const [view, label] of [['favorites', 'Favoritas'], ['running', 'En uso']]) {
-            const button = new St.Button({label, style_class: 'sd-tab', reactive: true,
-                can_focus: true, toggle_mode: true, x_expand: true});
-            button.connect('clicked', () => this._switchView(view));
-            tabs.add_child(button);
-            this._tabs.set(view, button);
-        }
-        this._panel.add_child(tabs);
-
-        this._entry = new St.Entry({style_class: 'sd-search', hint_text: 'Nombre de la aplicación…',
-            accessible_name: 'Buscar una aplicación para añadir a favoritas', can_focus: true,
-            primary_icon: new St.Icon({icon_name: 'edit-find-symbolic', icon_size: 16}), visible: false});
-        this._entry.clutter_text.connect('text-changed', () => {
-            this._clear(this._searchTimer);
-            this._searchTimer = this._timeout(120, () => {this._searchTimer = 0; this._renderContent();});
-        });
-        this._panel.add_child(this._entry);
-
-        this._scroll = new St.ScrollView({
-            style_class: 'sd-scroll', overlay_scrollbars: true, x_expand: true, y_expand: true,
-            hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC,
-        });
-        this._list = new St.BoxLayout({
-            orientation: Clutter.Orientation.VERTICAL,
-            style_class: 'sd-list',
-        });
-        this._scroll.set_child(this._list);
-        this._panel.add_child(this._scroll);
-
-        this._hint = new St.Label({text: HINT, style_class: 'sd-hint'});
-        this._hint.clutter_text.line_wrap = true;
-        this._hint.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
-        this._panel.add_child(this._hint);
-        this._renderContent();
+    _addApp(app) {
+        this._change(() => this._model.add({id: app.get_id(), type: 'app', target: app.get_id(),
+            category: this._model.category(categoryFor(app.get_app_info()?.get_categories())), quick: this._model.profile.items.length < this.settings.quickCount}));
+        this._message(`${app.get_name()} añadida`);
     }
-
-    _action(icon, label, callback) {
-        const button = new St.Button({style_class: 'sd-action', reactive: true, can_focus: true,
-            accessible_name: label, child: new St.Icon({icon_name: icon, icon_size: 16}),
-            y_align: Clutter.ActorAlign.CENTER});
-        button.connect('clicked', callback);
-        return button;
-    }
-
-    _switchView(view) {
-        this._view = view;
-        this._entry.visible = view === 'add';
-        this._subtitle.text = view === 'add' ? 'Añadir una favorita' : 'Tus accesos, por categoría';
-        this._renderContent();
-        const adj = this._adj();
-        if (adj) adj.value = 0;
-        if (view === 'add') this._entry.grab_key_focus();
-    }
-
-    _renderContent() {
-        if (!this._open || !this._list) return;
+    _render() {
+        if (!this._panel || !this._open) return;
         const focus = global.stage.get_key_focus();
-        const restoreFocus = focus && this._list.contains(focus);
-        const favorites = this._favApps();
-        const running = this._appSystem.get_running();
-        this._tabs.get('favorites').label = `Favoritas · ${favorites.length}`;
-        this._tabs.get('running').label = `En uso · ${running.length}`;
-        for (const [view, button] of this._tabs) button.checked = view === this._view;
+        const focusedId = [...this._rows].find(([, r]) => focus && r.actor.contains(focus))?.[0];
+        const scroll = this._scroll.vadjustment.value;
+        this._clearPopup();
+        for (const row of this._rows.values()) row.actor.get_parent()?.remove_child(row.actor);
         this._list.destroy_all_children();
-        const adding = this._view === 'add';
-        const query = this._entry.get_text();
-        const apps = adding ? this._findCandidates(query) : this._view === 'running' ? running : favorites;
-        if (!apps.length) {
-            const text = adding ? (query.trim().length < 2
-                ? 'Escribe al menos 2 letras.\nSolo aparecerán coincidencias para añadir.'
-                : 'Sin coincidencias nuevas.\nPrueba con otro nombre.')
-                : this._view === 'running' ? 'No hay aplicaciones abiertas.'
-                    : 'Tu isla está lista.\nPulsa + para añadir tus favoritas.';
-            const empty = new St.Label({text, style_class: 'sd-empty'});
-            empty.clutter_text.line_wrap = true;
-            this._list.add_child(empty);
+        this._profileButton.label = `${this._model.profile.name}  ·  ${this._model.profile.items.length} accesos`;
+        this._back.visible = this._view !== 'favorites'; this._filter.visible = this._view === 'favorites';
+        this._filter.label = this._onlyRunning ? 'Ver todas las favoritas' : 'Solo abiertas';
+        this._search.visible = ['favorites', 'add'].includes(this._view);
+        this._search.hint_text = this._view === 'add' ? 'Buscar aplicación para añadir' : 'Buscar en tu isla';
+        this._undo.visible = !!this._model.undo;
+        if (this._view === 'settings') this._settingsView();
+        else if (this._view === 'profiles') this._profilesView();
+        else if (this._view === 'add') {
+            this._list.add_child(label('Aplicaciones', 'ai-section-title'));
+            const apps = this._candidates();
+            if (!apps.length) this._list.add_child(label(this._query.length < 2 ? 'Escribe al menos dos letras' : 'Sin coincidencias nuevas', 'ai-muted'));
+            for (const app of apps) this._list.add_child(button(app.get_name(), () => this._addApp(app)));
+            edit(this._list, 'Carpeta, archivo o enlace', '', value => this._addResource(value));
+        } else {
+            const items = this._items();
+            if (!items.length) {
+                this._list.add_child(label(this._query || this._onlyRunning ? 'No hay coincidencias' : 'Tus accesos, a un paso', 'ai-muted'));
+                this._list.add_child(button('Añadir favorita', () => this._switch('add')));
+            }
+            const quick = !this._query && !this._onlyRunning ? this._model.quickItems().slice(0, this.settings.quickCount) : [];
+            if (quick.length) {
+                this._list.add_child(label('Acceso rápido', 'ai-section-title'));
+                let line;
+                for (const [index, item] of quick.entries()) {
+                    if (index % 5 === 0) { line = new St.BoxLayout({style_class: 'ai-line'}); this._list.add_child(line); }
+                    const access = button(this._name(item), (_b, mouse) => mouse === 3 ? this._actions(item) : this._launch(item, mouse === 2));
+                    access.button_mask = PRIMARY | MIDDLE | SECONDARY; access.set_child(this._icon(item, 28));
+                    access.connect('notify::hover', () => { if (access.hover) this._message(this._name(item)); });
+                    access.connect('key-focus-in', () => this._message(this._name(item)));
+                    line.add_child(access);
+                }
+            }
+            for (const c of this._model.profile.categories) {
+                const selected = items.filter(i => i.category === c.id);
+                if (!selected.length) continue;
+                const head = new St.BoxLayout({style_class: 'ai-category-head'});
+                const toggle = button(`${c.collapsed && !this._query ? '▸' : '▾'} ${c.name}  ·  ${selected.length}`,
+                    () => this._change(() => { c.collapsed = !c.collapsed; }));
+                toggle.x_expand = true; head.add_child(toggle);
+                head.add_child(button(`Organizar ${c.name}`, () => this._categoryActions(c), 'view-more-symbolic'));
+                this._list.add_child(head); this._dropTarget(head, c.id);
+                if (c.collapsed && !this._query) continue;
+                let row;
+                for (const [index, item] of selected.entries()) {
+                    if (this.settings.layout === 'list') this._list.add_child(this._row(item).actor);
+                    else {
+                        if (index % 3 === 0) { row = new St.BoxLayout({style_class: 'ai-grid-line', x_expand: true, y_expand: false}); this._list.add_child(row); }
+                        row.add_child(this._row(item).actor);
+                        if (index === selected.length - 1) for (let n = index % 3 + 1; n < 3; n++) row.add_child(new St.Widget({width: 92, x_expand: true}));
+                    }
+                }
+            }
         }
-        for (const [name, group] of this._groups(apps)) this._section(this._list, name, group, adding);
-        this._baseHint = adding ? 'Hasta 8 coincidencias · Pulsa + para guardar'
-            : `Las primeras ${MAX_FAVS} favoritas aparecen en la barra.\n${HINT}`;
-        this._hint.text = this._baseHint;
-
-        if (restoreFocus) (this._tabs.get(this._view) ?? this._closeButton).grab_key_focus();
+        for (const [id, row] of this._rows) if (!this._model.profile.items.some(i => i.id === id)) { row.actor.destroy(); this._rows.delete(id); }
+        this._updateStates();
+        this._scroll.vadjustment.value = scroll;
+        if (focusedId && this._rows.get(focusedId)?.actor.get_parent()) this._rows.get(focusedId).launch.grab_key_focus();
     }
-
-    _section(list, title, apps, adding) {
-        const key = `${this._view}:${title}`;
-        const card = new St.BoxLayout({style_class: 'sd-category', orientation: Clutter.Orientation.VERTICAL});
-        const heading = new St.BoxLayout({style_class: 'sd-category-heading', x_expand: true});
-        heading.add_child(new St.Label({text: title, x_expand: true}));
-        heading.add_child(new St.Label({text: String(apps.length), style_class: 'sd-count'}));
-        const arrow = new St.Icon({icon_name: this._collapsed.has(key) ? 'pan-end-symbolic' : 'pan-down-symbolic', icon_size: 12});
-        heading.add_child(arrow);
-        const toggle = new St.Button({child: heading, style_class: 'sd-category-toggle',
-            reactive: true, can_focus: true, toggle_mode: true, checked: !this._collapsed.has(key),
-            accessible_name: `${title}, ${apps.length} aplicaciones`});
-        card.add_child(toggle);
-        const body = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, visible: !this._collapsed.has(key)});
-        for (const app of apps) body.add_child(this._appRow(app, adding));
-        card.add_child(body);
-        toggle.connect('clicked', () => {
-            if (toggle.checked) this._collapsed.delete(key);
-            else this._collapsed.add(key);
-            body.visible = toggle.checked;
-            arrow.icon_name = toggle.checked ? 'pan-down-symbolic' : 'pan-end-symbolic';
+    _row(item) {
+        const signature = `${this.settings.layout}:${this._name(item)}:${item.target}:${item.category}`;
+        let row = this._rows.get(item.id);
+        if (row?.signature === signature && row.item === item) return row;
+        row?.actor.destroy();
+        const actor = column({style_class: this.settings.layout === 'grid' ? 'ai-tile' : 'ai-row', x_expand: true, y_expand: false});
+        const content = this.settings.layout === 'grid' ? column({style_class: 'ai-tile-content'}) : new St.BoxLayout({style_class: 'ai-line'});
+        const icon = this._icon(item); icon.x_align = Clutter.ActorAlign.CENTER;
+        content.add_child(icon); content.add_child(label(this._name(item)));
+        const launch = button(this._name(item), (_b, mouse) => mouse === 3 ? this._actions(item) : this._launch(item, mouse === 2));
+        launch.button_mask = PRIMARY | MIDDLE | SECONDARY; launch.set_child(content); actor.add_child(launch);
+        const status = label('', 'ai-item-status'); actor.add_child(status);
+        actor.accessible_name = this._name(item);
+        const draggable = DND.makeDraggable(launch);
+        launch._delegate = {island: this, itemId: item.id, getDragActor: () => this._icon(item), getDragActorSource: () => content.get_first_child()};
+        draggable.connect('drag-begin', () => { this._dragging = true; this._clearPopup(); });
+        draggable.connect('drag-end', () => { this._dragging = false; });
+        draggable.connect('drag-cancelled', () => { this._dragging = false; });
+        this._dropTarget(actor, item.category, item.id);
+        launch.connect('key-focus-in', () => this._message(`${this._name(item)} · Enter para abrir · Menú para opciones`));
+        launch.connect('notify::hover', () => {
+            if (launch.hover) this._message(`${this._name(item)} · Clic derecho para opciones`);
+            this._clear(this._previewTimer);
+            if (launch.hover && this.settings.previews && item.type === 'app')
+                this._previewTimer = this._timeout(550, () => { if (!this._dragging && this._open && launch.hover) this._windows(item); });
         });
-        list.add_child(card);
+        row = {actor, launch, status, signature, item}; this._rows.set(item.id, row); return row;
     }
-
-    _activateApp(app, newWindow = false) {
-        this._setOpen(false);
-        try {
-            if (newWindow && app.can_open_new_window()) app.open_new_window(-1);
-            else app.activate();
-        } catch (e) {
-            console.error(`Side Dock: ${e.message}`);
-            Main.notify('Isla lateral', `No se pudo abrir ${app.get_name()}.`);
+    _dropTarget(actor, category, before = null) {
+        actor._delegate = {
+            handleDragOver: source => source.island === this ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.NO_DROP,
+            acceptDrop: source => {
+                if (source.island !== this) return false;
+                this._timeout(0, () => this._change(() => this._model.move(source.itemId, category, before)));
+                return true;
+            },
+        };
+    }
+    _updateStates() {
+        for (const row of this._rows.values()) {
+            const app = row.item.type === 'app' ? this._appSystem.lookup_app(row.item.target) : null;
+            if (app?.state === Shell.AppState.RUNNING && this._pending.has(row.item.id)) {
+                this._clear(this._pending.get(row.item.id)); this._pending.delete(row.item.id);
+            }
+            row.status.text = row.item.type !== 'app' ? '' : !app ? 'No instalada' : app.state === Shell.AppState.RUNNING ? '● Abierta' : this._pending.has(row.item.id) ? 'Abriendo…' : '';
+            row.status.visible = row.status.text.length > 0;
+        }
+        if (this._onlyRunning && this._open) {
+            const ids = this._items().map(i => i.id).join('|');
+            if (ids !== this._runningIds) { this._runningIds = ids; this._render(); }
         }
     }
-
-    _appRow(app, adding) {
-        const fav = this._favIds.includes(app.get_id());
-        const row = new St.BoxLayout({style_class: 'sd-app-row'});
-        const content = new St.BoxLayout({style_class: 'sd-app-content', x_expand: true});
-        content.add_child(app.create_icon_texture(32));
-        const text = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true,
-            y_align: Clutter.ActorAlign.CENTER});
-        const name = new St.Label({text: app.get_name(), style_class: 'sd-name', x_expand: true});
-        name.clutter_text.ellipsize = Pango.EllipsizeMode.END;
-        text.add_child(name);
-        const active = app.state === Shell.AppState.RUNNING;
-        text.add_child(new St.Label({text: active ? 'En uso' : adding ? 'Añadir a tu isla' : 'Lista para abrir',
-            style_class: active ? 'sd-app-status sd-running' : 'sd-app-status'}));
-        content.add_child(text);
-        const btn = new St.Button({
-            style_class: 'sd-app-launch', reactive: true, can_focus: true, child: content, x_expand: true,
-            accessible_name: adding ? `Añadir ${app.get_name()}` : `Abrir ${app.get_name()}`,
-            button_mask: St.ButtonMask.ONE | St.ButtonMask.TWO,
+    _popupBox(title) {
+        this._clearPopup();
+        const box = column({style_class: 'ai-popover', x_expand: true, y_expand: true});
+        const head = new St.BoxLayout({style_class: 'ai-head'}); const name = label(title, 'ai-section-title'); name.x_expand = true;
+        head.add_child(name); head.add_child(button('Cerrar opciones', () => this._clearPopup(), 'window-close-symbolic')); box.add_child(head);
+        const scroll = new St.ScrollView({x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER});
+        const body = column({style_class: 'ai-list'}); scroll.set_child(body); box.add_child(scroll);
+        this._popup = box; this._root.add_child(box); head.get_last_child().grab_key_focus(); return body;
+    }
+    _clearPopup() {
+        if (!this._popup) return;
+        this._popup.destroy(); this._popup = null;
+        if (this._open) this._search?.grab_key_focus();
+    }
+    _actions(item) {
+        const box = this._popupBox(this._name(item));
+        const action = (title, fn) => box.add_child(button(title, () => { this._clearPopup(); fn(); }));
+        action('Abrir', () => this._launch(item));
+        if (item.type === 'app') {
+            const app = this._appSystem.lookup_app(item.target);
+            if (app?.can_open_new_window()) action('Nueva ventana', () => this._launch(item, true));
+            if (app?.get_windows().length) action('Elegir ventana', () => this._windows(item));
+        }
+        action(item.quick ? 'Quitar de acceso rápido' : 'Fijar en acceso rápido', () => this._change(() => { item.quick = !item.quick; }));
+        if (item.quick) {
+            action('Subir en acceso rápido', () => this._change(() => this._model.reorderQuick(item.id, -1)));
+            action('Bajar en acceso rápido', () => this._change(() => this._model.reorderQuick(item.id, 1)));
+        }
+        action(item.launch ? 'Excluir de Abrir grupo' : 'Incluir en Abrir grupo', () => this._change(() => { item.launch = !item.launch; }));
+        edit(box, 'Nombre visible', this._name(item), value => this._change(() => { item.alias = value.trim().slice(0, 120); }));
+        box.add_child(label('Mover a', 'ai-section-title'));
+        for (const c of this._model.profile.categories) action(c.name, () => this._change(() => this._model.move(item.id, c.id)));
+        action('Subir', () => this._change(() => this._model.reorder(item.id, -1)));
+        action('Bajar', () => this._change(() => this._model.reorder(item.id, 1)));
+        action('Quitar favorita', () => this._change(() => this._model.remove(item.id)));
+    }
+    _windows(item) {
+        const windows = this._appSystem.lookup_app(item.target)?.get_windows() ?? [];
+        if (!windows.length) return;
+        const box = this._popupBox(this._name(item));
+        for (const window of windows) {
+            const b = button(window.get_title() || this._name(item), () => { this._setOpen(false); Main.activateWindow(window); });
+            const actor = window.get_compositor_private();
+            if (actor && this.settings.previews) {
+                const content = column({style_class: 'ai-list'});
+                content.add_child(new Clutter.Clone({source: actor, width: 260, height: Math.max(40, Math.min(150, 260 * actor.height / Math.max(1, actor.width)))}));
+                content.add_child(label(window.get_title() || this._name(item))); b.set_child(content);
+            }
+            box.add_child(b);
+        }
+    }
+    _categoryActions(category) {
+        const box = this._popupBox(category.name);
+        edit(box, 'Nombre de categoría', category.name, value => this._change(() => { if (value.trim()) category.name = value.trim().slice(0, 120); }));
+        box.add_child(button('Abrir grupo', () => this._openGroup(category.id)));
+        for (const [title, step] of [['Subir', -1], ['Bajar', 1]]) box.add_child(button(title, () => this._change(() => {
+            const categories = this._model.profile.categories, i = categories.indexOf(category), j = i + step;
+            if (j >= 0 && j < categories.length) [categories[i], categories[j]] = [categories[j], categories[i]];
+        })));
+        box.add_child(button('Eliminar categoría · conservar accesos', () => this._change(() => this._model.deleteCategory(category.id))));
+    }
+    _openGroup(category = null) {
+        this._clearPopup();
+        const items = this._model.profile.items.filter(i => i.launch && (!category || i.category === category));
+        let index = 0; const failures = [];
+        const next = () => {
+            if (!this._root || index >= items.length) { this._message(`${index - failures.length}/${items.length} abiertos${failures.length ? ` · No se abrieron: ${failures.join(', ')}` : ''}`); return; }
+            const item = items[index++];
+            if (!this._launch(item, false, true)) failures.push(this._name(item));
+            this._message(`Abriendo ${index}/${items.length}…`); this._timeout(150, next);
+        }; next();
+    }
+    _addResource(value) {
+        this._change(() => {
+            value = value.trim(); if (value.startsWith('~/')) value = GLib.get_home_dir() + value.slice(1);
+            const uri = value.startsWith('/') ? Gio.File.new_for_path(value).get_uri() : value;
+            if (!/^(https?:\/\/|file:\/\/\/)/i.test(uri)) throw Error('Escribe una ruta absoluta o un enlace http/https.');
+            if (uri.startsWith('file:') && !Gio.File.new_for_uri(uri).query_exists(null)) throw Error('La ruta no existe.');
+            this._model.add({id: GLib.uuid_string_random(), type: 'uri', target: uri, category: this._model.category('Recursos'), alias: ''});
         });
-        btn.connect('clicked', (_b, button) => {
-            if (adding) this._toggleFav(app);
-            else this._activateApp(app, button === 2);
+    }
+    _profilesView() {
+        for (const profile of this._model.data.profiles) this._list.add_child(button(profile.name, () => {
+            this._change(() => { this._model.data.active = profile.id; }); this._switch('favorites');
+        }));
+        edit(this._list, 'Nuevo perfil', '', value => this._change(() => this._model.newProfile(value)));
+        edit(this._list, 'Renombrar perfil actual', this._model.profile.name, value => this._change(() => { if (value.trim()) this._model.profile.name = value.trim().slice(0, 120); }));
+        this._list.add_child(button('Abrir recursos marcados del perfil', () => this._openGroup()));
+        if (this._model.data.profiles.length > 1) this._list.add_child(button('Eliminar perfil · Deshacer disponible', () => this._change(() => this._model.transact(() => {
+            this._model.data.profiles = this._model.data.profiles.filter(p => p.id !== this._model.data.active);
+            this._model.data.active = this._model.data.profiles[0].id;
+        }))));
+    }
+    _settingsView() {
+        edit(this._list, 'Nueva categoría', '', value => this._change(() => this._model.category(value)));
+        const choice = (title, key, values, labels = values) => {
+            const index = Math.max(0, values.indexOf(this.settings[key]));
+            this._list.add_child(button(`${title}: ${labels[index]}`, () => this._change(() => { this.settings[key] = values[(index + 1) % values.length]; })));
+        };
+        choice('Apariencia', 'theme', ['auto', 'light', 'dark'], ['Sistema', 'Clara', 'Oscura']);
+        choice('Material', 'material', ['glass', 'solid'], ['Vidrio', 'Sólido']);
+        choice('Distribución', 'layout', ['grid', 'list'], ['Cuadrícula', 'Lista']);
+        choice('Densidad', 'density', ['comfortable', 'compact'], ['Cómoda', 'Compacta']);
+        choice('Borde preferido', 'side', ['right', 'left'], ['Derecho', 'Izquierdo']);
+        const monitors = Main.layoutManager.monitors;
+        choice('Pantalla', 'monitor', ['primary', ...monitors.map(m => `${m.x},${m.y}`)], ['Principal', ...monitors.map((m, i) => `Pantalla ${i + 1} (${m.width}×${m.height})`)]);
+        choice('Accesos rápidos', 'quickCount', [3, 4, 5, 6, 7, 8]);
+        choice('Indicador de borde', 'edge', [1, 2, 3, 4, 6]);
+        choice('Espera al abrir (ms)', 'delay', [80, 180, 300, 500]);
+        choice('Espera al ocultar (ms)', 'hideDelay', [200, 400, 650, 1000]);
+        choice('Vista previa al pasar el cursor', 'previews', [false, true], ['Desactivada', 'Activada']);
+        edit(this._list, 'Atajo de teclado', this.settings.shortcut, value => {
+            this._change(() => { this.settings.shortcut = value.trim(); }); this._shortcut();
         });
-        row.add_child(btn);
-        const pin = this._action(fav ? 'starred-symbolic' : 'list-add-symbolic',
-            `${fav ? 'Quitar de favoritas' : 'Añadir a favoritas'}: ${app.get_name()}`, () => this._toggleFav(app));
-        if (fav) pin.add_style_class_name('sd-star');
-        row.add_child(pin);
-        return row;
+        this._list.add_child(button('Restaurar apariencia', () => this._change(() => {
+            for (const key of ['theme', 'material', 'layout', 'density']) this.settings[key] = DEFAULTS[key];
+        })));
+        this._list.add_child(button('Restaurar apertura', () => { this._change(() => {
+            for (const key of ['side', 'monitor', 'edge', 'delay', 'hideDelay', 'quickCount', 'shortcut']) this.settings[key] = DEFAULTS[key];
+        }); this._shortcut(); }));
+        edit(this._list, 'Exportar a ruta JSON', '', value => {
+            try { this._store.export(value); this._message('Organización exportada.'); } catch (e) { this._message(e.message); }
+        });
+        edit(this._list, 'Importar desde ruta JSON', '', value => {
+            try { this._model = this._store.import(value); this._renderBar(); this._switch('favorites'); this._theme(); this._shortcut(); }
+            catch (e) { this._message(e.message); }
+        });
     }
 }

@@ -16,8 +16,8 @@ export default class LoginPresentation extends Extension {
             original.call(this, ...args);
             extension._decorate(this);
         });
-        this._injections.overrideMethod(proto, '_getCenterActorAllocation', original => function (area, actor) {
-            const allocation = original.call(this, area, actor);
+        this._injections.overrideMethod(proto, '_getCenterActorAllocation', original => function (area, actor, ...args) {
+            const allocation = original.call(this, area, actor, ...args);
             return actor === this._authPrompt ? placePrompt(area, allocation) : allocation;
         });
         this._injections.overrideMethod(proto, '_getBottomButtonGroupAllocation', original => function (area) {
@@ -41,11 +41,27 @@ export default class LoginPresentation extends Extension {
             console.error('Aurea Login: se conserva el acceso nativo', error);
             return;
         }
+        const prompt = dialog._authPrompt;
+        const alignment = [];
+        const originalTranslation = prompt?._mainBox?.translation_x ?? 0;
+        if (prompt?._inputWell && prompt?._entryArea) {
+            const alignEntry = () => {
+                if (!prompt._entry?.mapped || !prompt._mainBox?.mapped) return;
+                const [px] = prompt.get_transformed_position();
+                const [ex] = prompt._entry.get_transformed_position();
+                const [pw] = prompt.get_transformed_size();
+                const [ew] = prompt._entry.get_transformed_size();
+                prompt._mainBox.translation_x += px + pw / 2 - ex - ew / 2;
+            };
+            for (const actor of [prompt, prompt._entryArea])
+                alignment.push([actor, actor.connect('notify::allocation', alignEntry)]);
+        }
         const destroy = dialog.connect('destroy', () => {
+            for (const [actor, id] of alignment) actor.disconnect(id);
             controls.destroy();
             this._dialogs.delete(dialog);
         });
-        this._dialogs.set(dialog, {controls, destroy});
+        this._dialogs.set(dialog, {controls, destroy, alignment, originalTranslation});
         dialog.queue_relayout();
     }
 
@@ -53,7 +69,9 @@ export default class LoginPresentation extends Extension {
         this._keyboardPolicy.destroy();
         this._keyboardPolicy = null;
         this._injections.clear();
-        for (const [dialog, {controls, destroy}] of this._dialogs) {
+        for (const [dialog, {controls, destroy, alignment, originalTranslation}] of this._dialogs) {
+            for (const [actor, id] of alignment) actor.disconnect(id);
+            if (dialog._authPrompt?._mainBox) dialog._authPrompt._mainBox.translation_x = originalTranslation;
             dialog.disconnect(destroy);
             controls.destroy();
             dialog.queue_relayout();

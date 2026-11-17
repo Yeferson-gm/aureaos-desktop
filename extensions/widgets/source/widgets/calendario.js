@@ -195,7 +195,7 @@ export class Widget extends WidgetBase {
             const ev = this._eventos(f);
             const esHoy = f === iso(hoy);
             const feriado = ev.find(e => e.tipo === 'feriado');
-            const celda = new St.BoxLayout({vertical: true, x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 1px;'});
+            const celda = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER, style: 'spacing: 1px;'});
             const num = this.t(String(d), compacto ? 10 : 12, {
                 peso: esHoy ? 'bold' : 'normal', c: esHoy ? '#ffffff' : (feriado ? 'rojo' : 'texto'),
                 align: Clutter.ActorAlign.CENTER,
@@ -230,7 +230,7 @@ export class Widget extends WidgetBase {
             for (const e of ev) {
                 const fila = new St.BoxLayout({style: 'spacing: 10px;', x_expand: true});
                 fila.add_child(new St.Widget({style: `width: 4px; border-radius: 2px; background-color: ${e.color};`}));
-                const c = new St.BoxLayout({vertical: true, x_expand: true});
+                const c = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true});
                 c.add_child(etiqueta(e.titulo, 'lintel-card-t'));
                 c.add_child(etiqueta({feriado: 'Feriado nacional', cumple: 'Cumpleaños', evento: e.hora || 'Todo el día'}[e.tipo], 'lintel-ayuda'));
                 fila.add_child(c);

@@ -19,7 +19,7 @@ export class ConfirmDialog {
 
       const content = new St.BoxLayout({
         style_class: 'prompt-dialog-main-layout',
-        vertical: false,
+        orientation: Clutter.Orientation.HORIZONTAL,
       });
 
       const icon = this._app?.create_icon_texture?.(48);

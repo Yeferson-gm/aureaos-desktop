@@ -1,3 +1,4 @@
+import {popupAnimation} from './popup-compat.js';
 
 
 import {
@@ -1189,7 +1190,7 @@ const DockAppIconMenu = class DockAppIconMenu extends PopupMenu.PopupMenu {
 
     popup(_activatingButton) {
         this._rebuildMenu();
-        this.open(BoxPointer.PopupAnimation.FULL);
+        this.open(popupAnimation(BoxPointer.PopupAnimation.FULL));
     }
 
     removeAll() {
