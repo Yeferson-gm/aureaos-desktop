@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {gitVersion} from './version.mjs';
+import {verifyRuntimeTree} from './runtime-tree.mjs';
 import {compileResources} from './extension-resources.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,7 +21,7 @@ for (const name of Object.keys(stack.extensions)) {
     const source = path.join(root, 'extensions', name, name === 'widgets' ? 'source' : '');
     const metadata = JSON.parse(fs.readFileSync(path.join(source, 'metadata.json')));
     const output = path.join(staging, 'extensions', metadata.uuid);
-    fs.cpSync(source, output, {recursive: true, verbatimSymlinks: true, filter: file =>
+    fs.cpSync(source, output, {recursive: true, dereference: true, filter: file =>
         path.basename(file) !== 'shared' && !excluded.has(path.basename(file)) && !/^test[-.]/.test(path.basename(file))});
     if (fs.existsSync(path.join(source, 'shared')))
         fs.cpSync(path.join(root, 'shared'), path.join(output, 'shared'), {recursive: true});
@@ -30,6 +31,7 @@ for (const name of Object.keys(stack.extensions)) {
     compileResources(output);
     if (fs.existsSync(path.join(output, 'schemas')))
         execFileSync('glib-compile-schemas', ['--strict', path.join(output, 'schemas')]);
+    verifyRuntimeTree(output);
     sources[name] = metadata.uuid;
 }
 for (const group of ['gtk', 'icons', 'cursors', 'gtk-overrides'])

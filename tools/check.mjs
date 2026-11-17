@@ -39,6 +39,7 @@ for (const name of Object.keys(stack.extensions)) {
 }
 const tests = [
     'tests/version.test.mjs',
+    'tests/runtime-tree.test.mjs',
     'tests/files.test.mjs',
     'tests/install.test.mjs',
     'tests/theme-tokens.test.mjs',

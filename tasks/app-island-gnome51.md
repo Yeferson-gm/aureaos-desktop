@@ -10,3 +10,10 @@ Solicitud aprobada: implementar los 34 puntos de docs/isla-aplicaciones-evaluaci
 - [x] Prueba del stack en Fedora 45/GNOME 51 aislado, GDM incluido.
 - [x] Documentación, entrega Git e instalación compatible con 50 y 51.
 - [x] El usuario actualizó Fedora/GNOME; verificado GNOME 51.1 local.
+
+## Incidencia posterior al reinicio
+
+La comprobación inicial de archivos comparaba enlaces sin validar su resolución.
+Se confirmó un fallo de empaquetado, no de preferencias: siete extensiones no
+podían importar módulos compartidos. Construcción e instalación pasan a exigir
+archivos autocontenidos; se añade regresión y prueba del paquete en Shell privado.

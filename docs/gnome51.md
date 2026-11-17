@@ -60,3 +60,22 @@ Comprobado con GNOME 50.6 durante la preparación y GNOME 51.1 instalado en Fedo
 Las pruebas virtuales no certifican todas las combinaciones de GPU, escalas
 fraccionarias, monitores físicos, periféricos o servicios de terceros. Se conserva
 la validación de versiones de GNOME; no es necesario desactivarla.
+
+## Corrección de distribución de módulos compartidos
+
+La entrega inicial conservaba enlaces relativos a `shared/` en algunos módulos.
+Las pruebas desde fuentes resolvían esos enlaces, pero las extensiones instaladas
+fallaban al importar `popup-compat.js` o `rounded-clip.js`. La construcción ahora
+materializa los archivos compartidos dentro de cada extensión. El instalador
+rechaza enlaces en módulos distribuidos antes de modificar destinos y vuelve a
+validar los árboles instalados.
+
+Además de las pruebas desde fuentes, ejecutar sobre el paquete construido:
+
+```bash
+AUREA_TEST_PACKAGE="$aurea_paquete" bash tests/stack-shell.sh
+```
+
+Esta prueba conserva exactamente los enlaces del paquete al copiarlo a la sesión
+privada; no los repara ni los resuelve desde el repositorio. Así detecta errores
+que una prueba de fuentes no detecta.

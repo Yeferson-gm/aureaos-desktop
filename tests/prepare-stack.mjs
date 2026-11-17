@@ -13,11 +13,14 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, 'stack.json')));
 const count = Number(execFileSync('git', ['-C', root, 'rev-list', '--count', 'HEAD'], {encoding: 'utf8'}));
 const revision = execFileSync('git', ['-C', root, 'rev-parse', '--short', 'HEAD'], {encoding: 'utf8'}).trim();
 for (const name of Object.keys(manifest.extensions)) {
-    const input = path.join(root, 'extensions', name, name === 'widgets' ? 'source' : '');
+    const devInput = path.join(root, 'extensions', name, name === 'widgets' ? 'source' : '');
+    const uuid = JSON.parse(fs.readFileSync(path.join(devInput, 'metadata.json'))).uuid;
+    const input = process.env.AUREA_TEST_PACKAGE ? path.join(process.env.AUREA_TEST_PACKAGE, 'extensions', uuid) : devInput;
     const metadata = JSON.parse(fs.readFileSync(path.join(input, 'metadata.json')));
     const target = path.join(data, 'gnome-shell/extensions', metadata.uuid);
-    fs.cpSync(input, target, {recursive: true, dereference: true});
-    fs.writeFileSync(path.join(target, 'metadata.json'), JSON.stringify({...metadata, version: count, 'version-name': `test-${revision}`}));
+    fs.cpSync(input, target, process.env.AUREA_TEST_PACKAGE
+        ? {recursive: true, verbatimSymlinks: true} : {recursive: true, dereference: true});
+    if (!process.env.AUREA_TEST_PACKAGE) fs.writeFileSync(path.join(target, 'metadata.json'), JSON.stringify({...metadata, version: count, 'version-name': `test-${revision}`}));
     compileResources(target);
     if (name === 'battery-care') fs.appendFileSync(path.join(target, 'lib/driver.js'), '\nIntializeDriver.prototype._checkCompatibility = function () {};\n');
     if (fs.existsSync(path.join(target, 'schemas'))) execFileSync('glib-compile-schemas', ['--strict', path.join(target, 'schemas')]);

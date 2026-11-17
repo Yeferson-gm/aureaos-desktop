@@ -4,6 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
+import {verifyRuntimeTree} from './runtime-tree.mjs';
 import {verifyTree} from './files.mjs';
 import {parseTag} from './version.mjs';
 import {parseInstallOptions, validateMigrations} from './install-options.mjs';
@@ -39,6 +40,7 @@ const selectedExtensions = component ? {[component]: release.extensions[componen
 for (const uuid of Object.values(selectedExtensions)) {
     if (!/^[\w.-]+@[\w.-]+$/.test(uuid)) throw new Error('UUID inválido');
     const source = path.join(releaseDir, 'extensions', uuid);
+    verifyRuntimeTree(source);
     const metadata = JSON.parse(fs.readFileSync(path.join(source, 'metadata.json')));
     if (metadata.uuid !== uuid || metadata.version !== version.integer || metadata['version-name'] !== version.name)
         throw new Error(`Metadatos inconsistentes: ${uuid}`);
@@ -92,6 +94,7 @@ for (const [source, target] of targets) {
     if (action === 'apply' && !systemTargets.has(target))
         installTarget(source, target, {preserveSettings: isGtk, testMode: Boolean(testRoot)});
     files += verifyTree(source, target, ignored);
+    if (target.includes('gnome-shell/extensions/')) verifyRuntimeTree(target);
 }
 if (action === 'apply' && !testRoot && !component) {
     execFileSync('gjs', [path.join(root, 'tools/migrate-identities.js'), JSON.stringify(migrations), '--live']);
