@@ -8,7 +8,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {MODULES} from './settings-model.js';
 import {controlRows, panelSize} from './control-layout.js';
 
-const ICONS = {wifi: 'network-wireless-symbolic', bluetooth: 'bluetooth-active-symbolic', brightness: 'display-brightness-symbolic', sound: 'audio-volume-high-symbolic', microphone: 'audio-input-microphone-symbolic', power: 'power-profile-balanced-symbolic', battery: 'battery-level-80-symbolic', focus: 'notifications-disabled-symbolic', night: 'night-light-symbolic', appearance: 'weather-clear-night-symbolic', airplane: 'airplane-mode-symbolic', caffeine: 'alarm-symbolic', privacy: 'security-high-symbolic', displays: 'video-display-symbolic', vpn: 'network-vpn-symbolic', ethernet: 'network-wired-symbolic', screenshot: 'camera-photo-symbolic'};
+const ICONS = {wifi: 'network-wireless-symbolic', bluetooth: 'bluetooth-active-symbolic', brightness: 'display-brightness-symbolic', keyboardLight: 'keyboard-brightness-symbolic', sound: 'audio-volume-high-symbolic', microphone: 'audio-input-microphone-symbolic', power: 'power-profile-balanced-symbolic', battery: 'battery-level-80-symbolic', focus: 'notifications-disabled-symbolic', night: 'night-light-symbolic', appearance: 'weather-clear-night-symbolic', airplane: 'airplane-mode-symbolic', caffeine: 'alarm-symbolic', privacy: 'security-high-symbolic', displays: 'video-display-symbolic', vpn: 'network-vpn-symbolic', ethernet: 'network-wired-symbolic', screenshot: 'camera-photo-symbolic'};
 const PROFILES = {'power-saver': 'Ahorro de energía', balanced: 'Balanceado', performance: 'Rendimiento'};
 const NightProxy = Gio.DBusProxy.makeProxyWrapper('<node><interface name="org.gnome.SettingsDaemon.Color"><property name="NightLightActive" type="b" access="read"/></interface></node>');
 
@@ -23,7 +23,7 @@ export class ControlCenter {
             caffeine: settingsForExtension('org.gnome.shell.extensions.caffeine', ['aurea-caffeine@local', 'caffeine@patapon.info']),
         };
         for (const setting of Object.values(this.settings).filter(Boolean)) this.signals.push([setting, setting.connect('changed', () => this.sync())]);
-        for (const model of [ctx.wifi, ctx.bluetooth, ctx.sound, ctx.brightness, ctx.powerProfiles, ctx.batteryCare, ctx.airplaneMode, ctx.privacy])
+        for (const model of [ctx.wifi, ctx.bluetooth, ctx.sound, ctx.brightness, ctx.keyboardLight, ctx.powerProfiles, ctx.batteryCare, ctx.airplaneMode, ctx.privacy])
             this.offs.push(model.onChange(() => this.sync()));
         this.night = new NightProxy(Gio.DBus.session, 'org.gnome.SettingsDaemon.Color', '/org/gnome/SettingsDaemon/Color', (proxy, error) => {
             if (this.dead || error) return;
@@ -89,7 +89,7 @@ export class ControlCenter {
     }
     available(id) {
         const c = this.ctx;
-        return ({wifi: !!c.wifi.device, bluetooth: c.bluetooth.available, brightness: c.brightness.available,
+        return ({wifi: !!c.wifi.device, bluetooth: c.bluetooth.available, brightness: c.brightness.available, keyboardLight: c.keyboardLight.available,
             sound: c.sound.ready, microphone: c.sound.micReady, power: c.powerProfiles.available,
             battery: c.batteryCare.available, airplane: c.airplaneMode.available, caffeine: !!this.settings.caffeine,
             ethernet: c.wifi.ethernetAvailable, vpn: c.wifi.vpnAvailable})[id] ?? true;
@@ -143,7 +143,7 @@ export class ControlCenter {
         this.settings.focus.set_boolean('show-banners', !on);
     }
     tile(id, wide) {
-        if (['brightness', 'sound', 'microphone'].includes(id)) return this.sliderCard(id);
+        if (['brightness', 'sound', 'microphone', 'keyboardLight'].includes(id)) return this.sliderCard(id);
         const card = new St.BoxLayout({style_class: 'aurea-control-card', x_expand: true});
         const toggle = new St.Button({style_class: 'lintel-cc-tile aurea-control-main', can_focus: true, x_expand: true, accessible_name: MODULES[id]});
         const content = new St.BoxLayout({style_class: 'aurea-control-content', x_expand: true});
@@ -158,23 +158,27 @@ export class ControlCenter {
         this.cards.set(id, {toggle, status, icon, wide}); return card;
     }
     sliderCard(id) {
-        const c = this.ctx, mic = id === 'microphone', bright = id === 'brightness';
+        const c = this.ctx, mic = id === 'microphone', bright = id === 'brightness', keyboard = id === 'keyboardLight';
         const card = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style_class: 'aurea-slider-card'});
         const header = new St.BoxLayout();
         header.add_child(new St.Label({text: MODULES[id], x_expand: true, style_class: 'aurea-control-label', y_align: Clutter.ActorAlign.CENTER}));
         const value = new St.Label({style_class: 'aurea-control-status', y_align: Clutter.ActorAlign.CENTER}); header.add_child(value);
-        if (!bright) header.add_child(this.action('go-next-symbolic', `Dispositivos de ${MODULES[id]}`, () => this.showPage(id)));
+        if (!bright && !keyboard) header.add_child(this.action('go-next-symbolic', `Dispositivos de ${MODULES[id]}`, () => this.showPage(id)));
         card.add_child(header);
         const row = new St.BoxLayout({style_class: 'aurea-slider-row'});
         const icon = new St.Icon({icon_name: ICONS[id], icon_size: 16, y_align: Clutter.ActorAlign.CENTER});
+        let toggle;
         if (bright) row.add_child(icon);
-        else {
+        else if (keyboard) {
+            toggle = new St.Button({child: icon, style_class: 'aurea-icon-action', can_focus: true, accessible_role: Atk.Role.TOGGLE_BUTTON});
+            toggle.connect('clicked', () => c.keyboardLight.toggle()); row.add_child(toggle);
+        } else {
             const mute = new St.Button({child: icon, style_class: 'aurea-icon-action', can_focus: true, accessible_name: `Silenciar ${MODULES[id]}`});
             mute.connect('clicked', () => mic ? c.sound.source?.change_is_muted(!c.sound.micMuted) : c.sound.toggleMute()); row.add_child(mute);
         }
-        const slider = this.makeSlider(0, v => bright ? c.brightness.setLevel(v) : mic ? c.sound.setMicLevel(v) : c.sound.setLevel(v));
+        const slider = this.makeSlider(0, v => keyboard ? c.keyboardLight.setLevel(v) : bright ? c.brightness.setLevel(v) : mic ? c.sound.setMicLevel(v) : c.sound.setLevel(v));
         slider.accessible_name = MODULES[id]; row.add_child(slider); card.add_child(row);
-        this.cards.set(id, {slider, value, icon}); return card;
+        this.cards.set(id, {slider, value, icon, toggle}); return card;
     }
     showPage(id) {
         this.ctx.bluetooth.stopDiscovery(); this.cancelRefresh(); this.page = id;
@@ -248,9 +252,16 @@ export class ControlCenter {
             if (this.availability !== signature) { this.showPage(null); return; }
             for (const [id, card] of this.cards) {
                 if (card.slider) {
-                    const level = id === 'brightness' ? this.ctx.brightness.level : id === 'microphone' ? this.ctx.sound.micLevel : this.ctx.sound.level;
+                    const level = id === 'keyboardLight' ? this.ctx.keyboardLight.level : id === 'brightness' ? this.ctx.brightness.level : id === 'microphone' ? this.ctx.sound.micLevel : this.ctx.sound.level;
                     card.slider.setSilently(level); card.value.text = `${Math.round(level * 100)} %`;
-                    if (id !== 'brightness') card.icon.icon_name = id === 'microphone' ? this.ctx.sound.micIconName : this.ctx.sound.iconName;
+                    if (id === 'keyboardLight') {
+                        const on = level > 0;
+                        card.value.text = this.ctx.keyboardLight.error ? 'No se pudo cambiar' : on ? `${Math.round(level * 100)} %` : 'Apagada';
+                        card.toggle.accessible_name = `${on ? 'Apagar' : 'Encender'} luz del teclado`;
+                        if (on) card.toggle.add_accessible_state(Atk.StateType.CHECKED);
+                        else card.toggle.remove_accessible_state(Atk.StateType.CHECKED);
+                        card.icon.icon_name = on ? 'keyboard-brightness-symbolic' : 'input-keyboard-symbolic';
+                    } else if (id !== 'brightness') card.icon.icon_name = id === 'microphone' ? this.ctx.sound.micIconName : this.ctx.sound.iconName;
                 } else {
                     const [on, text] = this.state(id); card.status.text = text;
                     card.toggle.accessible_name = `${MODULES[id]}. ${text}`;

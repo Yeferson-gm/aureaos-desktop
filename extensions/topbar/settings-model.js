@@ -1,6 +1,6 @@
 export const MODULES = {
     wifi: 'Wi-Fi', bluetooth: 'Bluetooth', brightness: 'Brillo', sound: 'Sonido',
-    microphone: 'Micrófono', power: 'Energía', battery: 'Cuidado de batería',
+    microphone: 'Micrófono', keyboardLight: 'Luz del teclado', power: 'Energía', battery: 'Cuidado de batería',
     focus: 'No molestar', night: 'Luz nocturna', appearance: 'Aspecto',
     airplane: 'Modo avión', caffeine: 'Cafeína', privacy: 'Privacidad',
     displays: 'Pantallas', vpn: 'VPN', ethernet: 'Ethernet', screenshot: 'Captura',
@@ -15,7 +15,7 @@ export const DEFAULTS = {
     reducedMotion: false, contrast: false, adaptiveContrast: false,
     clockFormat: 'system', clockDate: true, clockSeconds: false, shortcuts: 'linux',
     autohide: 'never', menuIcons: 'selective',
-    modules: ['wifi', 'bluetooth', 'brightness', 'sound', 'microphone', 'power', 'battery', 'focus', 'caffeine', 'night', 'appearance', 'privacy', 'screenshot'],
+    modules: ['wifi', 'bluetooth', 'brightness', 'keyboardLight', 'sound', 'microphone', 'power', 'battery', 'focus', 'caffeine', 'night', 'appearance', 'privacy', 'screenshot'],
     sizes: {}, indicators: Object.keys(INDICATORS), visibility: {},
 };
 const choices = (value, options, fallback) => options.includes(value) ? value : fallback;
@@ -54,7 +54,7 @@ export function normalizeConfig(input = {}) {
     for (const id of Object.keys(INDICATORS)) out.visibility[id] = choices(raw.visibility?.[id], ['always', 'active', 'never'], 'always');
     out.visibility.cc = 'always';
     out.sizes = {};
-    for (const id of Object.keys(MODULES)) out.sizes[id] = choices(raw.sizes?.[id], ['small', 'wide'], ['sound', 'brightness', 'microphone'].includes(id) ? 'wide' : 'small');
+    for (const id of Object.keys(MODULES)) out.sizes[id] = choices(raw.sizes?.[id], ['small', 'wide'], ['sound', 'brightness', 'microphone', 'keyboardLight'].includes(id) ? 'wide' : 'small');
     return out;
 }
 export function moveItem(items, id, delta) {

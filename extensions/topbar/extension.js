@@ -1,4 +1,5 @@
 import {Sound, Brightness, PowerProfiles, BatteryCare, AirplaneMode, Bluetooth, Privacy, btIcon} from './services.js';
+import {KeyboardLight} from './keyboard-light.js';
 import {run, busCall, settingsFor, settingsForExtension} from './platform.js';
 import {ThemeTokens} from './theme-tokens.js';
 import {PublishedMenus} from './published-menus.js';
@@ -1698,6 +1699,7 @@ export default class LintelV2 extends Extension {
         });
         ctx.sound = new Sound();
         ctx.brightness = new Brightness();
+        ctx.keyboardLight = new KeyboardLight();
         ctx.powerProfiles = new PowerProfiles();
         ctx.batteryCare = new BatteryCare();
         ctx.airplaneMode = new AirplaneMode();
@@ -1788,6 +1790,7 @@ export default class LintelV2 extends Extension {
         this._ctx?.privacy?.destroy();
         this._ctx?.sound?.destroy();
         this._ctx?.brightness?.destroy();
+        this._ctx?.keyboardLight?.destroy();
         this._ctx?.powerProfiles?.destroy();
         this._ctx?.batteryCare?.destroy();
         this._ctx?.airplaneMode?.destroy();

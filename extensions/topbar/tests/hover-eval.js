@@ -59,6 +59,18 @@
     const native = Main.panel.statusArea.keyboard?.container;
     if (native) { native.show(); if (native.visible) throw new Error('Teclado nativo duplicado'); }
     const cc = Main.panel.statusArea['lintel-cc'];
+    const keyboardLight = bar._ctx.keyboardLight;
+    for (let i = 0; i < 30 && !keyboardLight.available; i++) await wait(100);
+    const keyboardCard = cc.controls.cards.get('keyboardLight');
+    if (!keyboardCard) throw new Error('No aparece la luz del teclado');
+    keyboardCard.toggle.emit('clicked', 1); await wait(200);
+    if (keyboardLight.level !== 1 || keyboardCard.value.text !== '100 %') throw new Error('No enciende la luz del teclado');
+    keyboardCard.slider.value = .5; await wait(200);
+    if (keyboardLight.level !== .5) throw new Error('El deslizador no ajusta el teclado');
+    keyboardCard.toggle.emit('clicked', 1); await wait(200);
+    if (keyboardLight.level !== 0 || keyboardCard.value.text !== 'Apagada') throw new Error('No apaga la luz del teclado');
+    keyboardCard.toggle.emit('clicked', 1); await wait(200);
+    if (keyboardLight.level !== .5) throw new Error('No restaura la intensidad del teclado');
     const holder = cc.menu._getMenuItems()[0];
     const find = a => a.has_style_class_name?.('lintel-cc-tile') ? a : a.get_children().map(find).find(Boolean);
     const {default: Shell} = await import('gi://Shell');
@@ -207,7 +219,7 @@
     };
     let [cx, cy] = cc.get_transformed_position();
     await click(cx + cc.width / 2, cy + cc.height / 2);
-    if (!cc.menu.isOpen) throw new Error('Clic real no abre el Centro de Control');
+    if (!cc.menu.isOpen) throw new Error(`Clic real no abre el Centro de Control: ${cx},${cy} ${cc.width}x${cc.height}; actual=${cc.get_transformed_position()}; actor=${global.stage.get_actor_at_pos(Clutter.PickMode.REACTIVE, cx + cc.width / 2, cy + cc.height / 2)}`);
     keyboard.notify_keyval(GLib.get_monotonic_time(), Clutter.KEY_Escape, Clutter.KeyState.PRESSED);
     keyboard.notify_keyval(GLib.get_monotonic_time(), Clutter.KEY_Escape, Clutter.KeyState.RELEASED);
     await wait(220);
@@ -240,7 +252,7 @@
     bar.disable();
     pointer.run_dispose(); keyboard.run_dispose();
     await wait(80); bar.enable();
-    return 'Temas, reflujo, perfil explícito, tres deslizadores, 100 interrupciones, clic real, Escape, clic exterior, movimiento reducido y recarga';
+    return 'Temas, reflujo, perfil explícito, deslizadores y luz del teclado, 100 interrupciones, clic real, Escape, clic exterior, movimiento reducido y recarga';
 })().then(async result => {
     const {default: Gio} = await import('gi://Gio');
     const {default: GLib} = await import('gi://GLib');

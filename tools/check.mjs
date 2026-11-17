@@ -70,6 +70,7 @@ const tests = [
     'integrations/desktop/test-desktop-drop.mjs',
 ];
 for (const file of tests) run('node', [file]);
+run('dbus-run-session', ['--', 'gjs', '-m', 'extensions/topbar/tests/keyboard-light-runtime.js'], {env: {...process.env, AUREA_KEYBOARD_TEST: '1'}});
 run('python3', ['integrations/login-screen/test_manage.py']);
 run('python3', ['integrations/boot-menu/test_manage.py']);
 run('node', ['theme/tools/folders/install.mjs', '--check'], {env: {...process.env, ICON_TEST_ROOT: path.join(root, 'theme/icons')}});

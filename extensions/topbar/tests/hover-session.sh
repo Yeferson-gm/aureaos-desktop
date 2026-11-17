@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 gjs -m "$DI_PROJECT_DIR/tests/configuration-runtime.js"
+gsettings set org.gnome.shell welcome-dialog-last-shown-version '99'
+AUREA_KEYBOARD_FIXTURE_DAEMON=1 gjs -m "$DI_PROJECT_DIR/tests/keyboard-light-fixture.js" >"$DI_TEST_DIR/keyboard-light.log" 2>&1 &
+keyboard_fixture_pid=$!
+for attempt in {1..20}; do
+    if gdbus call --session --dest org.gnome.SettingsDaemon.Power --object-path /org/gnome/SettingsDaemon/Power --method org.freedesktop.DBus.Properties.Get org.gnome.SettingsDaemon.Power.Keyboard Brightness 2>/dev/null | rg -q '0'; then break; fi
+    sleep 0.1
+done
 gsettings set org.gnome.desktop.interface enable-hot-corners false
 if [[ -n "${AUREA_TEST_SCALE:-}" ]]; then gsettings set org.gnome.mutter experimental-features "['scale-monitor-framebuffer']"; fi
 if [[ "${AUREA_TEST_ISLAND:-0}" == 1 ]]; then
@@ -13,7 +20,7 @@ if [[ "${AUREA_TEST_DUAL:-0}" == 1 ]]; then monitors+=(--virtual-monitor 1920x10
 if [[ -n "${AUREA_TEST_TEXT_SCALE:-}" ]]; then gsettings set org.gnome.desktop.interface text-scaling-factor "$AUREA_TEST_TEXT_SCALE"; fi
 gnome-shell --headless --wayland --wayland-display dock-test --no-x11 "${monitors[@]}" --debug-control >"$DI_TEST_DIR/shell.log" 2>&1 &
 test_pid=$!
-trap 'kill "$test_pid" 2>/dev/null || true' EXIT
+trap 'kill "$test_pid" "$keyboard_fixture_pid" 2>/dev/null || true' EXIT
 for attempt in {1..20}; do
     if gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval '1+1' 2>/dev/null | rg -q '^\(true'; then break; fi
     sleep 1
