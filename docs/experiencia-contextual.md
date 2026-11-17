@@ -34,8 +34,9 @@ persistente evita asignaciones gráficas pendientes sobre actores retirados.
 
 ## Estadísticas al pasar el cursor
 
-Acercar el cursor a la zona de activación de la esquina inferior izquierda del
-monitor elegido. Aparece una franja horizontal encima del dock. Pasar el cursor
+Acercar el cursor al borde inferior, entre 24 y 80 píxeles lógicos desde la esquina
+izquierda del monitor elegido, y esperar un cuarto de segundo. También se puede
+abrir desde **Organizar → Ver estadísticas**, sin buscar el punto con el cursor. Aparece una franja horizontal encima del dock. Pasar el cursor
 sobre CPU, memoria, disco, red, batería o fecha abre su detalle encima de la franja.
 «Mantener abierto» fija temporalmente el panel; Cerrar, Escape o salir con el cursor
 lo libera. Ajustes → Estadísticas desactiva el indicador. La zona no se activa en
@@ -152,3 +153,40 @@ automática `trackFullscreen` de Chrome podía volver a mostrar una superficie
 cerrada sin reactivar su muestreo. Se excluyen de ese control y se cierran
 explícitamente al cambiar pantalla completa; las pruebas verifican estado,
 visibilidad, entrada real del cursor, salida y ausencia de muestreo oculto.
+
+## Jerarquía visual de las islas
+
+El espacio lateral mantiene 22 px de margen interior, encabezado compacto con
+icono, búsqueda nativa `St.Entry`, segmentos con icono y nombre, selector de espacio,
+contenido desplazable y acciones al pie. «En uso» solo filtra aplicaciones y aparece
+en Apps; no se muestra el ambiguo «Todas». El azul identifica selección, foco y
+acción principal; el blanco identifica títulos y el gris legible el texto secundario.
+Las acciones secundarias conservan sus etiquetas. Los mensajes del pie tienen
+ancho limitado y admiten dos líneas.
+
+La isla superior comparte selección azul, niveles de texto e iconos simbólicos
+en su navegación. Los controles reutilizan St/Clutter, Pango e iconos del sistema,
+con accesibilidad y teclado nativos. Una librería de componentes HTML no se puede
+insertar directamente en GNOME Shell. Referencia: [St.Entry](https://gnome.pages.gitlab.gnome.org/gnome-shell/st/class.Entry.html).
+
+La prueba de geometría comprueba que los controles quedan dentro del panel con
+texto al 100 % y al 125 %, y que título y buscador no se pisan. La regresión que
+eliminó `padding` al limpiar CSS queda cubierta por esas medidas reales.
+
+## Material y rendimiento
+
+Las dos islas usan negro con vidrio discreto: 90 % de opacidad en el espacio
+lateral y 92 % en la isla superior. Se reutiliza el desenfoque nativo ya existente;
+los gráficos usan Cairo y las imágenes, los iconos de GNOME y el tema instalado.
+Las estadísticas usan tarjetas translúcidas con cifra principal, unidad o contexto
+secundario y color por métrica. No se añaden procesos web ni dependencias de red.
+El material sólido y alto contraste mantienen fondos opacos.
+
+Bun administra comprobaciones, construcción e instalación. Cambiar los imports
+`node:` no reduce el coste del compositor: las extensiones usan GJS. El muestreo
+sigue detenido al cerrar las estadísticas; el desenfoque del lateral se desactiva
+cuando está cerrado. Los datos y preferencias personales permanecen fuera del repo.
+
+El desenfoque superior se activa únicamente al terminar la apertura, con ancho
+y alto válidos. Se desactiva durante transiciones y al cerrar para evitar texturas
+de tamaño cero y reducir el coste de las animaciones.

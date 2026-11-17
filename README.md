@@ -68,6 +68,8 @@ interacción. No desactivar la validación de compatibilidad. Consultar
 [guía de la isla de favoritas](docs/isla-aplicaciones-uso.md).
 Las nuevas vistas de carpetas, grupos, estadísticas, clima y asistentes se explican
 en [Espacios contextuales](docs/experiencia-contextual.md), con comandos y límites.
+Estadísticas: cursor en el borde inferior izquierdo (24–80 px desde la esquina)
+o **Organizar → Ver estadísticas** en el panel lateral.
 
 Bun se utiliza automáticamente si está instalado; Node queda como alternativa
 y validador sintáctico. Para elegir: `AUREA_RUNTIME=bun ./aurea.sh check` o
