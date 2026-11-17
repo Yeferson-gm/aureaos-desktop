@@ -1070,12 +1070,17 @@ export default class DynamicIsland extends Extension {
 
     _syncGlass() {
         if (!this._glass) return;
-        const enabled = this._settings.get_string('theme') === 'glass' && this._settings.get_int('glass-blur') > 0;
-        this._glass.visible = enabled;
-        this._glassEffect.set_enabled(enabled);
+        this._syncGlassVisibility();
         if ('sigma' in this._glassEffect) this._glassEffect.sigma = this._settings.get_int('glass-blur');
         else this._glassEffect.radius = this._settings.get_int('glass-blur') * 2;
         this._glassEffect.brightness = 0.7;
+    }
+
+    _syncGlassVisibility() {
+        if (!this._glass || !this._glassEffect) return;
+        const enabled = this._p >= 0.999 && this._glass.width > 1 && this._glass.height > 1 &&
+            this._settings.get_string('theme') === 'glass' && this._settings.get_int('glass-blur') > 0;
+        this._glass.visible = enabled; this._glassEffect.set_enabled(enabled);
     }
 
     _syncIslandBackground() {
@@ -1085,6 +1090,7 @@ export default class DynamicIsland extends Extension {
         const inset = this._settings.get_int('corner-radius') + 8;
         this._glass.set_position(inset, inset);
         this._glass.set_size(Math.max(0, width - inset * 2), Math.max(0, height - inset * 2));
+        this._syncGlassVisibility();
         this._islandBackground.set_position(0, 0);
         this._islandBackground.set_size(width, height);
         this._islandBackground.queue_repaint();
@@ -1094,6 +1100,7 @@ export default class DynamicIsland extends Extension {
     _applyIsland(p) {
         if (!this._island) return;
         this._p = p;
+        this._syncGlassVisibility();
         const n = this._notch;
         const f = this._fin;
         const lerp = (a, b) => a + (b - a) * p;
@@ -1417,9 +1424,10 @@ export default class DynamicIsland extends Extension {
             .filter(id => MODULES.some(m => m[0] === id) && id !== 'home').slice(0, 2);
         for (const id of ['home', ...pinned, 'library']) {
             const name = id === 'library' ? 'Más' : TAB_NAMES[id];
-            const button = this._chip(name, () => this._selectTab(id));
+            const icon = id === 'library' ? 'view-grid-symbolic' : MODULES.find(module => module[0] === id)?.[2] ?? 'go-home-symbolic';
+            const button = this._chip(name, () => this._selectTab(id), icon);
             button.add_style_class_name('di-navigation-item');
-            button._label.width = 64;
+            button._label.width = id === 'home' ? 36 : id === 'library' ? 24 : 64;
             button._label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
             button.accessible_name = name;
             this._tabButtons[id] = button;

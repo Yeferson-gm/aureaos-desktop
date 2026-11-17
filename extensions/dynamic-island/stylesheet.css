@@ -261,3 +261,14 @@
 .di-weather-day { padding: 8px; border-radius: 9px; background-color: rgba(255,255,255,0.045); }
 .di-assistants { spacing: 12px; padding-bottom: 18px; }
 .di-assistants .di-search { padding: 10px; }
+
+.di-navigation-item { padding: 7px 8px; color: #b7c1d0; border-radius: 10px; }
+.di-navigation-item.di-tab-active { background-color: rgba(81,158,255,0.18); color: #9dcdff; }
+.di-navigation-item:hover, .di-navigation-item:focus { background-color: rgba(255,255,255,0.10); color: white; }
+.di-dashboard-title { color: #f6f7fa; font-size: 20px; font-weight: 600; }
+.di-dashboard-caption { color: #bec8d7; font-size: 12px; }
+.di-dashboard-detail { color: #f0f3f9; font-size: 15px; font-weight: 500; }
+.di-hint { color: #a7b1c2; font-size: 12px; }
+.di-glance-content StIcon { color: #89bdff; }
+.di-glance-preview { padding: 16px; spacing: 10px; border-radius: 16px; background-color: rgba(28,34,44,0.78); border: 1px solid rgba(180,200,230,0.09); }
+.di-search:focus { border-color: #79b7ff; }

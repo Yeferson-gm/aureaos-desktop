@@ -8,7 +8,7 @@ export const MODULES = [
     ['files', 'Archivos', 'folder-symbolic'],
     ['clip', 'Portapapeles', 'edit-paste-symbolic'],
     ['notes', 'Notas y tareas', 'document-edit-symbolic'],
-    ['system', 'Sistema', 'utilities-system-monitor-symbolic'],
+    ['system', 'Sistema', 'computer-symbolic'],
     ['clock', 'Temporizador', 'alarm-symbolic'],
     ['today', 'Calendario', 'x-office-calendar-symbolic'],
     ['weather', 'Clima', 'weather-clear-symbolic'],
@@ -38,7 +38,7 @@ export class IslandWorkspace {
         this.preview = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-glance-preview'});
         page.add_child(this.preview);
         const shortcuts = new St.BoxLayout({style_class: 'di-home-shortcuts', x_expand: true});
-        for (const [id, title, icon] of [['files', 'Estante', 'folder-symbolic'], ['system', 'Equipo', 'utilities-system-monitor-symbolic'], ['agents', 'Asistentes', 'utilities-terminal-symbolic']]) {
+        for (const [id, title, icon] of [['files', 'Estante', 'folder-symbolic'], ['system', 'Equipo', 'computer-symbolic'], ['agents', 'Asistentes', 'utilities-terminal-symbolic']]) {
             const action = new St.Button({style_class: 'di-home-shortcut', reactive: true, can_focus: true, x_expand: true, accessible_name: title});
             const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-home-shortcut-content'});
             content.add_child(new St.Icon({icon_name: icon, icon_size: 22, x_align: Clutter.ActorAlign.CENTER}));
@@ -86,7 +86,7 @@ export class IslandWorkspace {
         const e = this.island;
         this.date.text = new Date().toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long'});
         const details = {
-            music: e._name ? `${e._status === 'Playing' ? '▶' : 'Ⅱ'}  ${e._title?.text ?? 'Música'}` : 'Tu música, a un toque',
+            music: e._name ? `${e._status === 'Playing' ? '▶' : 'Ⅱ'}  ${e._title?.text ?? 'Música'}` : 'Sin reproducción',
             clock: e._tm.running ? `${Math.ceil(e._timerLeft() / 60000)} min restantes` : 'Un momento para concentrarte',
             system: e._bat ? `${e._bat.pct}% · ${[1, 5].includes(e._bat.state) ? 'Cargando' : 'Batería'}` : 'Estado de tu equipo',
             files: `${e._shelf.length} elementos en tu estante`,
@@ -94,7 +94,7 @@ export class IslandWorkspace {
             notes: `${(e._tasks ?? []).filter(t => !t.done).length} tareas pendientes`,
             notifications: `${e._notificationEntries().length} notificaciones`,
             weather: e._weather ? `${Math.round(e._weather.w.temperature_2m)}° · ${e._weather.city}` : 'Consultar el tiempo',
-            today: e._nextMeeting ? `${e._nextMeeting.summary} · ${e._nextMeeting.allDay ? 'Todo el día' : `en ${Math.max(0, Math.ceil((e._nextMeeting.date - Date.now()) / 60000))} min`}` : 'Tu agenda y el tiempo',
+            today: e._nextMeeting ? `${e._nextMeeting.summary} · ${e._nextMeeting.allDay ? 'Todo el día' : `en ${Math.max(0, Math.ceil((e._nextMeeting.date - Date.now()) / 60000))} min`}` : 'Sin próximos eventos',
             studio: 'Dictado local y teleprompter',
             agents: `${e._agents?.items.size ?? 0} tareas locales`,
             mirror: 'Comprueba tu cámara cuando lo necesites',

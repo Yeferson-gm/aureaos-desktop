@@ -262,6 +262,10 @@
     island._settings.set_boolean('show-mascot', false);
     island._settings.set_boolean('celebration-effects', false);
     island._settings.set_string('theme', 'glass');
+    island._applyIsland(0);
+    if (island._glassEffect.get_enabled()) throw new Error('Blur activo sin superficie abierta');
+    island._applyIsland(1);
+    if (!island._glassEffect.get_enabled()) throw new Error('Blur ausente con superficie abierta');
     island._settings.set_boolean('animations', false);
     island._openIsland();
     if (island._motion?.timeline) throw new Error('Animaciones desactivadas aún crean temporizador');
