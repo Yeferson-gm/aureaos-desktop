@@ -240,3 +240,8 @@
 .di-lyric-current { font-size: 18px; font-weight: 600; color: #ffffff; }
 .di-prompter { font-size: 24px; color: #ffffff; }
 .di-agent-card { spacing: 8px; padding: 12px; border-radius: 12px; background-color: rgba(255,255,255,0.06); }
+.di-home-shortcuts { spacing: 8px; }
+.di-home-shortcut { padding: 12px; border-radius: 14px; background-color: rgba(255,255,255,0.055); color: #e4eaf5; border: 1px solid rgba(255,255,255,0.07); }
+.di-home-shortcut:hover, .di-home-shortcut:focus { background-color: rgba(255,255,255,0.12); border-color: rgba(160,195,255,0.5); }
+.di-home-shortcut:active { background-color: rgba(70,130,235,0.22); }
+.di-home-shortcut-content { spacing: 7px; }

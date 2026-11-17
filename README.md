@@ -609,3 +609,9 @@ Para actualizar únicamente el Dock, seleccionar `aurea_paquete` como se indica 
 
 Conserva las preferencias del Dock. Cerrar sesión y volver a entrar carga el código
 actualizado; `--check` verifica archivos, no la versión ya cargada en memoria.
+
+## Espacios laterales y acceso rápido
+
+Consultar [diseño y uso de las islas](docs/islas-diseno.md): favoritas, grupos,
+archivos copiados, contenido de carpetas, estadísticas en el borde opuesto y
+apertura por hover de la isla superior. Los atajos y preferencias se conservan.

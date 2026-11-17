@@ -1,6 +1,6 @@
 export const DEFAULTS = Object.freeze({side: 'right', monitor: 'primary', edge: 3,
     delay: 180, hideDelay: 400, theme: 'auto', material: 'glass', layout: 'grid',
-    quickCount: 5, previews: false, shortcut: '<Super><Alt>f', density: 'comfortable'});
+    statistics: true, quickCount: 5, previews: false, shortcut: '<Super><Alt>f', density: 'comfortable'});
 export const CATEGORIES = [
     ['Internet', ['WebBrowser', 'Network', 'Email', 'Chat']],
     ['Multimedia', ['AudioVideo', 'Audio', 'Video']], ['Diseño', ['Graphics', 'Photography']],
@@ -22,7 +22,7 @@ export function preferences(input = {}) {
         density: enumValue(input.density, ['comfortable', 'compact'], 'comfortable'),
         edge: number('edge', 1, 6), delay: number('delay', 80, 800),
         hideDelay: number('hideDelay', 150, 1200), quickCount: number('quickCount', 1, 8),
-        previews: input.previews === true,
+        statistics: input.statistics !== false, previews: input.previews === true,
         shortcut: typeof input.shortcut === 'string' && input.shortcut.length < 80 ? input.shortcut : DEFAULTS.shortcut};
 }
 export function categoryFor(categories) {

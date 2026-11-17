@@ -9,6 +9,7 @@ import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import {DEFAULTS, normalize, categoryFor} from './model.js';
+import {Statistics} from './statistics.js';
 import {Store} from './store.js';
 import {column, label, button, entry, edit} from './ui.js';
 import {createRoundedMask} from './rounded-clip.js';
@@ -44,7 +45,7 @@ export default class AppIsland extends Extension {
         this._root.add_child(this._panel);
         this._handle = button('Abrir favoritas', () => this._setOpen(true));
         this._handle.set_style('padding: 0; width: 7px; background-color: transparent;');
-        this._handle.set_child(new St.Widget({width: 2, height: 24, style_class: 'ai-grip', y_align: Clutter.ActorAlign.CENTER}));
+        this._handle.set_child(new St.Widget({width: 2, height: 24, opacity: 0}));
         this._root.add_child(this._handle);
         Main.layoutManager.addChrome(this._root, {trackFullscreen: true});
         for (const prop of ['x', 'y', 'width', 'height', 'translation-x'])
@@ -58,14 +59,15 @@ export default class AppIsland extends Extension {
         this._connect(this._appSystem, 'app-state-changed', () => this._updateStates());
         this._connect(this._appSystem, 'installed-changed', () => this._render());
         this._connect(Main.layoutManager, 'monitors-changed', () => { this._setOpen(false); this._layout(); });
-        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); });
-        this._connect(Main.overview, 'hidden', () => this._root.show());
+        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); this._statistics?.show(false); this._statistics?.trigger.hide(); });
+        this._connect(Main.overview, 'hidden', () => { this._root.show(); this._statistics?.layout(); });
         this._connect(this._interface, 'changed', () => { this._theme(); this._layout(); });
         this._connect(this._a11y, 'changed', () => this._theme());
         this._connect(global.display, 'accelerator-activated', (_d, action) => {
             if (action === this._accelerator) this._setOpen(!this._open);
         });
         this._shortcut(); this._buildPanel(); this._renderBar(); this._layout(); this._theme();
+        this._statistics = new Statistics(this);
         if (Main.overview.visible) this._root.hide();
     }
     get settings() { return this._model.settings; }
@@ -101,12 +103,12 @@ export default class AppIsland extends Extension {
         const m = this._monitor(); if (!m) return null;
         const work = Main.layoutManager.getWorkAreaForMonitor(m.index);
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        const width = this._open ? Math.min(360 * scale, work.width - 16) : 52 * scale;
+        const width = this._open ? Math.min(360 * scale, work.width - 32 * scale) : 64 * scale;
         const content = this._panel.get_preferred_height(width)[1];
-        const height = Math.max(56 * scale, Math.min(work.height - 24 * scale,
+        const height = Math.max(112 * scale, Math.min(work.height - 24 * scale,
             this._open ? Math.max(260 * scale, Math.min(content, 620 * scale)) : this._bar.get_preferred_height(width)[1]));
         const side = this._side();
-        return {x: side === 'right' ? m.x + m.width - width : m.x,
+        return {x: side === 'right' ? m.x + m.width - width - 8 * scale : m.x + 8 * scale,
             y: work.y + Math.round((work.height - height) / 2), width, height};
     }
     _layout() {
@@ -114,7 +116,7 @@ export default class AppIsland extends Extension {
         const g = this._geometry(); if (!g) return;
         this._root.remove_all_transitions(); this._root.set_position(g.x, g.y); this._root.set_size(g.width, g.height);
         this._handle.x_align = this._side() === 'right' ? Clutter.ActorAlign.START : Clutter.ActorAlign.END;
-        this._reveal(this._open || this._root.hover, false); this._clip();
+        this._reveal(this._open || this._root.hover, false); this._clip(); this._statistics?.layout();
     }
     _clip() {
         if (!this._root) return;
@@ -123,12 +125,12 @@ export default class AppIsland extends Extension {
         const left = Math.max(0, m.x - x), top = Math.max(0, m.y - y);
         a.set_clip(left, top, Math.max(0, Math.min(a.width, m.x + m.width - x) - left),
             Math.max(0, Math.min(a.height, m.y + m.height - y) - top));
-        this._mask.resize(a.width, a.height, 18 * St.ThemeContext.get_for_stage(global.stage).scale_factor);
+        this._mask.resize(a.width, a.height, 22 * St.ThemeContext.get_for_stage(global.stage).scale_factor);
     }
     _reveal(show, animate = true) {
         if (this._sharedEdge && !this._open) show = false;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        const offset = show ? 0 : (this._root.width - this.settings.edge * scale) * (this._side() === 'right' ? 1 : -1);
+        const offset = show ? 0 : (this._root.width + (8 - this.settings.edge) * scale) * (this._side() === 'right' ? 1 : -1);
         this._root.ease({translation_x: offset, duration: animate ? this._duration(180) : 0, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
     }
     _shortcut() {
@@ -196,11 +198,12 @@ export default class AppIsland extends Extension {
         return Clutter.EVENT_PROPAGATE;
     }
     _theme() {
-        const dark = this.settings.theme === 'dark' || (this.settings.theme === 'auto' && this._interface.get_string('color-scheme') === 'prefer-dark');
+        const dark = !this._open || this.settings.theme === 'dark' || (this.settings.theme === 'auto' && this._interface.get_string('color-scheme') === 'prefer-dark');
         const contrast = this._a11y.get_boolean('high-contrast');
         this._root.set_style_class_name(`ai-root ${dark ? 'ai-dark' : 'ai-light'}${contrast ? ' ai-contrast' : ''}${this.settings.density === 'compact' ? ' ai-compact' : ''}`);
         const solid = contrast || this.settings.material === 'solid';
         if (solid) this._root.add_style_class_name('ai-solid');
+        if (!this._open) this._root.add_style_class_name('ai-rail');
         this._blur.set_enabled(this._open && !solid);
     }
     _save() {
@@ -218,7 +221,13 @@ export default class AppIsland extends Extension {
     _name(item) { return item.alias || (item.type === 'app' ? this._appSystem.lookup_app(item.target)?.get_name() ?? item.target : Gio.File.new_for_uri(item.target).get_basename() ?? item.target); }
     _icon(item, size = 38) {
         if (item.type === 'app') return this._appSystem.lookup_app(item.target)?.create_icon_texture(size) ?? new St.Icon({icon_name: 'application-x-executable-symbolic', icon_size: size});
-        return new St.Icon({icon_name: item.target.startsWith('file:') ? 'folder' : 'web-browser', icon_size: size});
+        if (item.target.startsWith('file:')) {
+            try {
+                const info = Gio.File.new_for_uri(item.target).query_info('standard::icon', Gio.FileQueryInfoFlags.NONE, null);
+                return new St.Icon({gicon: info.get_icon(), icon_size: size});
+            } catch { return new St.Icon({icon_name: 'dialog-warning-symbolic', icon_size: size}); }
+        }
+        return new St.Icon({icon_name: 'web-browser', icon_size: size});
     }
     _message(text) { if (this._status) this._status.text = text; else this._initialMessage = text; }
     _launch(item, newWindow = false, keep = false) {
@@ -247,12 +256,16 @@ export default class AppIsland extends Extension {
                 if (mouse === 3) { this._setOpen(true); this._actions(item); }
                 else this._launch(item, mouse === 2);
             });
-            b.button_mask = PRIMARY | MIDDLE | SECONDARY; b.set_child(this._icon(item, 28));
+            b.button_mask = PRIMARY | MIDDLE | SECONDARY; b.set_child(this._icon(item, 36));
+            b.add_style_class_name('ai-rail-button');
             this._bar.add_child(b);
         }
-        if (!this._bar.get_n_children()) this._bar.add_child(button('Añadir favoritas', () => this._setOpen(true), 'starred-symbolic'));
+        if (this._bar.get_n_children()) this._bar.add_child(new St.Widget({style_class: 'ai-rail-divider'}));
+        const open = button('Abrir favoritas', () => this._setOpen(true), 'view-grid-symbolic');
+        open.add_style_class_name('ai-rail-button'); this._bar.add_child(open);
     }
     disable() {
+        this._statistics?.destroy(); this._statistics = null;
         this._clearPopup(); this._release();
         for (const id of this._sources) GLib.Source.remove(id);
         this._sources.clear();
@@ -266,14 +279,14 @@ export default class AppIsland extends Extension {
     }
     _buildPanel() {
         const head = new St.BoxLayout({style_class: 'ai-head'});
-        head.add_child(label('Favoritas', 'ai-title'));
+        head.add_child(label('Tu espacio', 'ai-title'));
         head.get_first_child().x_expand = true;
         head.add_child(button('Añadir', () => this._switch('add'), 'list-add-symbolic'));
         head.add_child(button('Organizar y ajustar', () => this._switch('settings'), 'emblem-system-symbolic'));
         head.add_child(button('Cerrar', () => this._setOpen(false), 'window-close-symbolic'));
         this._panel.add_child(head);
         this._profileButton = button('', () => this._switch('profiles'));
-        this._panel.add_child(this._profileButton);
+        this._profileButton.add_style_class_name('ai-profile');
         this._search = entry('Buscar en tu isla');
         this._search.clutter_text.connect('text-changed', () => {
             this._query = this._search.get_text(); this._clear(this._searchTimer);
@@ -287,12 +300,13 @@ export default class AppIsland extends Extension {
         const controls = new St.BoxLayout({style_class: 'ai-line'});
         this._back = button('Volver', () => this._switch('favorites'));
         this._filter = button('Solo abiertas', () => { this._onlyRunning = !this._onlyRunning; this._render(); });
-        controls.add_child(this._back); controls.add_child(this._filter); this._panel.add_child(controls);
+        this._profileButton.x_expand = true;
+        controls.add_child(this._profileButton); controls.add_child(this._back); controls.add_child(this._filter); this._panel.add_child(controls);
         this._scroll = new St.ScrollView({x_expand: true, y_expand: true, overlay_scrollbars: true,
             hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
-        this._list = column({style_class: 'ai-list', x_expand: true}); this._scroll.set_child(this._list); this._panel.add_child(this._scroll);
+        this._list = column({style_class: 'ai-list', x_expand: true, y_align: Clutter.ActorAlign.START}); this._scroll.set_child(this._list); this._panel.add_child(this._scroll);
         this._status = label(this._store.error ?? this._initialMessage ?? '', 'ai-status');
-        this._status.clutter_text.line_wrap = true; this._panel.add_child(this._status);
+        this._status.clutter_text.line_wrap = false; this._panel.add_child(this._status);
         this._undo = button('Deshacer', () => this._change(() => this._model.restore())); this._panel.add_child(this._undo);
     }
     _switch(view) {
@@ -327,9 +341,11 @@ export default class AppIsland extends Extension {
         this._clearPopup();
         for (const row of this._rows.values()) row.actor.get_parent()?.remove_child(row.actor);
         this._list.destroy_all_children();
-        this._profileButton.label = `${this._model.profile.name}  ·  ${this._model.profile.items.length} accesos`;
+        this._profileButton.label = `${this._model.profile.name}  ⌄`;
+        this._profileButton.get_child().x_align = Clutter.ActorAlign.START;
         this._back.visible = this._view !== 'favorites'; this._filter.visible = this._view === 'favorites';
-        this._filter.label = this._onlyRunning ? 'Ver todas las favoritas' : 'Solo abiertas';
+        this._filter.set_style_class_name(`ai-button ai-filter${this._onlyRunning ? ' ai-selected' : ''}`);
+        this._filter.label = this._onlyRunning ? '● Abiertas' : 'Todas';
         this._search.visible = ['favorites', 'add'].includes(this._view);
         this._search.hint_text = this._view === 'add' ? 'Buscar aplicación para añadir' : 'Buscar en tu isla';
         this._undo.visible = !!this._model.undo;
@@ -340,6 +356,7 @@ export default class AppIsland extends Extension {
             const apps = this._candidates();
             if (!apps.length) this._list.add_child(label(this._query.length < 2 ? 'Escribe al menos dos letras' : 'Sin coincidencias nuevas', 'ai-muted'));
             for (const app of apps) this._list.add_child(button(app.get_name(), () => this._addApp(app)));
+            this._list.add_child(button('Añadir archivos copiados', () => this._pasteFiles()));
             edit(this._list, 'Carpeta, archivo o enlace', '', value => this._addResource(value));
         } else {
             const items = this._items();
@@ -347,26 +364,15 @@ export default class AppIsland extends Extension {
                 this._list.add_child(label(this._query || this._onlyRunning ? 'No hay coincidencias' : 'Tus accesos, a un paso', 'ai-muted'));
                 this._list.add_child(button('Añadir favorita', () => this._switch('add')));
             }
-            const quick = !this._query && !this._onlyRunning ? this._model.quickItems().slice(0, this.settings.quickCount) : [];
-            if (quick.length) {
-                this._list.add_child(label('Acceso rápido', 'ai-section-title'));
-                let line;
-                for (const [index, item] of quick.entries()) {
-                    if (index % 5 === 0) { line = new St.BoxLayout({style_class: 'ai-line'}); this._list.add_child(line); }
-                    const access = button(this._name(item), (_b, mouse) => mouse === 3 ? this._actions(item) : this._launch(item, mouse === 2));
-                    access.button_mask = PRIMARY | MIDDLE | SECONDARY; access.set_child(this._icon(item, 28));
-                    access.connect('notify::hover', () => { if (access.hover) this._message(this._name(item)); });
-                    access.connect('key-focus-in', () => this._message(this._name(item)));
-                    line.add_child(access);
-                }
-            }
             for (const c of this._model.profile.categories) {
                 const selected = items.filter(i => i.category === c.id);
                 if (!selected.length) continue;
                 const head = new St.BoxLayout({style_class: 'ai-category-head'});
-                const toggle = button(`${c.collapsed && !this._query ? '▸' : '▾'} ${c.name}  ·  ${selected.length}`,
+                const toggle = button(`${c.collapsed && !this._query ? '▸' : '▾'}  ${c.name}`,
                     () => this._change(() => { c.collapsed = !c.collapsed; }));
-                toggle.x_expand = true; head.add_child(toggle);
+                toggle.get_child().x_align = Clutter.ActorAlign.START;
+                toggle.x_expand = true; toggle.add_style_class_name('ai-category-toggle'); head.add_child(toggle);
+                head.add_child(label(String(selected.length), 'ai-category-count'));
                 head.add_child(button(`Organizar ${c.name}`, () => this._categoryActions(c), 'view-more-symbolic'));
                 this._list.add_child(head); this._dropTarget(head, c.id);
                 if (c.collapsed && !this._query) continue;
@@ -393,7 +399,7 @@ export default class AppIsland extends Extension {
         row?.actor.destroy();
         const actor = column({style_class: this.settings.layout === 'grid' ? 'ai-tile' : 'ai-row', x_expand: true, y_expand: false});
         const content = this.settings.layout === 'grid' ? column({style_class: 'ai-tile-content'}) : new St.BoxLayout({style_class: 'ai-line'});
-        const icon = this._icon(item); icon.x_align = Clutter.ActorAlign.CENTER;
+        const icon = this._icon(item, 44); icon.x_align = Clutter.ActorAlign.CENTER;
         content.add_child(icon); content.add_child(label(this._name(item)));
         const launch = button(this._name(item), (_b, mouse) => mouse === 3 ? this._actions(item) : this._launch(item, mouse === 2));
         launch.button_mask = PRIMARY | MIDDLE | SECONDARY; launch.set_child(content); actor.add_child(launch);
@@ -430,8 +436,9 @@ export default class AppIsland extends Extension {
             if (app?.state === Shell.AppState.RUNNING && this._pending.has(row.item.id)) {
                 this._clear(this._pending.get(row.item.id)); this._pending.delete(row.item.id);
             }
-            row.status.text = row.item.type !== 'app' ? '' : !app ? 'No instalada' : app.state === Shell.AppState.RUNNING ? '● Abierta' : this._pending.has(row.item.id) ? 'Abriendo…' : '';
-            row.status.visible = row.status.text.length > 0;
+            row.status.text = row.item.type !== 'app' ? '' : !app ? 'No instalada' : app.state === Shell.AppState.RUNNING ? '●' : this._pending.has(row.item.id) ? 'Abriendo…' : '';
+            row.status.visible = true;
+            row.status.opacity = row.status.text.length ? 255 : 0;
         }
         if (this._onlyRunning && this._open) {
             const ids = this._items().map(i => i.id).join('|');
@@ -456,6 +463,11 @@ export default class AppIsland extends Extension {
         const box = this._popupBox(this._name(item));
         const action = (title, fn) => box.add_child(button(title, () => { this._clearPopup(); fn(); }));
         action('Abrir', () => this._launch(item));
+        if (item.type === 'uri' && item.target.startsWith('file:')) {
+            const file = Gio.File.new_for_uri(item.target);
+            if (file.query_file_type(Gio.FileQueryInfoFlags.NONE, null) === Gio.FileType.DIRECTORY)
+                action('Ver contenido', () => this._folder(item));
+        }
         if (item.type === 'app') {
             const app = this._appSystem.lookup_app(item.target);
             if (app?.can_open_new_window()) action('Nueva ventana', () => this._launch(item, true));
@@ -468,6 +480,7 @@ export default class AppIsland extends Extension {
         }
         action(item.launch ? 'Excluir de Abrir grupo' : 'Incluir en Abrir grupo', () => this._change(() => { item.launch = !item.launch; }));
         edit(box, 'Nombre visible', this._name(item), value => this._change(() => { item.alias = value.trim().slice(0, 120); }));
+        edit(box, 'Crear grupo y mover aquí', '', value => this._change(() => this._model.move(item.id, this._model.category(value))));
         box.add_child(label('Mover a', 'ai-section-title'));
         for (const c of this._model.profile.categories) action(c.name, () => this._change(() => this._model.move(item.id, c.id)));
         action('Subir', () => this._change(() => this._model.reorder(item.id, -1)));
@@ -519,6 +532,44 @@ export default class AppIsland extends Extension {
             this._model.add({id: GLib.uuid_string_random(), type: 'uri', target: uri, category: this._model.category('Recursos'), alias: ''});
         });
     }
+    _pasteFiles() {
+        St.Clipboard.get_default().get_content(St.ClipboardType.CLIPBOARD, 'x-special/gnome-copied-files', (_clipboard, bytes) => {
+            if (!this._root) return;
+            if (!bytes) { this._message('Copia archivos en el gestor de archivos y vuelve a intentarlo.'); return; }
+            const lines = new TextDecoder().decode(bytes.get_data ? bytes.get_data() : bytes).split('\n');
+            const uris = lines.filter(line => line.startsWith('file:///')).slice(0, 40);
+            this._change(() => {
+                const category = this._model.category('Recursos');
+                for (const uri of uris) if (Gio.File.new_for_uri(uri).query_exists(null))
+                    this._model.add({id: GLib.uuid_string_random(), type: 'uri', target: uri, category});
+            });
+            this._message('Accesos añadidos. Los archivos originales permanecen en su ubicación.');
+        });
+    }
+    _folder(item) {
+        const box = this._popupBox(this._name(item));
+        box.add_child(button('Abrir carpeta', () => this._launch(item)));
+        const file = Gio.File.new_for_uri(item.target);
+        file.enumerate_children_async('standard::name,standard::display-name,standard::icon', Gio.FileQueryInfoFlags.NONE, GLib.PRIORITY_DEFAULT, null, (source, result) => {
+            let enumerator;
+            try {
+                enumerator = source.enumerate_children_finish(result);
+                enumerator.next_files_async(40, GLib.PRIORITY_DEFAULT, null, (cursor, batch) => {
+                    try {
+                        const entries = cursor.next_files_finish(batch);
+                        if (!this._root || !box.get_stage()) return;
+                        if (!entries.length) box.add_child(label('Esta carpeta está vacía', 'ai-muted'));
+                        for (const info of entries) {
+                            const target = {id: GLib.uuid_string_random(), type: 'uri', target: file.get_child(info.get_name()).get_uri(), alias: info.get_display_name()};
+                            box.add_child(button(info.get_display_name(), () => this._launch(target)));
+                        }
+                        if (entries.length === 40) box.add_child(label('Abre la carpeta para ver todos los elementos', 'ai-muted'));
+                    } catch (error) { this._message(error.message); }
+                    finally { cursor.close_async(GLib.PRIORITY_DEFAULT, null, () => {}); }
+                });
+            } catch (error) { this._message(error.message); }
+        });
+    }
     _profilesView() {
         for (const profile of this._model.data.profiles) this._list.add_child(button(profile.name, () => {
             this._change(() => { this._model.data.active = profile.id; }); this._switch('favorites');
@@ -537,6 +588,7 @@ export default class AppIsland extends Extension {
             const index = Math.max(0, values.indexOf(this.settings[key]));
             this._list.add_child(button(`${title}: ${labels[index]}`, () => this._change(() => { this.settings[key] = values[(index + 1) % values.length]; })));
         };
+        choice('Estadísticas en borde opuesto', 'statistics', [true, false], ['Activadas', 'Desactivadas']);
         choice('Apariencia', 'theme', ['auto', 'light', 'dark'], ['Sistema', 'Clara', 'Oscura']);
         choice('Material', 'material', ['glass', 'solid'], ['Vidrio', 'Sólido']);
         choice('Distribución', 'layout', ['grid', 'list'], ['Cuadrícula', 'Lista']);

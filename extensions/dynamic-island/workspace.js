@@ -33,6 +33,16 @@ export class IslandWorkspace {
         page.add_child(this.date);
         this.cardsBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-dashboard-cards'});
         page.add_child(this.cardsBox);
+        const shortcuts = new St.BoxLayout({style_class: 'di-home-shortcuts', x_expand: true});
+        for (const [id, title, icon] of [['files', 'Estante', 'folder-symbolic'], ['system', 'Equipo', 'utilities-system-monitor-symbolic'], ['clock', 'Enfoque', 'alarm-symbolic']]) {
+            const action = new St.Button({style_class: 'di-home-shortcut', reactive: true, can_focus: true, x_expand: true, accessible_name: title});
+            const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-home-shortcut-content'});
+            content.add_child(new St.Icon({icon_name: icon, icon_size: 22, x_align: Clutter.ActorAlign.CENTER}));
+            content.add_child(e._label(title, 'di-dashboard-caption'));
+            action.set_child(content); action.connect('clicked', () => e._selectTab(id));
+            shortcuts.add_child(action);
+        }
+        page.add_child(shortcuts);
         this.liveBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-live-list'});
         page.add_child(this.liveBox);
         this.rebuild();
