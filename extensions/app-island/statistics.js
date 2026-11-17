@@ -7,33 +7,37 @@ import {column, label, button} from './ui.js';
 import {cpuSnapshot, cpuUsage, memorySnapshot, networkSnapshot, networkRate, appendSample, calendarDays} from './metrics-model.js';
 const read = path => { const [ok, bytes] = GLib.file_get_contents(path); return ok ? new TextDecoder().decode(bytes) : ''; };
 const size = value => Number.isFinite(value) ? GLib.format_size(Math.max(0, value)) : '—';
-const ITEMS = [['cpu', 'Procesador', 'computer-symbolic'], ['memory', 'Memoria', 'media-flash-symbolic'], ['disk', 'Almacenamiento', 'drive-harddisk-symbolic'], ['network', 'Red', 'network-wired-symbolic'], ['battery', 'Dispositivos', 'battery-level-80-symbolic'], ['uptime', 'Fecha y hora', 'preferences-system-time-symbolic']];
+const ITEMS = [['cpu', 'Procesador', 'computer-symbolic'], ['memory', 'Memoria', 'media-flash-symbolic'], ['disk', 'Disco', 'drive-harddisk-symbolic'], ['network', 'Red', 'network-wired-symbolic'], ['battery', 'Batería', 'battery-level-80-symbolic'], ['uptime', 'Fecha y hora', 'preferences-system-time-symbolic']];
 export class Statistics {
     constructor(owner) {
         this.owner = owner; this.history = {}; this.data = {}; this.values = {};
-        this.actor = column({style_class: 'ai-statistics', reactive: true, track_hover: true});
+        this.actor = column({visible: false, style_class: 'ai-statistics', reactive: true, track_hover: true});
         const head = new St.BoxLayout({style_class: 'ai-head'});
         this.back = button('Volver al resumen', () => this.select(null), 'go-previous-symbolic'); head.add_child(this.back);
         this.title = label('Tu equipo', 'ai-title'); this.title.x_expand = true; head.add_child(this.title);
         this.pin = button('Mantener abierto', () => { this.pinned = !this.pinned; this.pin.label = this.pinned ? '●' : '○'; }); head.add_child(this.pin);
         head.add_child(button('Cerrar estadísticas', () => this.show(false), 'window-close-symbolic'));
-        this.actor.add_child(head);
+        this.detailPanel = column({style_class: 'ai-stat-detail-panel', x_align: Clutter.ActorAlign.CENTER, width: 460});
+        this.detailPanel.add_child(head); this.actor.add_child(this.detailPanel);
         this.scroll = new St.ScrollView({x_expand: true, hscrollbar_policy: St.PolicyType.NEVER});
-        this.body = column({style_class: 'ai-list'}); this.scroll.set_child(this.body); this.actor.add_child(this.scroll);
-        this.footer = label('Datos de este equipo · últimos 2 minutos', 'ai-muted'); this.actor.add_child(this.footer);
+        this.body = column({style_class: 'ai-list'}); this.scroll.set_child(this.body); this.detailPanel.add_child(this.scroll);
+        this.footer = label('Datos de este equipo · últimos 2 minutos', 'ai-muted'); this.detailPanel.add_child(this.footer);
+        this.strip = new St.BoxLayout({style_class: 'ai-stat-strip', x_expand: true}); this.actor.add_child(this.strip);
+        this.charts = []; this.buildStrip();
         this.trigger = new St.Button({reactive: true, track_hover: true, accessible_name: 'Estadísticas del equipo', style_class: 'ai-stat-trigger'});
         this.trigger.connect('clicked', () => this.show(!this.open));
         this.trigger.connect('notify::hover', () => this.schedule(this.trigger.hover));
         this.actor.connect('notify::hover', () => this.schedule(this.actor.hover || this.trigger.hover));
         this.actor.connect('key-press-event', (_actor, event) => { if (event.get_key_symbol() !== Clutter.KEY_Escape) return Clutter.EVENT_PROPAGATE; this.show(false); return Clutter.EVENT_STOP; });
         Main.layoutManager.addChrome(this.trigger, {trackFullscreen: true});
-        Main.layoutManager.addChrome(this.actor, {trackFullscreen: true});
+        Main.layoutManager.addChrome(this.actor, {trackFullscreen: false});
         this.actor.hide(); this.select(null); this.layout();
     }
     schedule(show) {
         if (this.hoverTimer) GLib.Source.remove(this.hoverTimer);
         this.hoverTimer = GLib.timeout_add(GLib.PRIORITY_DEFAULT, show ? 250 : 450, () => {
             this.hoverTimer = 0;
+            if (show && !this.trigger.hover && !this.actor.hover) return GLib.SOURCE_REMOVE;
             if (show || (!this.pinned && !this.actor.hover && !this.trigger.hover)) this.show(show);
             return GLib.SOURCE_REMOVE;
         });
@@ -42,22 +46,22 @@ export class Statistics {
         this.show(false);
         const m = this.owner._monitor(); if (!m) return;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        this.left = this.owner._side() === 'right';
-        const x = this.left ? m.x : m.x + m.width;
-        const shared = Main.layoutManager.monitors.some(n => n !== m && n.y < m.y + m.height && n.y + n.height > m.y && (this.left ? n.x + n.width === x : n.x === x));
+        const shared = Main.layoutManager.monitors.some(n => n !== m && n.y === m.y + m.height && n.x < m.x + 80 * scale && n.x + n.width > m.x);
         this.trigger.visible = this.owner.settings.statistics && !shared && !Main.overview.visible;
-        this.trigger.set_position(this.left ? x : x - 3 * scale, m.y + m.height / 2 - 28 * scale);
-        this.trigger.set_size(3 * scale, 56 * scale);
-        this.actor.set_width(Math.min(344 * scale, m.width - 24 * scale));
-        this.scroll.set_style(`max-height: ${Math.max(160, Math.min(510, m.height / scale - 180))}px;`);
+        this.trigger.set_position(m.x + 24 * scale, m.y + m.height - 6 * scale);
+        this.trigger.set_size(56 * scale, 6 * scale);
+        this.actor.set_width(Math.min(760 * scale, m.width - 32 * scale));
+        this.detailPanel.set_width(Math.min(460 * scale, this.actor.width));
+        this.scroll.set_style(`max-height: ${Math.max(160, Math.min(360, m.height / scale - 300))}px;`);
         this.position();
     }
     position() {
         const m = this.owner._monitor(); if (!m) return;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         const h = this.actor.get_preferred_height(this.actor.width)[1];
-        this.actor.set_position(this.left ? m.x + 8 * scale : m.x + m.width - this.actor.width - 8 * scale,
-            m.y + Math.max(36 * scale, (m.height - h) / 2));
+        const work = Main.layoutManager.getWorkAreaForMonitor(m.index);
+        this.actor.set_position(m.x + (m.width - this.actor.width) / 2,
+            Math.max(work.y + 12 * scale, m.y + m.height - 104 * scale - h));
     }
     show(open) {
         if (this.hoverTimer) { GLib.Source.remove(this.hoverTimer); this.hoverTimer = 0; }
@@ -65,6 +69,7 @@ export class Statistics {
         this.open = open;
         if (this.timer) { GLib.Source.remove(this.timer); this.timer = 0; }
         if (!open) {
+            this.owner._clear(this.detailTimer); this.detailTimer = 0;
             this.cancel?.cancel(); this.cancel = null;
             this.actor.remove_all_transitions(); this.actor.hide(); this.previous = null; this.netPrevious = null;
             this.pinned = false; this.pin.label = '○';
@@ -86,37 +91,67 @@ export class Statistics {
         this.lastSlow = 0; this.refresh();
         this.timer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 2, () => { this.refresh(); return GLib.SOURCE_CONTINUE; });
     }
+    buildStrip() {
+        this.stripValues = {};
+        for (const [id, title, icon] of ITEMS) {
+            const cell = button(title, () => this.select(this.page === id ? null : id));
+            cell.add_style_class_name('ai-metric-cell'); cell.x_expand = true; cell.track_hover = true;
+            const content = column({style_class: 'ai-metric-content', x_expand: true});
+            const heading = new St.BoxLayout({style_class: 'ai-line'});
+            heading.add_child(new St.Icon({icon_name: icon, icon_size: 14})); heading.add_child(label(title, 'ai-muted'));
+            content.add_child(heading);
+            const value = label('—', 'ai-metric-value'); content.add_child(value); this.stripValues[id] = value;
+            content.add_child(this.graph(id, 28)); cell.set_child(content); this.strip.add_child(cell);
+            cell.connect('notify::hover', () => {
+                this.owner._clear(this.detailTimer);
+                this.detailTimer = cell.hover ? this.owner._timeout(180, () => { this.detailTimer = 0; if (this.open && cell.hover) this.select(id); }) : 0;
+            });
+        }
+    }
     graph(id, height = 38) {
         const area = new St.DrawingArea({height, x_expand: true, style_class: 'ai-chart'});
         area.connect('repaint', actor => {
             const cr = actor.get_context(), [width, h] = actor.get_surface_size();
-            const values = this.history[id] ?? [];
-            cr.setSourceRGBA(.6, .7, .8, .12); cr.setLineWidth(1);
-            for (let i = 1; i <= 3; i++) { cr.moveTo(0, h * i / 4); cr.lineTo(width, h * i / 4); } cr.stroke();
-            if (values.length > 1) {
-                const max = id === 'network' ? Math.max(1024, ...values) : 100;
-                cr.setSourceRGBA(.24, .72, 1, .95); cr.setLineWidth(2);
-                values.forEach((v, i) => { const x = i * width / Math.max(1, values.length - 1), y = h - 3 - Math.min(1, v / max) * (h - 6); if (i) cr.lineTo(x, y); else cr.moveTo(x, y); }); cr.stroke();
+            const colors = {cpu: [.37,.69,1], memory: [.72,.55,1], disk: [1,.7,.35], network: [.25,.86,.72], battery: [.42,.86,.55], uptime: [.6,.68,.8]};
+            const [r,g,b] = colors[id];
+            let values = this.history[id] ?? [];
+            if (!values.length && id === 'disk' && this.data.disk) values = [100 * (1 - this.data.disk.free / this.data.disk.total)];
+            if (!values.length && id === 'battery' && this.data.devices?.length) values = [this.data.devices[0].Percentage];
+            cr.setLineWidth(1);
+            if (height > 40) {
+                cr.setSourceRGBA(.7,.75,.85,.10);
+                for (let i = 1; i < 4; i++) { cr.moveTo(0, h * i / 4); cr.lineTo(width,h * i / 4); } cr.stroke();
+            }
+            if (['disk', 'battery'].includes(id) && values.length) {
+                cr.setLineCap(1); cr.setLineWidth(5); cr.setSourceRGBA(r,g,b,.15); cr.moveTo(4,h/2); cr.lineTo(width-4,h/2); cr.stroke();
+                cr.setSourceRGBA(r,g,b,1); cr.moveTo(4,h/2); cr.lineTo(4+(width-8)*Math.min(100,Math.max(0,values.at(-1)))/100,h/2); cr.stroke();
+                cr.$dispose(); return;
+            }
+            if (values.length) {
+                const ceiling = id === 'network' ? Math.max(1024, ...values) : 100;
+                const points = values.map((v,i) => [values.length === 1 ? width - 4 : 4 + i * (width - 8) / (values.length - 1), h - 4 - Math.min(1,v / ceiling) * (h - 8)]);
+                const trace = () => { cr.moveTo(...points[0]); for (let i = 1; i < points.length; i++) {
+                    const [x,y] = points[i], [px,py] = points[i-1]; cr.curveTo((px+x)/2,py,(px+x)/2,y,x,y);
+                }};
+                trace(); cr.lineTo(width-4,h); cr.lineTo(points[0][0],h); cr.closePath(); cr.setSourceRGBA(r,g,b,.14); cr.fill();
+                trace(); cr.setSourceRGBA(r,g,b,1); cr.setLineWidth(2); cr.stroke();
+                const last = points.at(-1); cr.arc(last[0],last[1],2.5,0,Math.PI*2); cr.fill();
             }
             cr.$dispose();
         });
-        this.charts.push(area); return area;
+        this.charts.push(area); area.connect('destroy', () => { this.charts = this.charts.filter(chart => chart !== area); }); return area;
     }
     select(id) {
-        this.page = id; this.back.visible = !!id; this.body.destroy_all_children(); this.values = {}; this.charts = [];
+        this.page = id; this.axisStart = null; this.body.destroy_all_children(); this.values = this.stripValues;
+        this.detailPanel.visible = !!id;
         this.title.text = ITEMS.find(item => item[0] === id)?.[1] ?? 'Tu equipo';
-        if (!id) for (const [key, name, icon] of ITEMS) {
-            const row = button(name, () => this.select(key)); row.add_style_class_name('ai-stat-row');
-            const content = new St.BoxLayout({style_class: 'ai-line', x_expand: true});
-            content.add_child(new St.Icon({icon_name: icon, icon_size: 22, y_align: Clutter.ActorAlign.CENTER}));
-            const text = column({x_expand: true}); text.add_child(label(name, 'ai-muted'));
-            const value = label('—', 'ai-stat-value'); text.add_child(value); this.values[key] = value; content.add_child(text);
-            content.add_child(new St.Icon({icon_name: 'go-next-symbolic', icon_size: 12, y_align: Clutter.ActorAlign.CENTER}));
-            row.set_child(content); content.x_align = Clutter.ActorAlign.FILL; this.body.add_child(row);
-            if (['cpu', 'memory', 'network'].includes(key)) this.body.add_child(this.graph(key, 24));
-        } else {
+        this.strip.get_children().forEach((cell, index) => ITEMS[index][0] === id ? cell.add_style_class_name('ai-metric-selected') : cell.remove_style_class_name('ai-metric-selected'));
+        if (id) {
             this.hero = label('—', 'ai-stat-hero'); this.body.add_child(this.hero);
-            if (['cpu', 'memory', 'network'].includes(id)) this.body.add_child(this.graph(id, 110));
+            if (['cpu', 'memory', 'network'].includes(id)) {
+                this.body.add_child(this.graph(id, 120));
+                const axis = new St.BoxLayout({x_expand: true}); const start = label('Midiendo…', 'ai-muted'); this.axisStart = start; start.x_expand = true; axis.add_child(start); axis.add_child(label('Ahora', 'ai-muted')); this.body.add_child(axis);
+            }
             this.details = column({style_class: 'ai-list'}); this.body.add_child(this.details);
             if (id === 'uptime') this.body.add_child(button('Copiar fecha y hora', () => { St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, new Date().toLocaleString('es')); this.footer.text = 'Fecha y hora copiadas'; }));
             const app = id === 'disk' ? 'org.gnome.Nautilus.desktop' : id === 'uptime' ? 'org.gnome.Calendar.desktop' : id === 'battery' ? 'gnome-power-panel.desktop' : 'org.gnome.SystemMonitor.desktop';
@@ -142,9 +177,11 @@ export class Statistics {
             battery: d.devices?.length ? d.devices.map(device => `${Math.round(device.Percentage)}%`).join(' · ') : 'Sin batería detectable',
             uptime: new Date().toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'}),
         };
-        for (const [id, value] of Object.entries(this.values)) value.text = text[id];
+        const compact = {...text, cpu: Number.isFinite(d.cpu) ? `${Math.round(d.cpu)}%` : 'Midiendo…', memory: mem ? size(mem.used) : '—', disk: disk ? size(disk.free) : '—', network: net ? `${net.rx < 1024 ? Math.round(net.rx) + ' B' : net.rx < 1048576 ? (net.rx / 1024).toFixed(1) + ' KB' : (net.rx / 1048576).toFixed(1) + ' MB'}/s` : '—', battery: d.devices?.length ? `${Math.round(d.devices[0].Percentage)}%` : '—'};
+        for (const [id, value] of Object.entries(this.values)) value.text = compact[id];
         this.charts.forEach(chart => chart.queue_repaint());
         if (!this.page) return;
+        if (this.axisStart) { const seconds = Math.max(0, (this.history[this.page]?.length ?? 1) - 1) * 2; this.axisStart.text = seconds ? `−${seconds} s` : 'Primera muestra'; }
         this.hero.text = text[this.page]; this.details.destroy_all_children();
         if (this.page === 'cpu') { this.detail('Muestra', 'Cada 2 segundos'); this.detail('Carga media · 1 / 5 / 15 min', d.load ?? '—'); this.detail('Tiempo encendido', d.uptime ?? '—'); }
         if (this.page === 'memory' && mem) { this.detail('Disponible', size(mem.available)); this.detail('Caché recuperable', size(mem.cached)); this.detail('Intercambio en uso', size(mem.swap)); }

@@ -1,11 +1,8 @@
 .ai-root { color: #242832; font-size: 13px; }
 .ai-surface { border-radius: 22px; background-color: rgba(245,247,251,0.94); border: 1px solid rgba(255,255,255,0.76); }
 .ai-dark { color: #f3f4f7; }
-.ai-dark .ai-surface { background-color: rgba(23,25,31,0.94); border-color: rgba(255,255,255,0.16); }
 .ai-solid .ai-surface { background-color: #f5f7fa; }
-.ai-solid.ai-dark .ai-surface { background-color: #191b21; }
 .ai-rail .ai-surface { background-color: rgba(14,16,21,0.94); border-color: rgba(255,255,255,0.20); }
-.ai-panel { padding: 18px; spacing: 12px; }
 .ai-bar { padding: 8px; spacing: 4px; }
 .ai-head { spacing: 4px; }
 .ai-title { font-size: 19px; font-weight: 700; }
@@ -28,13 +25,10 @@
 .ai-selected { color: #1683e8; background-color: rgba(32,130,245,0.12); }
 .ai-list { spacing: 6px; padding-right: 2px; }
 .ai-line, .ai-grid-line { spacing: 8px; }
-.ai-category-head { spacing: 2px; padding-top: 8px; }
 .ai-category-toggle { text-align: left; font-size: 12px; font-weight: 600; color: #596577; padding-left: 2px; }
-.ai-dark .ai-category-toggle { color: #b5bdca; }
 .ai-category-count { font-size: 11px; color: #7c8797; padding: 0 4px; }
 .ai-tile { width: 92px; }
 .ai-tile-content { spacing: 8px; }
-.ai-tile .ai-button { padding: 9px 4px 3px; }
 .ai-tile .ai-name { max-width: 84px; text-align: center; }
 .ai-item-status { height: 12px; font-size: 9px; color: #2784d8; text-align: center; }
 .ai-dark .ai-item-status { color: #72b8fa; }
@@ -48,13 +42,7 @@
 .ai-compact .ai-list { spacing: 3px; }
 .ai-contrast .ai-surface, .ai-contrast .ai-popover { background-color: white; border: 2px solid black; }
 .ai-contrast.ai-dark .ai-surface, .ai-contrast.ai-dark .ai-popover { background-color: black; border: 2px solid white; }
-.ai-statistics { background-color: rgba(20,23,29,0.97); color: #f4f6fa; border: 1px solid rgba(255,255,255,0.18); border-radius: 22px; padding: 20px; spacing: 12px; }
 .ai-statistics .ai-muted { color: #a6afbe; font-size: 11px; }
-.ai-stat-row { padding: 12px; spacing: 14px; border-radius: 13px; background-color: rgba(255,255,255,0.05); }
-.ai-stat-value { font-size: 19px; font-weight: 600; }
-.ai-stat-trigger { background-color: rgba(190,210,235,0.65); border-radius: 2px; }
-.ai-statistics .ai-stat-row { padding: 10px; border: 1px solid rgba(255,255,255,0.04); }
-.ai-statistics .ai-stat-row:hover { background-color: rgba(95,165,245,0.16); border-color: rgba(95,165,245,0.28); }
 .ai-statistics .ai-stat-value { font-size: 15px; }
 .ai-stat-hero { font-size: 26px; font-weight: 600; padding: 10px 0; }
 .ai-stat-detail { spacing: 12px; padding: 7px 0; }
@@ -71,3 +59,24 @@
 .ai-preview-cell-content { spacing: 7px; }
 .ai-preview-name { max-width: 80px; font-size: 11px; text-align: center; }
 .ai-quick-preview .ai-entry { padding: 7px; min-width: 80px; }
+.ai-dark .ai-surface { background-color: rgba(9,10,13,0.98); border-color: rgba(255,255,255,0.14); }
+.ai-solid.ai-dark .ai-surface { background-color: #090a0d; }
+.ai-panel { spacing: 14px; }
+.ai-segments { spacing: 3px; padding: 3px; background-color: rgba(128,140,160,0.10); border-radius: 12px; }
+.ai-dark .ai-selected { color: white; background-color: rgba(255,255,255,0.14); }
+.ai-empty-title { font-size: 15px; font-weight: 600; padding-top: 22px; }
+.ai-empty-help { font-size: 12px; color: #a6adba; padding: 8px 0 16px; }
+.ai-dark .ai-category-toggle { color: #e3e7ef; }
+.ai-category-head { padding-top: 4px; padding-bottom: 6px; }
+.ai-tile .ai-button { background-color: rgba(128,140,160,0.06); border-radius: 14px; padding: 14px 4px 8px; }
+.ai-statistics { background-color: transparent; border: none; border-radius: 0; padding: 0; spacing: 10px; }
+.ai-stat-detail-panel { background-color: rgba(9,10,13,0.98); border: 1px solid rgba(255,255,255,0.16); border-radius: 22px; padding: 20px; spacing: 10px; }
+.ai-stat-strip { background-color: rgba(9,10,13,0.98); border: 1px solid rgba(255,255,255,0.16); border-radius: 18px; padding: 6px; spacing: 4px; }
+.ai-metric-cell { padding: 8px 10px; border-radius: 12px; width: 96px; }
+.ai-metric-cell:hover, .ai-metric-selected { background-color: rgba(255,255,255,0.09); }
+.ai-metric-content { spacing: 6px; }
+.ai-metric-content .ai-muted { font-size: 10px; max-width: 80px; }
+.ai-metric-value { font-size: 18px; font-weight: 600; max-width: 100px; }
+.ai-stat-strip .ai-chart { margin: 0; }
+.ai-stat-trigger { background-color: rgba(220,225,235,0.35); border-radius: 3px; }
+.ai-statistics .ai-stat-hero { font-size: 32px; font-weight: 500; }

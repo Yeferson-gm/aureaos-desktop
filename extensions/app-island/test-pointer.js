@@ -48,5 +48,13 @@ export async function testPointer(d, wait) {
         if (!d._open || !d._grab) throw Error('Handle click did not open island');
         await click(d._panel.get_first_child().get_last_child());
         if (d._open || d._grab) throw Error('Panel close did not release input');
+        const stats = d._statistics, [tx,ty] = stats.trigger.get_transformed_position();
+        await move(tx + 20, ty + 2); await wait(350);
+        if (!stats.open) throw Error('Bottom hover did not open statistics');
+        const metric = stats.strip.get_first_child(), [mx,my] = metric.get_transformed_position();
+        await move(mx + metric.width/2, my + 20); await wait(500);
+        if (stats.page !== 'cpu' || !stats.detailPanel.visible) throw Error('Metric hover did not open detail');
+        await move(640,40); await wait(600);
+        if (stats.open || stats.timer) throw Error('Statistics remain active after leaving');
     } finally { pointer.run_dispose(); }
 }

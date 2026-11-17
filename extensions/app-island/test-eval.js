@@ -14,6 +14,7 @@ export async function run() {
         check(ext?.state === 1, `Active extension: ${ext?.error}`);
         const d = ext.stateObj;
         Main.overview.hide(); await wait(400);
+        check(!d._statistics.open && !d._statistics.actor.visible, 'Statistics remain hidden without hover');
         const apps = d._appSystem.get_installed().filter(i => i.should_show()).map(i => d._appSystem.lookup_app(i.get_id())).filter(Boolean);
         check(apps.length >= 2, 'Test needs two applications');
         d._setOpen(true); await wait(400);
@@ -34,8 +35,10 @@ export async function run() {
             const stream = Gio.File.new_for_path(`${dir}/${theme}.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
             await new Shell.Screenshot().screenshot(false, stream); stream.close(null);
         }
+        check(!d._statistics.open && !d._statistics.actor.visible, 'Appearance changes do not open statistics');
         d._statistics.show(true); await wait(3300);
-        check(/% en uso/.test(d._statistics.values.cpu.text), 'Live CPU statistics');
+        check(d._statistics.data.memory?.total > 0 && d._statistics.data.disk?.total > 0, 'Real memory and filesystem readings');
+        check(/\d+%/.test(d._statistics.values.cpu.text), 'Live CPU statistics');
         check(d._statistics.timer, 'Visible statistics refresh');
         const statsStream = Gio.File.new_for_path(`${dir}/statistics.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
         await new Shell.Screenshot().screenshot(false, statsStream); statsStream.close(null);

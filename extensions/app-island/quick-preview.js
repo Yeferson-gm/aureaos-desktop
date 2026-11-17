@@ -22,10 +22,10 @@ export class QuickPreview {
     cancelTimer() { this.owner._clear(this.timer); this.timer = 0; }
     create(title, anchor) {
         this.close(); this.anchor = anchor;
-        const dark = this.owner.settings.theme === 'dark' || this.owner.settings.theme === 'auto' && this.owner._interface.get_string('color-scheme') === 'prefer-dark';
+        const dark = this.owner.settings.theme !== 'light';
         if (!this.surface) {
             this.surface = column({reactive: true, track_hover: true});
-            Main.layoutManager.addChrome(this.surface, {trackFullscreen: true});
+            Main.layoutManager.addChrome(this.surface, {trackFullscreen: false});
         }
         this.actor = this.surface; this.actor.destroy_all_children();
         this.actor.style_class = `ai-quick-preview${dark ? ' ai-quick-dark' : ''}`;

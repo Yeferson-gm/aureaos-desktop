@@ -31,6 +31,9 @@ export default class AppIsland extends Extension {
                 const app = this._appSystem.lookup_app(id); return {categories: app?.get_app_info()?.get_categories()};
             });
         this._model = this._store.model;
+        const occupied = this._model.profile.categories.filter(c => this._model.profile.items.some(item => item.category === c.id));
+        if (occupied.length && occupied.every(c => c.collapsed)) occupied[0].collapsed = false;
+        this._kind = 'all';
         this._view = 'favorites'; this._query = ''; this._open = false; this._scrollValues = new Map();
         this._root = new St.Widget({name: 'aureaFavorites', layout_manager: new Clutter.BinLayout(), reactive: true, track_hover: true, clip_to_allocation: true});
         this._glass = new St.Widget({x_expand: true, y_expand: true, style: 'background-color: rgba(0,0,0,0.004);'});
@@ -60,6 +63,7 @@ export default class AppIsland extends Extension {
         this._connect(this._appSystem, 'app-state-changed', () => this._updateStates());
         this._connect(this._appSystem, 'installed-changed', () => this._render());
         this._connect(Main.layoutManager, 'monitors-changed', () => { this._setOpen(false); this._layout(); });
+        this._connect(global.display, 'in-fullscreen-changed', () => { this._statistics?.show(false); this._quickPreview?.close(); });
         this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); this._quickPreview?.close(); this._statistics?.show(false); this._statistics?.trigger.hide(); });
         this._connect(Main.overview, 'hidden', () => { this._root.show(); this._statistics?.layout(); });
         this._connect(this._interface, 'changed', () => { this._theme(); this._layout(); });
@@ -203,7 +207,7 @@ export default class AppIsland extends Extension {
         return Clutter.EVENT_PROPAGATE;
     }
     _theme() {
-        const dark = !this._open || this.settings.theme === 'dark' || (this.settings.theme === 'auto' && this._interface.get_string('color-scheme') === 'prefer-dark');
+        const dark = this.settings.theme !== 'light';
         const contrast = this._a11y.get_boolean('high-contrast');
         this._root.set_style_class_name(`ai-root ${dark ? 'ai-dark' : 'ai-light'}${contrast ? ' ai-contrast' : ''}${this.settings.density === 'compact' ? ' ai-compact' : ''}`);
         const solid = contrast || this.settings.material === 'solid';
@@ -298,7 +302,7 @@ export default class AppIsland extends Extension {
     }
     _buildPanel() {
         const head = new St.BoxLayout({style_class: 'ai-head'});
-        head.add_child(label('Tu espacio', 'ai-title'));
+        head.add_child(label('Archivos y favoritos', 'ai-title'));
         head.get_first_child().x_expand = true;
         head.add_child(button('Añadir', () => this._switch('add'), 'list-add-symbolic'));
         head.add_child(button('Organizar y ajustar', () => this._switch('settings'), 'emblem-system-symbolic'));
@@ -315,7 +319,13 @@ export default class AppIsland extends Extension {
             if (this._view === 'add') { const app = this._candidates()[0]; if (app) this._addApp(app); }
             else { const item = this._items()[0]; if (item) this._launch(item); }
         });
+        this._panel.add_child(label('Carpetas, archivos y grupos a mano', 'ai-muted'));
         this._panel.add_child(this._search);
+        this._kinds = new St.BoxLayout({style_class: 'ai-segments'});
+        for (const [id, title] of [['all', 'Todo'], ['files', 'Archivos'], ['apps', 'Apps']]) {
+            const tab = button(title, () => { this._kind = id; this._render(); }); tab.x_expand = true; tab.kind = id; this._kinds.add_child(tab);
+        }
+        this._panel.add_child(this._kinds);
         const controls = new St.BoxLayout({style_class: 'ai-line'});
         this._back = button('Volver', () => this._switch('favorites'));
         this._filter = button('Solo abiertas', () => { this._onlyRunning = !this._onlyRunning; this._render(); });
@@ -337,7 +347,7 @@ export default class AppIsland extends Extension {
         if (view === 'add' || view === 'favorites') this._search.grab_key_focus();
     }
     _items() {
-        return this._model.filter(this._query, item => this._name(item)).filter(item => !this._onlyRunning ||
+        return this._model.filter(this._query, item => this._name(item)).filter(item => this._kind === 'all' || (this._kind === 'files' ? item.type === 'uri' : item.type === 'app')).filter(item => !this._onlyRunning ||
             (item.type === 'app' && this._appSystem.lookup_app(item.target)?.state === Shell.AppState.RUNNING));
     }
     _candidates() {
@@ -368,20 +378,24 @@ export default class AppIsland extends Extension {
         this._search.visible = ['favorites', 'add'].includes(this._view);
         this._search.hint_text = this._view === 'add' ? 'Buscar aplicación para añadir' : 'Buscar en tu isla';
         this._undo.visible = !!this._model.undo;
+        this._kinds.visible = this._view === 'favorites';
+        for (const tab of this._kinds.get_children()) tab.set_style_class_name(`ai-button${tab.kind === this._kind ? ' ai-selected' : ''}`);
         if (this._view === 'settings') this._settingsView();
         else if (this._view === 'profiles') this._profilesView();
         else if (this._view === 'add') {
-            this._list.add_child(label('Aplicaciones', 'ai-section-title'));
+            edit(this._list, 'Carpeta, archivo o enlace', '', value => this._addResource(value));
+            this._list.add_child(button('Pegar archivos copiados', () => this._pasteFiles(), 'edit-paste-symbolic'));
+            this._list.add_child(label('Aplicaciones favoritas', 'ai-section-title'));
             const apps = this._candidates();
             if (!apps.length) this._list.add_child(label(this._query.length < 2 ? 'Escribe al menos dos letras' : 'Sin coincidencias nuevas', 'ai-muted'));
             for (const app of apps) this._list.add_child(button(app.get_name(), () => this._addApp(app)));
-            this._list.add_child(button('Añadir archivos copiados', () => this._pasteFiles()));
-            edit(this._list, 'Carpeta, archivo o enlace', '', value => this._addResource(value));
+
         } else {
             const items = this._items();
             if (!items.length) {
-                this._list.add_child(label(this._query || this._onlyRunning ? 'No hay coincidencias' : 'Tus accesos, a un paso', 'ai-muted'));
-                this._list.add_child(button('Añadir favorita', () => this._switch('add')));
+                this._list.add_child(label(this._query || this._onlyRunning ? 'No hay coincidencias' : this._kind === 'files' ? 'Guarda aquí tus carpetas y archivos' : 'Elige tus accesos favoritos', 'ai-empty-title'));
+                this._list.add_child(label('Copia archivos en Archivos y pégalos aquí,\no añade una ruta desde el botón +.', 'ai-empty-help'));
+                this._list.add_child(button('Añadir carpeta, archivo o app', () => this._switch('add')));
             }
             for (const c of this._model.profile.categories) {
                 const selected = items.filter(i => i.category === c.id);
