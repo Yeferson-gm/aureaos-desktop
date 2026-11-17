@@ -57,8 +57,8 @@ export default class IslandPreferences extends ExtensionPreferences {
             const row = new Adw.ExpanderRow({title});
             space.add(row);
             const modules = [['music', 'Música'], ['files', 'Archivos'], ['clip', 'Portapapeles'], ['notes', 'Notas y tareas'],
-                ['system', 'Sistema'], ['clock', 'Temporizador'], ['today', 'Calendario'], ['notifications', 'Notificaciones'],
-                ['mirror', 'Cámara'], ['tools', 'Herramientas'], ['studio', 'Estudio'], ['agents', 'Tareas locales']];
+                ['system', 'Sistema'], ['clock', 'Temporizador'], ['today', 'Calendario'], ['weather', 'Clima'], ['notifications', 'Notificaciones'],
+                ['mirror', 'Cámara'], ['tools', 'Herramientas'], ['studio', 'Estudio'], ['agents', 'Asistentes']];
             for (const [id, name] of modules) {
                 const item = new Adw.ActionRow({title: name});
                 const enabled = new Gtk.Switch({valign: Gtk.Align.CENTER, active: settings.get_strv(key).includes(id)});

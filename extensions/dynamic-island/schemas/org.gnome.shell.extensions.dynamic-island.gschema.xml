@@ -23,7 +23,7 @@
     <key name="shape" type="s"><default>'attached'</default><choices><choice value="attached"/><choice value="floating"/></choices><summary>Forma de la isla</summary></key>
     <key name="corner-radius" type="i"><default>8</default><range min="4" max="32"/><summary>Radio de esquinas</summary></key>
   <key name="notch-width" type="i"><default>280</default><range min="240" max="420"/><summary>Ancho compacto</summary></key>
-  <key name="home-modules" type="as"><default>['music', 'clock', 'today']</default><summary>Tarjetas de Inicio ordenadas</summary></key>
+  <key name="home-modules" type="as"><default>['music', 'today', 'weather']</default><summary>Tarjetas de Inicio ordenadas</summary></key>
     <key name="pinned-modules" type="as"><default>['music', 'files']</default><summary>Accesos principales ordenados</summary></key>
   <key name="gestures" type="b"><default>true</default><summary>Gestos locales en la isla</summary></key>
   <key name="muted-apps" type="as"><default>[]</default><summary>Aplicaciones sin avisos</summary></key>

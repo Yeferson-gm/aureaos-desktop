@@ -44,6 +44,21 @@
     try { island._closeIsland(); } catch (_) {}
     island._syncSampler = syncSampler;
     if (island._grab) throw new Error('Cierre con error deja retenida la entrada');
+    island._ensurePage('agents');
+    if (!island._agents.assistants?.providers.get_n_children()) throw new Error('No hay asistentes detectables');
+    const {assistantCommand} = await import(`file://${island.path}/assistants.js`);
+    const malicious = 'Consulta $(touch /tmp/should-not-exist); `echo test`';
+    const argv = assistantCommand({id: 'codex', name: 'Codex', binary: '/fixture/codex'}, malicious, island.path);
+    if (argv.at(-1) !== malicious || argv.includes('sh')) throw new Error('Consulta no preservada como argumento');
+    island._settings.set_strv('home-modules', ['music', 'today', 'weather']);
+    island._weather = {city: 'Ciudad de prueba', w: {temperature_2m: 23, apparent_temperature: 22, relative_humidity_2m: 65, wind_speed_10m: 9, time: '2026-11-17T13:00'}, hourly: {time: ['2026-11-17T13:00', '2026-11-17T14:00'], temperature_2m: [23, 24], precipitation_probability: [10, 15]}, daily: {time: ['2026-11-17'], temperature_2m_min: [18], temperature_2m_max: [25]}};
+    island._weatherAt = Date.now();
+    island._selectTab('home'); island._openIsland();
+    island._workspace.peekId = 'weather'; island._workspace.renderPeek();
+    if (island._workspace.cards.length !== 3 || island._workspace.preview.get_n_children() < 2) throw new Error('Resumen contextual incompleto');
+    island._selectTab('weather');
+    if (island._workspace.weatherBody.get_n_children() < 5) throw new Error('Pronóstico incompleto');
+    island._closeIsland();
     const result = {state: ext.state, pages: Object.keys(island._builders)};
     const inspect = actor => {
         if (actor.get_text?.().startsWith('Esta sección falló')) throw new Error(actor.get_text());
@@ -113,7 +128,7 @@
     await wait(400);
     const {default: Shell} = await import('gi://Shell');
     const directory = GLib.getenv('DI_TEST_DIR');
-    for (const id of ['home', 'music', 'today', 'notes', 'system', 'files', 'tools', 'clock', 'library', 'studio', 'agents']) {
+    for (const id of ['home', 'music', 'today', 'weather', 'notes', 'system', 'files', 'tools', 'clock', 'library', 'studio', 'agents']) {
         island._selectTab(id);
         await wait(id === 'system' ? 2000 : 400);
         const [x, y] = island._island.get_transformed_position();

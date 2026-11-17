@@ -3,6 +3,7 @@ import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Pango from 'gi://Pango';
 import {validateActivity} from './content-models.js';
+import {Assistants} from './assistants.js';
 
 const XML = '<node><interface name="org.aurea.Island"><method name="Publish"><arg type="s" direction="in"/><arg type="b" direction="out"/></method></interface></node>';
 
@@ -49,7 +50,8 @@ export class AgentBridge {
     build() {
         const e = this.island;
         const page = e._newPage('agents');
-        const hint = e._label('Tareas locales mediante aurea-task.py. Sin lectura de conversaciones ni aprobaciones automáticas.', 'di-hint', {width: 370});
+        this.assistants = new Assistants(e, page);
+        const hint = e._label('Actividad de las sesiones iniciadas aquí. Las respuestas se muestran en tu herramienta.', 'di-hint', {width: 370});
         hint.clutter_text.set_line_wrap(true);
         page.add_child(hint);
         this.list = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-live-list'});

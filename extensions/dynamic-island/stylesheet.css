@@ -245,3 +245,19 @@
 .di-home-shortcut:hover, .di-home-shortcut:focus { background-color: rgba(255,255,255,0.12); border-color: rgba(160,195,255,0.5); }
 .di-home-shortcut:active { background-color: rgba(70,130,235,0.22); }
 .di-home-shortcut-content { spacing: 7px; }
+.di-glance-row { spacing: 8px; }
+.di-glance-card { padding: 12px 6px; border-radius: 15px; background-color: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+.di-glance-card:hover, .di-glance-card:focus, .di-glance-selected { background-color: rgba(112,166,255,0.16); border-color: rgba(112,166,255,0.35); }
+.di-glance-content { spacing: 7px; }
+.di-glance-content StLabel { text-align: center; }
+.di-glance-summary { font-size: 11px; color: #b5c0d1; max-width: 100px; }
+.di-glance-preview { padding: 16px; spacing: 10px; border-radius: 16px; background-color: rgba(255,255,255,0.045); }
+.di-glance-actions { spacing: 6px; }
+.di-weather-detail { spacing: 12px; }
+.di-weather-large { font-size: 46px; font-weight: 300; }
+.di-weather-hours { spacing: 6px; padding: 12px 0; }
+.di-weather-hour { spacing: 6px; }
+.di-weather-hour StLabel { text-align: center; }
+.di-weather-day { padding: 8px; border-radius: 9px; background-color: rgba(255,255,255,0.045); }
+.di-assistants { spacing: 12px; padding-bottom: 18px; }
+.di-assistants .di-search { padding: 10px; }

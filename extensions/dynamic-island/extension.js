@@ -62,6 +62,7 @@ const TABS = [
     ['system', 'utilities-system-monitor-symbolic'],
     ['clock', 'alarm-symbolic'],
     ['today', 'x-office-calendar-symbolic'],
+    ['weather', 'weather-clear-symbolic'],
     ['notifications', 'preferences-system-notifications-symbolic'],
     ['mirror', 'camera-web-symbolic'],
     ['tools', 'applications-utilities-symbolic'],
@@ -70,8 +71,8 @@ const TABS = [
 ];
 
 const TAB_NAMES = {home: 'Inicio', music: 'Música', files: 'Archivos', clip: 'Portapapeles',
-    notes: 'Notas y tareas', system: 'Sistema', clock: 'Temporizador', today: 'Calendario',
-    notifications: 'Notificaciones', mirror: 'Cámara', tools: 'Herramientas', studio: 'Estudio', agents: 'Tareas locales', applications: 'Aplicaciones'};
+    notes: 'Notas y tareas', system: 'Sistema', clock: 'Temporizador', today: 'Calendario', weather: 'Clima',
+    notifications: 'Notificaciones', mirror: 'Cámara', tools: 'Herramientas', studio: 'Estudio', agents: 'Asistentes', applications: 'Aplicaciones'};
 
 const dec = new TextDecoder();
 const enc = new TextEncoder();
@@ -230,6 +231,7 @@ export default class DynamicIsland extends Extension {
         this._eventsSig = 0;
         this._weather = null;
         this._weatherAt = 0;
+        this._weatherLoading = false;
         this._coords = CIUDAD_MANUAL;
 
         this._dataDir = GLib.build_filenamev([GLib.get_user_data_dir(), 'dynamic-island']);
@@ -1018,6 +1020,7 @@ export default class DynamicIsland extends Extension {
             ['system', () => this._buildSystemPage()],
             ['clock', () => this._buildClockPage()],
             ['today', () => this._buildTodayPage()],
+            ['weather', () => this._workspace.buildWeather()],
             ['notifications', () => this._buildNotificationsPage()],
             ['mirror', () => this._buildMirrorPage()],
             ['tools', () => this._buildToolsPage()],
@@ -1264,6 +1267,11 @@ export default class DynamicIsland extends Extension {
         catch (error) { finish(); }
     }
 
+    openModule(id) {
+        if (!this._alive || !Object.hasOwn(this._builders, id)) return false;
+        this._selectTab(id); this._openIsland(); return true;
+    }
+
     _selectTab(id) {
         this._ensurePage(id);
         if (!this._pages[id]) id = 'home';
@@ -1293,7 +1301,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _tabEnter(id) {
-        if (id === 'home') this._renderHome();
+        if (id === 'home') { this._renderHome(); if (this._menu.isOpen && this._settings.get_strv('home-modules').some(key => ['today', 'weather'].includes(key))) { this._ensurePage('today'); this._requestEvents(); this._loadWeather(false); } }
         else if (id === 'notes' && this._menu.isOpen) this._timeout(60, () => { this._noteEntry?.clutter_text.grab_key_focus(); return GLib.SOURCE_REMOVE; });
         else if (id === 'files') this._renderShelf();
         else if (id === 'clip') {
@@ -1301,6 +1309,7 @@ export default class DynamicIsland extends Extension {
             if (this._menu.isOpen) this._timeout(80, () => { this._clipSearch?.clutter_text.grab_key_focus(); return GLib.SOURCE_REMOVE; });
         }
         else if (id === 'clock') this._renderClock();
+        else if (id === 'weather') { this._workspace.renderWeather(); this._loadWeather(false); }
         else if (id === 'today') { this._renderToday(); this._requestEvents(); this._loadWeather(false); }
         else if (id === 'notifications') this._renderNotifications();
         else if (id === 'mirror') this._renderMirror();
@@ -3508,15 +3517,20 @@ export default class DynamicIsland extends Extension {
     }
 
     _loadWeather(force) {
+        if (this._weatherLoading) return;
         if (!force && this._weather && Date.now() - this._weatherAt < 10 * 60 * 1000) return;
+        this._weatherLoading = true;
         const fetchAll = coords => {
             const {lat, lon} = coords;
-            const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&timezone=auto`;
+            const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min&forecast_days=5&timezone=auto`;
             const aUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi,pm2_5&timezone=auto`;
             this._getJson(wUrl, w => {
-                if (!w?.current) return;
+                if (!w?.current) { this._weatherLoading = false; return; }
+                this._weather = {w: w.current, hourly: w.hourly, daily: w.daily, aqi: null, city: coords.nombre ?? ''};
+                this._weatherAt = Date.now(); this._renderWeather();
                 this._getJson(aUrl, a => {
-                    this._weather = {w: w.current, aqi: a?.current?.us_aqi ?? null, city: coords.nombre ?? ''};
+                    this._weatherLoading = false;
+                    this._weather.aqi = a?.current?.us_aqi ?? null;
                     this._weatherAt = Date.now();
                     this._renderWeather();
                     if (this._weather.aqi !== null && this._weather.aqi > 150 && !this._aqiAlerted) {
@@ -3537,6 +3551,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _renderWeather() {
+        this._workspace?.renderWeather(); this._workspace?.refresh();
         if (!this._wTemp) return;
         const data = this._weather;
         if (!data) return;
