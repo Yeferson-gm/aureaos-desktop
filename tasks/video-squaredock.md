@@ -30,3 +30,11 @@ se incorporan al repositorio.
 Implementados paneles de carpetas/grupos, métricas con gráficos, resumen contextual,
 pronóstico, acceso desde widgets y lanzadores de asistentes con puente de tareas.
 Los límites y comandos están en `docs/experiencia-contextual.md`.
+
+## Corrección visual solicitada tras la entrega
+
+Panel negro por defecto, filtros por tipo, incorporación de archivos prioritaria
+y contenido visible en categorías antes plegadas. Sustituir la lista vertical
+de métricas por una franja inferior con detalles por hover y gráficos Cairo.
+Verificar cierre real, pantalla completa, datos y activación de la zona inferior.
+Bun administra herramientas sin trasladar el compositor a un runtime web.

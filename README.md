@@ -69,6 +69,10 @@ interacción. No desactivar la validación de compatibilidad. Consultar
 Las nuevas vistas de carpetas, grupos, estadísticas, clima y asistentes se explican
 en [Espacios contextuales](docs/experiencia-contextual.md), con comandos y límites.
 
+Bun se utiliza automáticamente si está instalado; Node queda como alternativa
+y validador sintáctico. Para elegir: `AUREA_RUNTIME=bun ./aurea.sh check` o
+`AUREA_RUNTIME=node ./aurea.sh check`. Las extensiones siguen ejecutándose en GJS.
+
 Herramientas necesarias: Node.js, Git, GJS, GLib (`gsettings`, `gio`,
 `glib-compile-schemas`, `glib-compile-resources`), gettext (`msgfmt`), `gtk-update-icon-cache` y `gnome-extensions`.
 GDM requiere además Python 3, `gresource`, `glib-compile-resources`, `dconf`,

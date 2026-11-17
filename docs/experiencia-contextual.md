@@ -7,6 +7,12 @@ recursos de esa aplicación.
 
 ## Isla lateral: carpetas y grupos
 
+El panel «Archivos y favoritos» usa negro con texto claro por defecto, también
+cuando GNOME está en modo claro. Solo seleccionar explícitamente «Claro» en sus
+ajustes cambia esa elección. «Todo / Archivos / Apps» separa los accesos elegidos;
+la pantalla Añadir prioriza rutas y archivos copiados. Si todos los grupos con
+contenido estaban plegados al cargar, se despliega el primero para mostrarlo.
+
 Añadir una carpeta desde Favoritas → Añadir y fijarla como acceso rápido.
 Al pasar el cursor sobre ella durante 300 ms se abre una cuadrícula de archivos.
 También se abre con clic; el botón central abre directamente Archivos.
@@ -26,15 +32,21 @@ Escape, clic exterior o salida del cursor cierran las vistas. Se mantienen dentr
 del monitor elegido. Abrir o cerrar cancela lecturas anteriores; una superficie
 persistente evita asignaciones gráficas pendientes sobre actores retirados.
 
-## Estadísticas en el borde opuesto
+## Estadísticas al pasar el cursor
 
-Acercar el cursor al indicador del borde opuesto al lateral. «Mantener abierto»
-fija temporalmente el panel; Cerrar o Escape lo libera. Ajustes → Estadísticas
-permite desactivar el indicador. No se sitúa en un borde compartido entre monitores.
+Acercar el cursor a la zona de activación de la esquina inferior izquierda del
+monitor elegido. Aparece una franja horizontal encima del dock. Pasar el cursor
+sobre CPU, memoria, disco, red, batería o fecha abre su detalle encima de la franja.
+«Mantener abierto» fija temporalmente el panel; Cerrar, Escape o salir con el cursor
+lo libera. Ajustes → Estadísticas desactiva el indicador. La zona no se activa en
+un borde inferior compartido con otro monitor.
 
-Cada fila abre detalles: CPU, RAM, almacenamiento del directorio personal, red,
+Cada indicador abre detalles: CPU, RAM, almacenamiento del directorio personal, red,
 baterías detectadas por UPower y calendario. CPU/RAM/red tienen gráficos de hasta
-60 muestras, con actualización cada dos segundos. Disco y dispositivos se consultan
+60 muestras, con actualización cada dos segundos. El eje muestra el intervalo
+real de las muestras disponibles; al abrir empieza sin historial inventado. Los
+gráficos se dibujan con Cairo, el motor vectorial del escritorio, con áreas y curvas
+y un color por métrica. Disco y batería usan barras de proporción. Disco y dispositivos se consultan
 como máximo cada diez segundos. Al cerrar se detienen el muestreo y las consultas.
 La red muestra tráfico agregado de interfaces salvo loopback, no velocidad contratada.
 No se muestran temperaturas, procesos ni batería de periféricos que el sistema no
@@ -119,3 +131,24 @@ puente de tareas se amplían, no se duplican en un nuevo lanzador general.
 Referencias: [SideDock](https://getsidedock.com/),
 [Open-Meteo](https://open-meteo.com/en/docs),
 [CLI de OpenCode](https://opencode.ai/docs/cli/).
+
+## Herramientas de desarrollo
+
+`aurea.sh` elige Bun cuando está instalado, con Node como alternativa. Se puede
+seleccionar explícitamente con `AUREA_RUNTIME=bun ./aurea.sh check` o
+`AUREA_RUNTIME=node ./aurea.sh check`. Bun ejecuta construcción, instalación y
+pruebas compatibles, incluyendo las pruebas `node:test` mediante `bun test`. Los
+imports `node:fs` y similares son APIs compatibles, no procesos Node en ejecución.
+La validación sintáctica sigue usando `node --check`, que admite los módulos GJS
+sin resolver sus imports `gi://`. Las extensiones se ejecutan en GJS, no en Bun.
+
+Chart.js requiere un contexto Canvas; no se introduce un navegador ni un servidor
+web dentro del compositor para dibujar estas métricas. Referencias:
+[Chart.js](https://www.chartjs.org/docs/latest/getting-started/integration.html),
+[compatibilidad de Bun](https://bun.sh/docs/runtime/nodejs-compat).
+
+Las superficies transitorias controlan su propia visibilidad. La administración
+automática `trackFullscreen` de Chrome podía volver a mostrar una superficie
+cerrada sin reactivar su muestreo. Se excluyen de ese control y se cierran
+explícitamente al cambiar pantalla completa; las pruebas verifican estado,
+visibilidad, entrada real del cursor, salida y ausencia de muestreo oculto.
