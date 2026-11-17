@@ -45,6 +45,8 @@ export class Statistics {
     layout() {
         this.show(false);
         const m = this.owner._monitor(); if (!m) return;
+        const contrast = this.owner._a11y.get_boolean('high-contrast');
+        this.actor.style_class = `ai-statistics${contrast ? ' ai-contrast' : ''}${this.owner.settings.material === 'solid' ? ' ai-solid' : ''}`;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         const shared = Main.layoutManager.monitors.some(n => n !== m && n.y === m.y + m.height && n.x < m.x + 80 * scale && n.x + n.width > m.x);
         this.trigger.visible = this.owner.settings.statistics && !shared && !Main.overview.visible;
@@ -92,7 +94,7 @@ export class Statistics {
         this.timer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 2, () => { this.refresh(); return GLib.SOURCE_CONTINUE; });
     }
     buildStrip() {
-        this.stripValues = {};
+        this.stripValues = {}; this.stripCaptions = {};
         for (const [id, title, icon] of ITEMS) {
             const cell = button(title, () => this.select(this.page === id ? null : id));
             cell.add_style_class_name('ai-metric-cell'); cell.x_expand = true; cell.track_hover = true;
@@ -101,6 +103,7 @@ export class Statistics {
             heading.add_child(new St.Icon({icon_name: icon, icon_size: 14})); heading.add_child(label(title, 'ai-muted'));
             content.add_child(heading);
             const value = label('—', 'ai-metric-value'); content.add_child(value); this.stripValues[id] = value;
+            const caption = label('—', 'ai-metric-caption'); content.add_child(caption); this.stripCaptions[id] = caption;
             content.add_child(this.graph(id, 28)); cell.set_child(content); this.strip.add_child(cell);
             cell.connect('notify::hover', () => {
                 this.owner._clear(this.detailTimer);
@@ -179,6 +182,8 @@ export class Statistics {
         };
         const compact = {...text, cpu: Number.isFinite(d.cpu) ? `${Math.round(d.cpu)}%` : 'Midiendo…', memory: mem ? size(mem.used) : '—', disk: disk ? size(disk.free) : '—', network: net ? `${net.rx < 1024 ? Math.round(net.rx) + ' B' : net.rx < 1048576 ? (net.rx / 1024).toFixed(1) + ' KB' : (net.rx / 1048576).toFixed(1) + ' MB'}/s` : '—', battery: d.devices?.length ? `${Math.round(d.devices[0].Percentage)}%` : '—'};
         for (const [id, value] of Object.entries(this.values)) value.text = compact[id];
+        const captions = {cpu: 'Uso del procesador', memory: mem ? `de ${size(mem.total)}` : 'Consultando…', disk: 'Espacio libre', network: 'Descarga actual', battery: d.devices?.length ? ([1,5].includes(d.devices[0].State) ? 'Cargando' : 'En uso') : 'Sin batería', uptime: new Date().toLocaleDateString('es', {day:'numeric', month:'short'})};
+        for (const [id, caption] of Object.entries(this.stripCaptions)) caption.text = captions[id];
         this.charts.forEach(chart => chart.queue_repaint());
         if (!this.page) return;
         if (this.axisStart) { const seconds = Math.max(0, (this.history[this.page]?.length ?? 1) - 1) * 2; this.axisStart.text = seconds ? `−${seconds} s` : 'Primera muestra'; }

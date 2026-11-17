@@ -19,6 +19,23 @@ export async function run() {
         check(apps.length >= 2, 'Test needs two applications');
         d._setOpen(true); await wait(400);
         check(d._open && d._grab, 'Panel modal');
+        const assertPanelGeometry = () => {
+            const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            const [rx,ry] = d._root.get_transformed_position();
+            for (const child of d._panel.get_children().filter(actor => actor.visible)) {
+                const [x,y] = child.get_transformed_position();
+                const [w,h] = child.get_transformed_size();
+                check(x >= rx + 20*scale && x+w <= rx+d._root.width-20*scale+1, 'Panel horizontal padding');
+                check(y >= ry+20*scale && y+h <= ry+d._root.height-20*scale+1, 'Panel vertical padding');
+            }
+            const [,hy] = d._heading.get_transformed_position(), [,sy] = d._search.get_transformed_position();
+            check(sy >= hy+d._heading.height+8*scale, 'Search separated from heading');
+            check(d._search.get_primary_icon(), 'Native search icon');
+        };
+        assertPanelGeometry();
+        d._interface.set_double('text-scaling-factor', 1.25); await wait(350); assertPanelGeometry();
+        d._interface.set_double('text-scaling-factor', 1); await wait(350);
+
         d._addApp(apps[0]); d._addApp(apps[1]); d._addApp(apps[0]);
         check(d._model.profile.items.filter(i => i.target === apps[0].get_id()).length === 1, 'No duplicate favorite');
         d._switch('favorites'); await wait(250);
@@ -78,6 +95,10 @@ export async function run() {
         await new Shell.Screenshot().screenshot(false, railStream); railStream.close(null);
         d._setOpen(true);
         d._switch('settings'); await wait(200); check(d._list.get_n_children() > 10, 'Live settings');
+        const showStats = d._list.get_children().find(actor => actor.accessible_name === 'Ver estadísticas');
+        showStats.emit('clicked', 1); await wait(250);
+        check(d._statistics.open && !d._grab, 'Settings opens statistics without a modal grab');
+        d._statistics.show(false); d._setOpen(true);
         d._switch('add'); d._search.set_text('zzzz-not-an-app'); await wait(150); check(d._candidates().length === 0, 'Bounded search');
         d._switch('favorites');
         for (let i = 0; i < 15; i++) { d._setOpen(false); d._setOpen(true); }

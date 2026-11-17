@@ -4,6 +4,7 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
+import Pango from 'gi://Pango';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
@@ -12,7 +13,7 @@ import {DEFAULTS, normalize, categoryFor} from './model.js';
 import {Statistics} from './statistics.js';
 import {QuickPreview} from './quick-preview.js';
 import {Store} from './store.js';
-import {column, label, button, entry, edit} from './ui.js';
+import {column, label, button, buttonContent, entry, edit} from './ui.js';
 import {createRoundedMask} from './rounded-clip.js';
 
 const Mask = createRoundedMask('AureaFavoritesMask');
@@ -302,15 +303,14 @@ export default class AppIsland extends Extension {
     }
     _buildPanel() {
         const head = new St.BoxLayout({style_class: 'ai-head'});
-        head.add_child(label('Archivos y favoritos', 'ai-title'));
-        head.get_first_child().x_expand = true;
-        head.add_child(button('Añadir', () => this._switch('add'), 'list-add-symbolic'));
-        head.add_child(button('Organizar y ajustar', () => this._switch('settings'), 'emblem-system-symbolic'));
-        head.add_child(button('Cerrar', () => this._setOpen(false), 'window-close-symbolic'));
+        head.add_child(new St.Icon({icon_name: 'folder-symbolic', icon_size: 22, style_class: 'ai-brand-icon', y_align: Clutter.ActorAlign.CENTER}));
+        this._heading = label('Tu espacio', 'ai-title'); this._heading.x_expand = true; head.add_child(this._heading);
+        head.add_child(button('Cerrar espacio', () => this._setOpen(false), 'window-close-symbolic'));
         this._panel.add_child(head);
         this._profileButton = button('', () => this._switch('profiles'));
         this._profileButton.add_style_class_name('ai-profile');
-        this._search = entry('Buscar en tu isla');
+        this._search = entry('Buscar archivos y favoritos');
+        this._search.set_primary_icon(new St.Icon({icon_name: 'edit-find-symbolic', icon_size: 16}));
         this._search.clutter_text.connect('text-changed', () => {
             this._query = this._search.get_text(); this._clear(this._searchTimer);
             this._searchTimer = this._timeout(80, () => this._render());
@@ -322,12 +322,12 @@ export default class AppIsland extends Extension {
         this._panel.add_child(label('Carpetas, archivos y grupos a mano', 'ai-muted'));
         this._panel.add_child(this._search);
         this._kinds = new St.BoxLayout({style_class: 'ai-segments'});
-        for (const [id, title] of [['all', 'Todo'], ['files', 'Archivos'], ['apps', 'Apps']]) {
-            const tab = button(title, () => { this._kind = id; this._render(); }); tab.x_expand = true; tab.kind = id; this._kinds.add_child(tab);
+        for (const [id, title, icon] of [['all', 'Todo', 'view-grid-symbolic'], ['files', 'Archivos', 'folder-symbolic'], ['apps', 'Apps', 'application-x-executable-symbolic']]) {
+            const tab = buttonContent(button(title, () => { this._kind = id; this._onlyRunning = false; this._render(); }), title, icon); tab.x_expand = true; tab.kind = id; this._kinds.add_child(tab);
         }
         this._panel.add_child(this._kinds);
         const controls = new St.BoxLayout({style_class: 'ai-line'});
-        this._back = button('Volver', () => this._switch('favorites'));
+        this._back = buttonContent(button('Volver', () => this._switch('favorites')), 'Volver', 'go-previous-symbolic');
         this._filter = button('Solo abiertas', () => { this._onlyRunning = !this._onlyRunning; this._render(); });
         this._profileButton.x_expand = true;
         controls.add_child(this._profileButton); controls.add_child(this._back); controls.add_child(this._filter); this._panel.add_child(controls);
@@ -335,7 +335,13 @@ export default class AppIsland extends Extension {
             hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
         this._list = column({style_class: 'ai-list', x_expand: true, y_align: Clutter.ActorAlign.START}); this._scroll.set_child(this._list); this._panel.add_child(this._scroll);
         this._status = label(this._store.error ?? this._initialMessage ?? '', 'ai-status');
-        this._status.clutter_text.line_wrap = false; this._panel.add_child(this._status);
+        this._status.clutter_text.line_wrap = true; this._status.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+        this._status.connect('notify::text', () => { this._status.visible = !!this._status.text; }); this._status.visible = !!this._status.text;
+        this._panel.add_child(this._status);
+        const actions = new St.BoxLayout({style_class: 'ai-footer-actions'});
+        const add = buttonContent(button('Añadir', () => this._switch('add')), 'Añadir', 'list-add-symbolic'); add.x_expand = true; add.add_style_class_name('ai-primary'); actions.add_child(add);
+        actions.add_child(buttonContent(button('Organizar', () => this._switch('settings')), 'Organizar', 'emblem-system-symbolic'));
+        this._panel.add_child(actions);
         this._undo = button('Deshacer', () => this._change(() => this._model.restore())); this._panel.add_child(this._undo);
     }
     _switch(view) {
@@ -370,13 +376,15 @@ export default class AppIsland extends Extension {
         this._clearPopup();
         for (const row of this._rows.values()) row.actor.get_parent()?.remove_child(row.actor);
         this._list.destroy_all_children();
-        this._profileButton.label = `${this._model.profile.name}  ⌄`;
+        buttonContent(this._profileButton, `Espacio: ${this._model.profile.name}`, 'avatar-default-symbolic');
+        this._profileButton.get_child().x_expand = true;
         this._profileButton.get_child().x_align = Clutter.ActorAlign.START;
-        this._back.visible = this._view !== 'favorites'; this._filter.visible = this._view === 'favorites';
+        this._back.visible = this._view !== 'favorites'; this._filter.visible = this._view === 'favorites' && this._kind === 'apps';
         this._filter.set_style_class_name(`ai-button ai-filter${this._onlyRunning ? ' ai-selected' : ''}`);
-        this._filter.label = this._onlyRunning ? '● Abiertas' : 'Todas';
+        buttonContent(this._filter, 'En uso', this._onlyRunning ? 'object-select-symbolic' : 'media-playback-start-symbolic');
         this._search.visible = ['favorites', 'add'].includes(this._view);
-        this._search.hint_text = this._view === 'add' ? 'Buscar aplicación para añadir' : 'Buscar en tu isla';
+        this._search.hint_text = this._view === 'add' ? 'Buscar una aplicación…' : 'Buscar archivos y favoritos';
+        this._heading.text = {add: 'Añadir acceso', settings: 'Organizar', profiles: 'Espacios'}[this._view] ?? 'Tu espacio';
         this._undo.visible = !!this._model.undo;
         this._kinds.visible = this._view === 'favorites';
         for (const tab of this._kinds.get_children()) tab.set_style_class_name(`ai-button${tab.kind === this._kind ? ' ai-selected' : ''}`);
@@ -384,7 +392,7 @@ export default class AppIsland extends Extension {
         else if (this._view === 'profiles') this._profilesView();
         else if (this._view === 'add') {
             edit(this._list, 'Carpeta, archivo o enlace', '', value => this._addResource(value));
-            this._list.add_child(button('Pegar archivos copiados', () => this._pasteFiles(), 'edit-paste-symbolic'));
+            this._list.add_child(buttonContent(button('Pegar archivos copiados', () => this._pasteFiles()), 'Pegar archivos copiados', 'edit-paste-symbolic'));
             this._list.add_child(label('Aplicaciones favoritas', 'ai-section-title'));
             const apps = this._candidates();
             if (!apps.length) this._list.add_child(label(this._query.length < 2 ? 'Escribe al menos dos letras' : 'Sin coincidencias nuevas', 'ai-muted'));
@@ -401,9 +409,8 @@ export default class AppIsland extends Extension {
                 const selected = items.filter(i => i.category === c.id);
                 if (!selected.length) continue;
                 const head = new St.BoxLayout({style_class: 'ai-category-head'});
-                const toggle = button(`${c.collapsed && !this._query ? '▸' : '▾'}  ${c.name}`,
-                    () => this._change(() => { c.collapsed = !c.collapsed; }));
-                toggle.get_child().x_align = Clutter.ActorAlign.START;
+                const toggle = buttonContent(button(c.name, () => this._change(() => { c.collapsed = !c.collapsed; })), c.name, c.collapsed && !this._query ? 'pan-end-symbolic' : 'pan-down-symbolic');
+                toggle.get_child().x_align = Clutter.ActorAlign.START; toggle.get_child().x_expand = true;
                 toggle.x_expand = true; toggle.add_style_class_name('ai-category-toggle'); head.add_child(toggle);
                 head.add_child(label(String(selected.length), 'ai-category-count'));
                 head.add_child(button(`Organizar ${c.name}`, () => this._categoryActions(c), 'view-more-symbolic'));
@@ -618,13 +625,14 @@ export default class AppIsland extends Extension {
         }))));
     }
     _settingsView() {
+        this._list.add_child(buttonContent(button('Ver estadísticas', () => { this._setOpen(false); this._statistics.show(true); }), 'Ver estadísticas', 'computer-symbolic'));
         edit(this._list, 'Nueva categoría', '', value => this._change(() => this._model.category(value)));
         const choice = (title, key, values, labels = values) => {
             const index = Math.max(0, values.indexOf(this.settings[key]));
             this._list.add_child(button(`${title}: ${labels[index]}`, () => this._change(() => { this.settings[key] = values[(index + 1) % values.length]; })));
         };
-        choice('Estadísticas en borde opuesto', 'statistics', [true, false], ['Activadas', 'Desactivadas']);
-        choice('Apariencia', 'theme', ['auto', 'light', 'dark'], ['Sistema', 'Clara', 'Oscura']);
+        choice('Estadísticas · zona inferior izquierda', 'statistics', [true, false], ['Activadas', 'Desactivadas']);
+        choice('Apariencia', 'theme', ['auto', 'light', 'dark'], ['Aurea oscura', 'Clara', 'Oscura']);
         choice('Material', 'material', ['glass', 'solid'], ['Vidrio', 'Sólido']);
         choice('Distribución', 'layout', ['grid', 'list'], ['Cuadrícula', 'Lista']);
         choice('Densidad', 'density', ['comfortable', 'compact'], ['Cómoda', 'Compacta']);

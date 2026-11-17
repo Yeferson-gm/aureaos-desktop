@@ -97,7 +97,7 @@ export class QuickPreview {
         this.create(this.owner._name(item), anchor); this.root = Gio.File.new_for_uri(item.target); this.file = this.root; this.query = ''; this.sortRecent = false;
         const tools = new St.BoxLayout({style_class: 'ai-line'});
         this.up = button('Subir una carpeta', () => { const parent = this.file.get_parent(); if (parent) this.load(parent); }, 'go-up-symbolic'); tools.add_child(this.up);
-        this.search = entry('Buscar en esta carpeta'); this.search.clutter_text.connect('text-changed', () => { this.query = normalize(this.search.get_text()); this.renderFiles(); }); tools.add_child(this.search);
+        this.search = entry('Buscar en esta carpeta'); this.search.set_primary_icon(new St.Icon({icon_name: 'edit-find-symbolic', icon_size: 16})); this.search.clutter_text.connect('text-changed', () => { this.query = normalize(this.search.get_text()); this.renderFiles(); }); tools.add_child(this.search);
         tools.add_child(button('Ordenar por nombre o fecha', actor => { this.sortRecent = !this.sortRecent; actor.label = this.sortRecent ? 'Recientes' : 'A–Z'; this.renderFiles(); })); tools.get_last_child().label = 'A–Z';
         this.actor.insert_child_at_index(tools, 2);
         this.footer.add_child(button('Abrir en Archivos', () => { const uri = this.file.get_uri(); this.close(); this.owner._launch({type: 'uri', target: uri, alias: ''}); }));

@@ -27,3 +27,11 @@ export function edit(parent, title, initial, save) {
     field.clutter_text.connect('activate', submit);
     row.add_child(field); row.add_child(button('Guardar', submit)); parent.add_child(row); return field;
 }
+
+export function buttonContent(actor, text, icon) {
+    actor.accessible_name = text;
+    const row = new St.BoxLayout({style_class: 'ai-action-content', x_align: Clutter.ActorAlign.CENTER});
+    row.add_child(new St.Icon({icon_name: icon, icon_size: 15, y_align: Clutter.ActorAlign.CENTER}));
+    const caption = label(text); row.add_child(caption); actor.set_child(row);
+    return actor;
+}
