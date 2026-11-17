@@ -10,6 +10,7 @@ import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import {DEFAULTS, normalize, categoryFor} from './model.js';
 import {Statistics} from './statistics.js';
+import {QuickPreview} from './quick-preview.js';
 import {Store} from './store.js';
 import {column, label, button, entry, edit} from './ui.js';
 import {createRoundedMask} from './rounded-clip.js';
@@ -59,13 +60,14 @@ export default class AppIsland extends Extension {
         this._connect(this._appSystem, 'app-state-changed', () => this._updateStates());
         this._connect(this._appSystem, 'installed-changed', () => this._render());
         this._connect(Main.layoutManager, 'monitors-changed', () => { this._setOpen(false); this._layout(); });
-        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); this._statistics?.show(false); this._statistics?.trigger.hide(); });
+        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); this._quickPreview?.close(); this._statistics?.show(false); this._statistics?.trigger.hide(); });
         this._connect(Main.overview, 'hidden', () => { this._root.show(); this._statistics?.layout(); });
         this._connect(this._interface, 'changed', () => { this._theme(); this._layout(); });
         this._connect(this._a11y, 'changed', () => this._theme());
         this._connect(global.display, 'accelerator-activated', (_d, action) => {
             if (action === this._accelerator) this._setOpen(!this._open);
         });
+        this._quickPreview = new QuickPreview(this);
         this._shortcut(); this._buildPanel(); this._renderBar(); this._layout(); this._theme();
         this._statistics = new Statistics(this);
         if (Main.overview.visible) this._root.hide();
@@ -112,6 +114,7 @@ export default class AppIsland extends Extension {
             y: work.y + Math.round((work.height - height) / 2), width, height};
     }
     _layout() {
+        this._quickPreview?.close();
         if (!this._root) return;
         const g = this._geometry(); if (!g) return;
         this._root.remove_all_transitions(); this._root.set_position(g.x, g.y); this._root.set_size(g.width, g.height);
@@ -128,6 +131,7 @@ export default class AppIsland extends Extension {
         this._mask.resize(a.width, a.height, 22 * St.ThemeContext.get_for_stage(global.stage).scale_factor);
     }
     _reveal(show, animate = true) {
+        if (!show && this._quickPreview?.actor) return;
         if (this._sharedEdge && !this._open) show = false;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         const offset = show ? 0 : (this._root.width + (8 - this.settings.edge) * scale) * (this._side() === 'right' ? 1 : -1);
@@ -143,6 +147,7 @@ export default class AppIsland extends Extension {
         else this._message('El atajo está ocupado o no es válido. Puedes cambiarlo en Ajustes.');
     }
     _setOpen(open) {
+        this._quickPreview?.close();
         if (!this._root || this._open === open) return;
         this._clear(this._edgeTimer); this._clear(this._previewTimer); this._clearPopup();
         this._open = open;
@@ -250,21 +255,35 @@ export default class AppIsland extends Extension {
         } catch (error) { this._message(`${this._name(item)}: ${error.message}`); return false; }
     }
     _renderBar() {
+        this._quickPreview?.close();
         this._bar.destroy_all_children();
         for (const item of this._model.quickItems().slice(0, this.settings.quickCount)) {
+            const folder = item.type === 'uri' && item.target.startsWith('file:') && Gio.File.new_for_uri(item.target).query_file_type(Gio.FileQueryInfoFlags.NONE, null) === Gio.FileType.DIRECTORY;
             const b = button(this._name(item), (_b, mouse) => {
                 if (mouse === 3) { this._setOpen(true); this._actions(item); }
+                else if (folder && mouse === 1) this._quickPreview.folder(item, b);
                 else this._launch(item, mouse === 2);
             });
             b.button_mask = PRIMARY | MIDDLE | SECONDARY; b.set_child(this._icon(item, 36));
             b.add_style_class_name('ai-rail-button');
             this._bar.add_child(b);
+            if (folder) this._quickPreview.bind(b, () => this._quickPreview.folder(item, b));
+        }
+        for (const category of this._model.profile.categories.filter(c => c.quick).slice(0, 4)) {
+            const b = button(category.name, () => this._quickPreview.group(category, b));
+            b.add_style_class_name('ai-rail-button');
+            const items = this._model.profile.items.filter(item => item.category === category.id).slice(0, 4);
+            const mosaic = new St.Widget({width: 36, height: 36, layout_manager: new Clutter.GridLayout()});
+            items.forEach((item, index) => mosaic.layout_manager.attach(this._icon(item, 16), index % 2, Math.floor(index / 2), 1, 1));
+            if (!items.length) mosaic.add_child(new St.Icon({icon_name: 'folder-symbolic', icon_size: 32}));
+            b.set_child(mosaic); this._bar.add_child(b); this._quickPreview.bind(b, () => this._quickPreview.group(category, b));
         }
         if (this._bar.get_n_children()) this._bar.add_child(new St.Widget({style_class: 'ai-rail-divider'}));
         const open = button('Abrir favoritas', () => this._setOpen(true), 'view-grid-symbolic');
         open.add_style_class_name('ai-rail-button'); this._bar.add_child(open);
     }
     disable() {
+        this._quickPreview?.destroy(); this._quickPreview = null;
         this._statistics?.destroy(); this._statistics = null;
         this._clearPopup(); this._release();
         for (const id of this._sources) GLib.Source.remove(id);
@@ -504,6 +523,7 @@ export default class AppIsland extends Extension {
     }
     _categoryActions(category) {
         const box = this._popupBox(category.name);
+        box.add_child(button(category.quick ? 'Desfijar grupo del lateral' : 'Fijar grupo en el lateral', () => this._change(() => { category.quick = !category.quick; })));
         edit(box, 'Nombre de categoría', category.name, value => this._change(() => { if (value.trim()) category.name = value.trim().slice(0, 120); }));
         box.add_child(button('Abrir grupo', () => this._openGroup(category.id)));
         for (const [title, step] of [['Subir', -1], ['Bajar', 1]]) box.add_child(button(title, () => this._change(() => {

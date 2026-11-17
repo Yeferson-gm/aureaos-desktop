@@ -53,3 +53,21 @@
 .ai-stat-row { padding: 12px; spacing: 14px; border-radius: 13px; background-color: rgba(255,255,255,0.05); }
 .ai-stat-value { font-size: 19px; font-weight: 600; }
 .ai-stat-trigger { background-color: rgba(190,210,235,0.65); border-radius: 2px; }
+.ai-statistics .ai-stat-row { padding: 10px; border: 1px solid rgba(255,255,255,0.04); }
+.ai-statistics .ai-stat-row:hover { background-color: rgba(95,165,245,0.16); border-color: rgba(95,165,245,0.28); }
+.ai-statistics .ai-stat-value { font-size: 15px; }
+.ai-stat-hero { font-size: 26px; font-weight: 600; padding: 10px 0; }
+.ai-stat-detail { spacing: 12px; padding: 7px 0; }
+.ai-stat-detail .ai-muted { max-width: 170px; }
+.ai-chart { margin: 0 8px 4px; }
+.ai-calendar-row { spacing: 2px; }
+.ai-calendar-day, .ai-calendar-today { text-align: center; padding: 5px; font-size: 12px; }
+.ai-calendar-today { background-color: #3186de; color: white; border-radius: 8px; }
+.ai-quick-preview { background-color: rgba(247,249,253,0.97); color: #222936; border: 1px solid rgba(100,120,150,0.25); border-radius: 20px; padding: 16px; spacing: 10px; }
+.ai-quick-preview.ai-quick-dark { background-color: rgba(23,27,35,0.97); color: #f2f5fa; border-color: rgba(230,240,255,0.18); }
+.ai-quick-dark .ai-muted { color: #a6afbe; }
+.ai-preview-cell { width: 86px; padding: 9px 4px; border-radius: 12px; }
+.ai-preview-cell:hover { background-color: rgba(70,150,250,0.16); }
+.ai-preview-cell-content { spacing: 7px; }
+.ai-preview-name { max-width: 80px; font-size: 11px; text-align: center; }
+.ai-quick-preview .ai-entry { padding: 7px; min-width: 80px; }

@@ -49,6 +49,7 @@ const tests = [
     'extensions/dynamic-island/tests/native-banners.mjs',
     'extensions/dynamic-island/tests/validate-notifications.mjs',
     'extensions/app-island/test-model.mjs',
+    'extensions/app-island/test-metrics.mjs',
     'extensions/app-island/test-panel.mjs',
     'extensions/app-island/test-autohide.mjs',
     'extensions/app-island/test-monitor-clip.mjs',

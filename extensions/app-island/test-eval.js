@@ -39,7 +39,14 @@ export async function run() {
         check(d._statistics.timer, 'Visible statistics refresh');
         const statsStream = Gio.File.new_for_path(`${dir}/statistics.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
         await new Shell.Screenshot().screenshot(false, statsStream); statsStream.close(null);
-        d._statistics.show(false); check(!d._statistics.timer, 'Hidden statistics stop polling');
+        for (const page of ['cpu', 'memory', 'disk', 'network', 'battery', 'uptime']) {
+            d._statistics.select(page); await wait(80);
+            check(d._statistics.hero.text.length > 0, 'Statistics detail ' + page);
+        }
+        d._statistics.select('cpu');
+        const detailStream = Gio.File.new_for_path(`${dir}/statistics-detail.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
+        await new Shell.Screenshot().screenshot(false, detailStream); detailStream.close(null);
+        d._statistics.show(false); check(!d._statistics.timer && !d._statistics.capture, 'Hidden statistics stop polling and event capture');
         const resourceDir = `${dir}/resources`; GLib.mkdir_with_parents(resourceDir, 448);
         GLib.file_set_contents(`${resourceDir}/example.txt`, 'Aurea fixture');
         d._addResource(resourceDir);
@@ -50,6 +57,20 @@ export async function run() {
         d._pasteFiles(); await wait(300);
         check(d._model.profile.items.some(i => i.target.endsWith('/example.txt')), 'Copied file favorite');
         d._setOpen(false); await wait(300); d._reveal(true, false); await wait(100);
+        const anchor = d._bar.get_last_child();
+        d._quickPreview.folder(folder, anchor); await wait(500);
+        check(d._quickPreview.entries?.length === 1, 'Hover folder grid');
+        GLib.file_set_contents(`${resourceDir}/second.txt`, 'Updated fixture'); await wait(650);
+        check(d._quickPreview.entries?.length === 2, 'Folder monitor refresh');
+        d._quickPreview.search.set_text('second'); await wait(80);
+        check(d._quickPreview.body.get_first_child().get_children().filter(actor => actor instanceof St.Button).length === 1, 'Folder search');
+        const previewStream = Gio.File.new_for_path(`${dir}/folder-preview.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
+        await new Shell.Screenshot().screenshot(false, previewStream); previewStream.close(null);
+        const group = d._model.profile.categories.find(c => c.id === folder.category);
+        d._quickPreview.group(group, anchor); check(d._quickPreview.actor && d._quickPreview.groupId === group.id, 'Group preview');
+        d._quickPreview.close(); check(!d._quickPreview.capture && !d._quickPreview.monitor, 'Preview cleanup');
+        d._quickPreview.folder(folder, anchor); d._quickPreview.close(); await wait(150);
+        d._reveal(true, false);
         const railStream = Gio.File.new_for_path(`${dir}/rail.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
         await new Shell.Screenshot().screenshot(false, railStream); railStream.close(null);
         d._setOpen(true);

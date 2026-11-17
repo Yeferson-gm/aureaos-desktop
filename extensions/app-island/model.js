@@ -51,7 +51,7 @@ export function migrate(raw, lookup = () => null) {
         const categories = [], seen = new Set();
         for (const c of (Array.isArray(profile.categories) ? profile.categories : []).slice(0, 60)) {
             if (!c || typeof c.id !== 'string' || !name(c.id) || seen.has(c.id)) continue;
-            seen.add(c.id); categories.push({id: c.id, name: name(c.name) || 'Categoría', collapsed: c.collapsed === true});
+            seen.add(c.id); categories.push({id: c.id, name: name(c.name) || 'Categoría', collapsed: c.collapsed === true, quick: c.quick === true});
         }
         if (!categories.length) categories.push({id: 'general', name: 'General', collapsed: false});
         const items = [], ids = new Set(), targets = new Set();
