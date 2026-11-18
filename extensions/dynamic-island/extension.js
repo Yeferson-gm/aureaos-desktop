@@ -17,6 +17,7 @@ import {Extension, InjectionManager} from 'resource:///org/gnome/shell/extension
 import {ActivityQueue, LiveActivities, springProgress} from './activities.js';
 import {IslandMotion} from './motion.js';
 import {IslandWorkspace, MODULES} from './workspace.js';
+import {ContextTools} from './context-tools.js';
 import {ShelfBridge} from './shelf-bridge.js';
 import {MediaExtras} from './media-extras.js';
 import {IslandStudio} from './studio.js';
@@ -67,13 +68,16 @@ const TABS = [
     ['notifications', 'preferences-system-notifications-symbolic'],
     ['mirror', 'camera-web-symbolic'],
     ['tools', 'applications-utilities-symbolic'],
+    ['downloads', 'folder-download-symbolic'],
+    ['world', 'preferences-system-time-symbolic'],
+    ['devices', 'video-display-symbolic'],
     ['studio', 'audio-input-microphone-symbolic'],
     ['agents', 'utilities-terminal-symbolic'],
 ];
 
 const TAB_NAMES = {home: 'Inicio', music: 'Música', files: 'Archivos', clip: 'Portapapeles',
     notes: 'Notas y tareas', system: 'Sistema', clock: 'Temporizador', today: 'Calendario', weather: 'Clima',
-    notifications: 'Notificaciones', mirror: 'Cámara', tools: 'Herramientas', studio: 'Estudio', agents: 'Asistentes', applications: 'Aplicaciones'};
+    notifications: 'Notificaciones', mirror: 'Cámara', tools: 'Controles rápidos', downloads: 'Descargas', world: 'Relojes del mundo', devices: 'Pantallas y discos', studio: 'Estudio', agents: 'Asistentes', applications: 'Aplicaciones'};
 
 const dec = new TextDecoder();
 const enc = new TextEncoder();
@@ -248,6 +252,7 @@ export default class DynamicIsland extends Extension {
         }
         this._ornaments = new IslandOrnaments(this);
         this._workspace = new IslandWorkspace(this);
+        this._contextTools = new ContextTools(this);
         this._mediaExtras = new MediaExtras(this);
         this._studio = new IslandStudio(this);
         this._agents = new AgentBridge(this);
@@ -321,6 +326,8 @@ export default class DynamicIsland extends Extension {
 
     disable() {
         this._alive = false;
+        this._contextTools?.destroy();
+        this._contextTools = null;
         this._bannerOverrides?.clear();
         this._bannerOverrides = null;
         Main.wm.removeKeybinding('toggle-island');
@@ -537,7 +544,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _chip(text, cb, icon = null) {
-        const b = new St.Button({style_class: 'di-chip', reactive: true, can_focus: true, y_align: Clutter.ActorAlign.CENTER});
+        const b = new St.Button({style_class: 'di-chip', reactive: true, can_focus: true, accessible_name: text, y_align: Clutter.ActorAlign.CENTER});
         const row = new St.BoxLayout({style_class: 'di-chip-row'});
         if (icon) row.add_child(new St.Icon({icon_name: icon, icon_size: 12, y_align: Clutter.ActorAlign.CENTER}));
         const label = new St.Label({text, y_align: Clutter.ActorAlign.CENTER, x_expand: true});
@@ -1024,7 +1031,7 @@ export default class DynamicIsland extends Extension {
             ['weather', () => this._workspace.buildWeather()],
             ['notifications', () => this._buildNotificationsPage()],
             ['mirror', () => this._buildMirrorPage()],
-            ['tools', () => this._buildToolsPage()],
+            ...['tools', 'downloads', 'world', 'devices'].map(id => [id, () => this._contextTools.build(id)]),
             ['library', () => this._workspace.buildLibrary()],
             ['studio', () => this._studio.build()],
             ['agents', () => this._agents.build()],
@@ -1251,6 +1258,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _closeIsland() {
+        this._contextTools?.stop();
 
 
         this._releaseInteraction();
@@ -1309,6 +1317,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _tabEnter(id) {
+        this._contextTools?.activate(id);
         if (id === 'home') { this._renderHome(); if (this._menu.isOpen && this._settings.get_strv('home-modules').some(key => ['today', 'weather'].includes(key))) { this._ensurePage('today'); this._requestEvents(); this._loadWeather(false); } }
         else if (id === 'notes' && this._menu.isOpen) this._timeout(60, () => { this._noteEntry?.clutter_text.grab_key_focus(); return GLib.SOURCE_REMOVE; });
         else if (id === 'files') this._renderShelf();
@@ -1321,56 +1330,6 @@ export default class DynamicIsland extends Extension {
         else if (id === 'today') { this._renderToday(); this._requestEvents(); this._loadWeather(false); }
         else if (id === 'notifications') this._renderNotifications();
         else if (id === 'mirror') this._renderMirror();
-        else if (id === 'tools') this._renderToolSearch();
-    }
-
-    _buildToolsPage() {
-        const page = this._newPage('tools');
-        const actions = new St.BoxLayout({style_class: 'di-head'});
-        for (const [text, cb, icon] of [
-            ['Captura', () => this._requestCapture(false), 'camera-photo-symbolic'],
-            ['Grabar pantalla', () => this._requestCapture(true), 'media-record-symbolic'],
-        ]) actions.add_child(this._chip(text, cb, icon));
-        page.add_child(actions);
-        this._focusButton = this._chip('Concentración', () => {
-            const enabled = this._notificationSettings.get_boolean('show-banners');
-            this._notificationSettings.set_boolean('show-banners', !enabled);
-            this._focusButton._label.set_text(enabled ? 'Concentración activada' : 'Concentración desactivada');
-        }, 'notifications-disabled-symbolic');
-        page.add_child(this._focusButton);
-        this._toolSearch = new St.Entry({style_class: 'di-search', can_focus: true,
-            hint_text: 'Buscar aplicaciones o archivos de la bandeja…'});
-        this._toolSearch.clutter_text.connect('text-changed', () => this._renderToolSearch());
-        page.add_child(this._toolSearch);
-        this._toolResults = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
-        const scroll = this._scroll(180);
-        scroll.set_child(this._toolResults);
-        page.add_child(scroll);
-        this._captureHistory = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list'});
-        page.add_child(this._captureHistory);
-        const display = this._chip('Ajustes de pantalla', () => {
-            this._closeIsland();
-            this._spawn(['gnome-control-center', 'display']);
-        }, 'video-display-symbolic');
-        page.add_child(display);
-    }
-
-    _renderToolSearch() {
-        if (!this._toolResults) return;
-        this._toolResults.destroy_all_children();
-        const query = (this._toolSearch.get_text() || '').toLocaleLowerCase();
-        const apps = Shell.AppSystem.get_default().get_installed()
-            .filter(app => app.get_name().toLocaleLowerCase().includes(query)).slice(0, 8);
-        for (const app of apps) {
-            const button = this._chip(app.get_name(), () => {
-                this._closeIsland();
-                app.activate();
-            });
-            this._toolResults.add_child(button);
-        }
-        if (query) for (const path of this._shelf.filter(p => GLib.path_get_basename(p).toLocaleLowerCase().includes(query)).slice(0, 6))
-            this._toolResults.add_child(this._chip(GLib.path_get_basename(path), () => this._openUri(GLib.filename_to_uri(path, null)), 'folder-symbolic'));
-        if (!this._toolResults.get_n_children()) this._toolResults.add_child(this._label('Sin resultados', 'di-hint'));
     }
 
     _requestCapture(recording) {
@@ -2838,6 +2797,7 @@ export default class DynamicIsland extends Extension {
     }
 
     _updateAwakeUI() {
+        this._contextTools?.syncControls();
         if (!this._awakeChips) return;
         for (const [k, chip] of Object.entries(this._awakeChips)) {
             const on = String(this._awake.mode) === String(k);

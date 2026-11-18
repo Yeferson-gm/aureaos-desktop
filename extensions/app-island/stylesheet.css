@@ -111,3 +111,17 @@
 .ai-statistics .ai-stat-action { color: #9dcdff; background-color: rgba(81,158,255,0.12); }
 .ai-statistics .ai-stat-action StIcon { color: #9dcdff; }
 .ai-button, .ai-preview-cell { transition-duration: 120ms; }
+
+.ai-metric-value { font-size: 21px; font-weight: 600; }
+.ai-metric-cell { background-color: rgba(24,29,36,0.82); border-color: rgba(196,211,232,0.12); }
+.ai-metric-cell:hover, .ai-metric-selected { background-color: rgba(45,57,73,0.90); border-color: rgba(165,194,232,0.35); }
+.ai-metric-cpu StIcon { color: #7bbaff; }
+.ai-metric-memory StIcon { color: #bb9bff; }
+.ai-metric-disk StIcon { color: #ffba77; }
+.ai-metric-network StIcon { color: #63ddc2; }
+.ai-metric-battery StIcon { color: #7ce69c; }
+.ai-statistics .ai-selected StIcon { color: #93caff; }
+.ai-stat-detail-panel { background-color: rgba(9,12,17,0.96); }
+.ai-stat-strip { background-color: rgba(9,12,17,0.94); }
+
+.ai-metric-network .ai-metric-value { font-size: 18px; }

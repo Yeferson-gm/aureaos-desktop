@@ -231,3 +231,43 @@ La preferencia cambia en la sesión actual; el código nuevo instalado se carga 
 el próximo inicio de sesión. El tema de vidrio sigue siendo una elección explícita
 en Ajustes, nunca el valor predeterminado. En modo oscuro la opacidad siempre es
 completa, aunque una instalación conserve una opacidad antigua.
+
+## Tarjetas de la referencia de SideDock
+
+La revisión detallada del segundo video, incluidas las funciones pendientes, está
+en [el análisis por intervalos](../tasks/video-2057.md).
+
+En **Más → Herramientas** se añaden:
+
+- **Organizar → Descargas**: hasta doce archivos, ordenados por modificación.
+  Abre el original o usa `+` para añadir su ruta al estante; nunca copia el archivo.
+  No incluye subcarpetas, archivos ocultos, enlaces simbólicos ni temporales de
+  descarga. Examina como máximo 1000 entradas y lo indica si alcanza ese límite.
+  Solo observa la carpeta mientras la vista está abierta; no determina que una
+  descarga haya terminado por el mero hecho de ver un archivo.
+- **Tu día → Relojes del mundo**: hasta cuatro zonas IANA. Se editan en las
+  preferencias de la extensión; cada tarjeta muestra ciudad, hora y fecha local,
+  incluidas diferencias de día y horario de verano. Actualización cada 30 s solo
+  con la vista abierta. Valores predeterminados: Lima, Londres y Tokio.
+- **Sistema → Pantallas y discos**: muestra los monitores de GNOME, tamaño lógico
+  y escala, acceso a configuración, unidades montadas y espacio disponible de las
+  unidades locales. Las ubicaciones de red se pueden abrir sin sondear su capacidad.
+- **Sistema → Controles rápidos**: concentración, preferencia clara/oscura,
+  mantener despierto durante 30 minutos y silenciar/reactivar el micrófono por
+  defecto. Cambiar de micrófono actualiza el control. Sin hardware disponible se
+  muestra ese estado y se desactiva el botón. El cambio de tema usa la preferencia
+  de GNOME; una aplicación con tema propio puede no seguirla. La isla sigue negra.
+
+Los accesos de Inicio llevan a Descargas, Controles y Asistentes; las tarjetas y
+los dos accesos de navegación siguen siendo configurables. Capturas y grabación
+usan las herramientas nativas y conservan el historial de capturas de la sesión.
+
+Las estadísticas separan descarga (verde) y subida (azul) en la misma escala.
+La cifra grande corresponde a descarga y el texto inferior a subida. CPU muestra
+hilos lógicos y máximo observado en los últimos dos minutos; no implica un máximo
+histórico permanente. La temperatura de batería solo aparece si UPower entrega
+un valor válido. El botón de fijar usa un icono de chincheta con estado seleccionado.
+
+No se añaden procesos web ni nuevos servicios en segundo plano. Las lecturas de
+Descargas y discos son asíncronas y cancelables. Al cerrar o cambiar de sección se
+retiran monitores, señales y temporizadores del contexto anterior.

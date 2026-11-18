@@ -14,7 +14,10 @@ export const MODULES = [
     ['weather', 'Clima', 'weather-clear-symbolic'],
     ['notifications', 'Notificaciones', 'preferences-system-notifications-symbolic'],
     ['mirror', 'Cámara', 'camera-web-symbolic'],
-    ['tools', 'Herramientas', 'applications-utilities-symbolic'],
+    ['tools', 'Controles rápidos', 'applications-utilities-symbolic'],
+    ['downloads', 'Descargas', 'folder-download-symbolic'],
+    ['world', 'Relojes del mundo', 'preferences-system-time-symbolic'],
+    ['devices', 'Pantallas y discos', 'video-display-symbolic'],
     ['studio', 'Estudio', 'audio-input-microphone-symbolic'],
     ['agents', 'Asistentes', 'utilities-terminal-symbolic'],
     ['applications', 'Aplicaciones', 'view-app-grid-symbolic'],
@@ -38,7 +41,7 @@ export class IslandWorkspace {
         this.preview = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-glance-preview'});
         page.add_child(this.preview);
         const shortcuts = new St.BoxLayout({style_class: 'di-home-shortcuts', x_expand: true});
-        for (const [id, title, icon] of [['files', 'Estante', 'folder-symbolic'], ['system', 'Equipo', 'computer-symbolic'], ['agents', 'Asistentes', 'utilities-terminal-symbolic']]) {
+        for (const [id, title, icon] of [['downloads', 'Descargas', 'folder-download-symbolic'], ['tools', 'Controles', 'preferences-system-symbolic'], ['agents', 'Asistentes', 'utilities-terminal-symbolic']]) {
             const action = new St.Button({style_class: 'di-home-shortcut', reactive: true, can_focus: true, x_expand: true, accessible_name: title});
             const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-home-shortcut-content'});
             content.add_child(new St.Icon({icon_name: icon, icon_size: 22, x_align: Clutter.ActorAlign.CENTER}));
@@ -62,7 +65,7 @@ export class IslandWorkspace {
             .filter(id => MODULES.some(m => m[0] === id && id !== 'home')).slice(0, 3);
         for (const id of selected) {
             const [, name, icon] = MODULES.find(m => m[0] === id);
-            const card = new St.Button({style_class: 'di-glance-card', reactive: true, can_focus: true, track_hover: true, x_expand: true, accessible_name: name});
+            const card = new St.Button({style_class: `di-glance-card di-module-${id}`, reactive: true, can_focus: true, track_hover: true, x_expand: true, accessible_name: name});
             const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-glance-content'});
             content.add_child(new St.Icon({icon_name: icon, icon_size: 24, x_align: Clutter.ActorAlign.CENTER}));
             content.add_child(e._label(name, 'di-dashboard-caption'));
@@ -98,7 +101,8 @@ export class IslandWorkspace {
             studio: 'Dictado local y teleprompter',
             agents: `${e._agents?.items.size ?? 0} tareas locales`,
             mirror: 'Comprueba tu cámara cuando lo necesites',
-            tools: 'Acciones rápidas y utilidades',
+            tools: 'Concentración, tema y micrófono',
+            downloads: 'Archivos recientes', world: 'Hora en tus ciudades', devices: 'Monitores y unidades conectadas',
         };
         for (const {id, title} of this.cards) title.text = details[id] ?? 'Abrir';
         this.renderPeek();
@@ -119,7 +123,7 @@ export class IslandWorkspace {
         this.preview.destroy_all_children();
         for (const card of this.cards) card.id === id ? card.card.add_style_class_name('di-glance-selected') : card.card.remove_style_class_name('di-glance-selected');
         if (!id) return;
-        const text = value => { const actor = e._label(value, 'di-dashboard-detail', {width: 370}); actor.clutter_text.set_line_wrap(true); this.preview.add_child(actor); };
+        const text = value => { const actor = e._label(value, 'di-dashboard-detail', {width: 344}); actor.clutter_text.set_line_wrap(true); this.preview.add_child(actor); };
         if (id === 'music') {
             text(e._name ? e._title?.text ?? 'Reproduciendo' : 'Tu música aparecerá aquí');
             this.preview.add_child(e._label(e._artist?.text ?? 'Abre un reproductor compatible', 'di-hint'));
@@ -194,10 +198,10 @@ export class IslandWorkspace {
         const list = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-library-list'});
         scroll.set_child(list); page.add_child(scroll);
         const groups = [
-            ['Organizar', [['files', 'Archivos a mano'], ['clip', 'Copiar y recuperar'], ['notes', 'Ideas y pendientes']]],
-            ['Tu día', [['today', 'Agenda y eventos'], ['weather', 'Tiempo y pronóstico'], ['clock', 'Cuenta regresiva'], ['notifications', 'Avisos recientes']]],
+            ['Organizar', [['files', 'Archivos a mano'], ['clip', 'Copiar y recuperar'], ['notes', 'Ideas y pendientes'], ['downloads', 'Tus últimos archivos']]],
+            ['Tu día', [['today', 'Agenda y eventos'], ['weather', 'Tiempo y pronóstico'], ['clock', 'Cuenta regresiva'], ['world', 'Hora en tus ciudades'], ['notifications', 'Avisos recientes']]],
             ['Multimedia', [['music', 'Reproducir y controlar'], ['mirror', 'Vista de tu cámara'], ['studio', 'Dictado y teleprompter']]],
-            ['Sistema', [['system', 'Estado del equipo'], ['tools', 'Acciones rápidas'], ['agents', 'Codex, Claude y OpenCode'], ['applications', 'Abrir aplicaciones']]],
+            ['Sistema', [['system', 'Estado del equipo'], ['tools', 'Tema, foco y micrófono'], ['devices', 'Pantallas y discos'], ['agents', 'Codex, Claude y OpenCode'], ['applications', 'Abrir aplicaciones']]],
         ];
         const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
         const render = () => {
@@ -216,7 +220,7 @@ export class IslandWorkspace {
                 matches.forEach(([id, description], index) => {
                     if (index % 2 === 0) { row = new St.BoxLayout({style_class: 'di-library-row'}); group.add_child(row); }
                     const [, name, icon] = MODULES.find(item => item[0] === id);
-                    const button = new St.Button({style_class: 'di-library-tile', width: 186, reactive: true, can_focus: true, accessible_name: `${name}: ${description}`});
+                    const button = new St.Button({style_class: `di-library-tile di-module-${id}`, width: 186, reactive: true, can_focus: true, accessible_name: `${name}: ${description}`});
                     const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-library-content'});
                     content.add_child(new St.Icon({icon_name: icon, icon_size: 22, style_class: 'di-library-icon', x_align: Clutter.ActorAlign.START}));
                     for (const [text, style] of [[name, 'di-library-title'], [description, 'di-library-description']]) {

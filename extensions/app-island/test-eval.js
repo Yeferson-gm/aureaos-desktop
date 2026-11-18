@@ -69,6 +69,11 @@ export async function run() {
         check(d._statistics.data.memory?.total > 0 && d._statistics.data.disk?.total > 0, 'Real memory and filesystem readings');
         check(/\d+%/.test(d._statistics.values.cpu.text), 'Live CPU statistics');
         check(d._statistics.timer, 'Visible statistics refresh');
+        check(d._statistics.history.upload?.length > 0 && d._statistics.history.network?.length > 0, 'Separate upload and download histories');
+        check(d._statistics.data.cores > 0, 'Detected processor threads');
+        d._statistics.pin.emit('clicked', 1);
+        check(d._statistics.pinned && d._statistics.pin.has_style_class_name('ai-selected'), 'Pin has visible and accessible state');
+        d._statistics.pin.emit('clicked', 1);
         const statsStream = Gio.File.new_for_path(`${dir}/statistics.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
         await new Shell.Screenshot().screenshot(false, statsStream); statsStream.close(null);
         for (const page of ['cpu', 'memory', 'disk', 'network', 'battery', 'uptime']) {

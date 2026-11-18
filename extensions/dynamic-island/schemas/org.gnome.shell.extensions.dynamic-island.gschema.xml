@@ -44,5 +44,6 @@
     <key name="show-mascot" type="b"><default>false</default><summary>Mascota compacta</summary></key>
     <key name="celebration-effects" type="b"><default>false</default><summary>Celebraciones breves</summary></key>
     <key name="timer-presets" type="ai"><default>[1, 5, 10, 25]</default><summary>Hasta cuatro duraciones rápidas en minutos</summary></key>
+  <key name="world-clocks" type="as"><default>['America/Lima', 'Europe/London', 'Asia/Tokyo']</default><summary>Zonas IANA del reloj mundial, hasta cuatro</summary></key>
   </schema>
 </schemalist>

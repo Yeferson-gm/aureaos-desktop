@@ -16,7 +16,11 @@ export class Statistics {
         const head = new St.BoxLayout({style_class: 'ai-head'});
         this.back = button('Volver al resumen', () => this.select(null), 'go-previous-symbolic'); head.add_child(this.back);
         this.title = label('Tu equipo', 'ai-title'); this.title.x_expand = true; head.add_child(this.title);
-        this.pin = button('Mantener abierto', () => { this.pinned = !this.pinned; this.pin.label = this.pinned ? '●' : '○'; }); head.add_child(this.pin);
+        this.pin = button('Mantener abierto', () => {
+            this.pinned = !this.pinned;
+            this.pin.accessible_name = this.pinned ? 'Dejar de mantener abierto' : 'Mantener abierto';
+            if (this.pinned) this.pin.add_style_class_name('ai-selected'); else this.pin.remove_style_class_name('ai-selected');
+        }, 'view-pin-symbolic'); head.add_child(this.pin);
         head.add_child(button('Cerrar estadísticas', () => this.show(false), 'window-close-symbolic'));
         this.detailPanel = column({style_class: 'ai-stat-detail-panel', x_align: Clutter.ActorAlign.CENTER, width: 460});
         this.detailPanel.add_child(head); this.actor.add_child(this.detailPanel);
@@ -75,7 +79,7 @@ export class Statistics {
             this.owner._clear(this.detailTimer); this.detailTimer = 0;
             this.cancel?.cancel(); this.cancel = null;
             this.actor.remove_all_transitions(); this.actor.hide(); this.previous = null; this.netPrevious = null;
-            this.pinned = false; this.pin.label = '○';
+            this.pinned = false; this.pin.remove_style_class_name('ai-selected'); this.pin.accessible_name = 'Mantener abierto';
             if (this.capture) global.stage.disconnect(this.capture); this.capture = 0;
             return;
         }
@@ -98,14 +102,14 @@ export class Statistics {
         this.stripValues = {}; this.stripCaptions = {};
         for (const [id, title, icon] of ITEMS) {
             const cell = button(title, () => this.select(this.page === id ? null : id));
-            cell.add_style_class_name('ai-metric-cell'); cell.x_expand = true; cell.track_hover = true;
+            cell.add_style_class_name('ai-metric-cell'); cell.add_style_class_name(`ai-metric-${id}`); cell.x_expand = true; cell.track_hover = true;
             const content = column({style_class: 'ai-metric-content', x_expand: true});
             const heading = new St.BoxLayout({style_class: 'ai-line'});
             heading.add_child(new St.Icon({icon_name: icon, icon_size: 14})); heading.add_child(label(title, 'ai-muted'));
             content.add_child(heading);
             const value = label('—', 'ai-metric-value'); content.add_child(value); this.stripValues[id] = value;
             const caption = label('—', 'ai-metric-caption'); content.add_child(caption); this.stripCaptions[id] = caption;
-            content.add_child(this.graph(id, 28)); cell.set_child(content); this.strip.add_child(cell);
+            if (id !== 'uptime') content.add_child(this.graph(id, 28)); cell.set_child(content); this.strip.add_child(cell);
             cell.connect('notify::hover', () => {
                 this.owner._clear(this.detailTimer);
                 this.detailTimer = cell.hover ? this.owner._timeout(180, () => { this.detailTimer = 0; if (this.open && cell.hover) this.select(id); }) : 0;
@@ -132,7 +136,7 @@ export class Statistics {
                 cr.$dispose(); return;
             }
             if (values.length) {
-                const ceiling = id === 'network' ? Math.max(1024, ...values) : 100;
+                const ceiling = id === 'network' ? Math.max(1024, ...values, ...(this.history.upload ?? [])) : 100;
                 const points = values.map((v,i) => [values.length === 1 ? width - 4 : 4 + i * (width - 8) / (values.length - 1), h - 4 - Math.min(1,v / ceiling) * (h - 8)]);
                 const trace = () => { cr.moveTo(...points[0]); for (let i = 1; i < points.length; i++) {
                     const [x,y] = points[i], [px,py] = points[i-1]; cr.curveTo((px+x)/2,py,(px+x)/2,y,x,y);
@@ -140,6 +144,13 @@ export class Statistics {
                 trace(); cr.lineTo(width-4,h); cr.lineTo(points[0][0],h); cr.closePath(); cr.setSourceRGBA(r,g,b,.14); cr.fill();
                 trace(); cr.setSourceRGBA(r,g,b,1); cr.setLineWidth(2); cr.stroke();
                 const last = points.at(-1); cr.arc(last[0],last[1],2.5,0,Math.PI*2); cr.fill();
+                if (id === 'network' && this.history.upload?.length > 1) {
+                    cr.newPath(); cr.setSourceRGBA(.57,.7,1,.9); cr.setLineWidth(1.5);
+                    this.history.upload.forEach((value, index, samples) => {
+                        const x = 4 + index * (width - 8) / (samples.length - 1), y = h - 4 - Math.min(1, value / ceiling) * (h - 8);
+                        if (index) cr.lineTo(x,y); else cr.moveTo(x,y);
+                    }); cr.stroke();
+                }
             }
             cr.$dispose();
         });
@@ -187,21 +198,22 @@ export class Statistics {
             battery: d.devices?.length ? d.devices.map(device => `${Math.round(device.Percentage)}%`).join(' · ') : 'Sin batería detectable',
             uptime: new Date().toLocaleTimeString('es', {hour: '2-digit', minute: '2-digit'}),
         };
-        const compact = {...text, cpu: Number.isFinite(d.cpu) ? `${Math.round(d.cpu)}%` : 'Midiendo…', memory: mem ? size(mem.used) : '—', disk: disk ? size(disk.free) : '—', network: net ? `${net.rx < 1024 ? Math.round(net.rx) + ' B' : net.rx < 1048576 ? (net.rx / 1024).toFixed(1) + ' KB' : (net.rx / 1048576).toFixed(1) + ' MB'}/s` : '—', battery: d.devices?.length ? `${Math.round(d.devices[0].Percentage)}%` : '—'};
+        const compact = {...text, cpu: Number.isFinite(d.cpu) ? `${Math.round(d.cpu)}%` : 'Midiendo…', memory: mem ? size(mem.used) : '—', disk: disk ? size(disk.free) : '—', network: net ? `${net.rx < 1024 ? Math.round(net.rx) + ' B' : net.rx < 1048576 ? (net.rx / 1024).toFixed(net.rx < 102400 ? 1 : 0) + ' KB' : (net.rx / 1048576).toFixed(net.rx < 104857600 ? 1 : 0) + ' MB'}/s` : '—', battery: d.devices?.length ? `${Math.round(d.devices[0].Percentage)}%` : '—'};
         for (const [id, value] of Object.entries(this.values)) value.text = compact[id];
-        const captions = {cpu: 'Uso del procesador', memory: mem ? `de ${size(mem.total)}` : 'Consultando…', disk: 'Espacio libre', network: 'Descarga actual', battery: d.devices?.length ? ([1,5].includes(d.devices[0].State) ? 'Cargando' : 'En uso') : 'Sin batería', uptime: new Date().toLocaleDateString('es', {day:'numeric', month:'short'})};
+        const captions = {cpu: this.data.cores ? `${this.data.cores} hilos · uso actual` : 'Uso del procesador', memory: mem ? `de ${size(mem.total)}` : 'Consultando…', disk: 'Espacio libre', network: this.data.network ? `↑ ${size(this.data.network.tx)}/s` : 'Descarga y subida', battery: d.devices?.length ? ([1,5].includes(d.devices[0].State) ? 'Cargando' : 'En uso') : 'Sin batería', uptime: new Date().toLocaleDateString('es', {day:'numeric', month:'short'})};
         for (const [id, caption] of Object.entries(this.stripCaptions)) caption.text = captions[id];
         this.charts.forEach(chart => chart.queue_repaint());
         if (!this.page) return;
         if (this.axisStart) { const seconds = Math.max(0, (this.history[this.page]?.length ?? 1) - 1) * 2; this.axisStart.text = seconds ? `−${seconds} s` : 'Primera muestra'; }
         this.hero.text = text[this.page]; this.details.destroy_all_children();
-        if (this.page === 'cpu') { this.detail('Muestra', 'Cada 2 segundos'); this.detail('Carga media · 1 / 5 / 15 min', d.load ?? '—'); this.detail('Tiempo encendido', d.uptime ?? '—'); }
+        if (this.page === 'cpu') { this.detail('Hilos del procesador', String(d.cores ?? '—')); this.detail('Máximo observado', this.history.cpu?.length ? `${Math.round(Math.max(...this.history.cpu))}%` : '—'); this.detail('Muestra', 'Cada 2 segundos'); this.detail('Carga media · 1 / 5 / 15 min', d.load ?? '—'); this.detail('Tiempo encendido', d.uptime ?? '—'); }
         if (this.page === 'memory' && mem) { this.detail('Disponible', size(mem.available)); this.detail('Caché recuperable', size(mem.cached)); this.detail('Intercambio en uso', size(mem.swap)); }
         if (this.page === 'disk' && disk) { this.detail('Directorio personal', GLib.get_home_dir()); this.detail('Usado', size(disk.total - disk.free)); this.detail('Capacidad', size(disk.total)); }
-        if (this.page === 'network') { this.detail('Interfaces', Object.keys(d.interfaces ?? {}).join(', ') || 'Ninguna'); this.detail('Descarga', `${size(net?.rx)}/s`); this.detail('Subida', `${size(net?.tx)}/s`); this.detail('Alcance', 'Tráfico agregado, excepto loopback'); }
+        if (this.page === 'network') { this.detail('Gráfico', 'Verde: descarga · Azul: subida'); this.detail('Interfaces', Object.keys(d.interfaces ?? {}).join(', ') || 'Ninguna'); this.detail('Descarga', `${size(net?.rx)}/s`); this.detail('Subida', `${size(net?.tx)}/s`); this.detail('Alcance', 'Tráfico agregado, excepto loopback'); }
         if (this.page === 'battery') for (const device of d.devices ?? []) {
             this.detail(device.Model || (device.Type === 2 ? 'Equipo' : 'Dispositivo'), `${Math.round(device.Percentage)}% · ${[1, 5].includes(device.State) ? 'Cargando' : 'Batería'}`);
             if (device.Capacity > 0) this.detail('Salud', `${Math.round(device.Capacity)}%`);
+            if (Number.isFinite(device.Temperature) && device.Temperature > 0) this.detail('Temperatura', `${Math.round(device.Temperature)} °C`);
             const seconds = device.TimeToEmpty || device.TimeToFull;
             if (seconds > 0) this.detail('Tiempo estimado', `${Math.floor(seconds / 3600)} h ${Math.floor(seconds % 3600 / 60)} min`);
         }
@@ -218,15 +230,17 @@ export class Statistics {
     refresh() {
         if (!this.open) return;
         try {
-            const cpu = cpuSnapshot(read('/proc/stat')); this.data.cpu = cpuUsage(this.previous, cpu); this.previous = cpu;
+            const cpuText = read('/proc/stat');
+            const cpu = cpuSnapshot(cpuText); this.data.cpu = cpuUsage(this.previous, cpu); this.previous = cpu;
             this.data.memory = memorySnapshot(read('/proc/meminfo'));
+            this.data.cores = cpuText.split('\n').filter(line => /^cpu\d+\s/.test(line)).length;
             const interfaces = networkSnapshot(read('/proc/net/dev')), time = GLib.get_monotonic_time() / 1000000;
             this.data.network = networkRate(this.netPrevious?.interfaces, interfaces, time - (this.netPrevious?.time ?? time));
             this.data.interfaces = interfaces; this.netPrevious = {interfaces, time};
             this.data.load = read('/proc/loadavg').trim().split(' ').slice(0, 3).join(' / ');
             const minutes = Math.floor(Number(read('/proc/uptime').split(' ')[0]) / 60); this.data.uptime = `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
             const m = this.data.memory;
-            for (const [key, value] of [['cpu', this.data.cpu], ['memory', m ? m.used / m.total * 100 : null], ['network', this.data.network ? this.data.network.rx + this.data.network.tx : null]])
+            for (const [key, value] of [['cpu', this.data.cpu], ['memory', m ? m.used / m.total * 100 : null], ['network', this.data.network?.rx ?? null], ['upload', this.data.network?.tx ?? null]])
                 this.history[key] = appendSample(this.history[key] ?? [], value);
             this.render();
             if (time - this.lastSlow > 10) { this.lastSlow = time; this.slowSample(); }

@@ -58,7 +58,7 @@ export default class IslandPreferences extends ExtensionPreferences {
             space.add(row);
             const modules = [['music', 'Música'], ['files', 'Archivos'], ['clip', 'Portapapeles'], ['notes', 'Notas y tareas'],
                 ['system', 'Sistema'], ['clock', 'Temporizador'], ['today', 'Calendario'], ['weather', 'Clima'], ['notifications', 'Notificaciones'],
-                ['mirror', 'Cámara'], ['tools', 'Herramientas'], ['studio', 'Estudio'], ['agents', 'Asistentes']];
+                ['mirror', 'Cámara'], ['tools', 'Controles rápidos'], ['downloads', 'Descargas'], ['world', 'Relojes del mundo'], ['devices', 'Pantallas y discos'], ['studio', 'Estudio'], ['agents', 'Asistentes']];
             for (const [id, name] of modules) {
                 const item = new Adw.ActionRow({title: name});
                 const enabled = new Gtk.Switch({valign: Gtk.Align.CENTER, active: settings.get_strv(key).includes(id)});
@@ -110,6 +110,17 @@ export default class IslandPreferences extends ExtensionPreferences {
         number(media, 'focus-minutes', 'Concentración (minutos)', 1, 180, 1);
         number(media, 'break-minutes', 'Descanso (minutos)', 1, 60, 1);
         toggle(media, 'audio-visualizer', 'Medidor de audio real', 'Lee la amplitud de la salida con PulseAudio/PipeWire únicamente cuando el indicador está visible.');
+        const clocks = group('Relojes del mundo', 'Hasta cuatro zonas IANA, separadas por comas: America/Lima, Europe/London, Asia/Tokyo.');
+        const zones = new Adw.EntryRow({title: 'Ciudades y zonas horarias', show_apply_button: true, text: settings.get_strv('world-clocks').join(', ')});
+        zones.connect('apply', () => {
+            const values = [...new Set(zones.text.split(',').map(value => value.trim()).filter(Boolean))];
+            try {
+                if (values.length > 4) throw Error('Máximo cuatro ciudades');
+                for (const zone of values) new Intl.DateTimeFormat('es', {timeZone: zone}).format();
+                settings.set_strv('world-clocks', values); zones.remove_css_class('error'); zones.tooltip_text = null;
+            } catch { zones.add_css_class('error'); zones.tooltip_text = 'Usa hasta cuatro zonas IANA válidas.'; }
+        });
+        clocks.add(zones);
         const integrations = group('Integraciones opcionales', 'Se activan de forma explícita. No se aprueban acciones de agentes automáticamente.');
         toggle(integrations, 'app-launcher', 'Lanzador de aplicaciones opcional', 'Añade una búsqueda de apps a Más. Desactivado inicialmente para evitar duplicar el centro de aplicaciones.');
         toggle(integrations, 'show-mascot', 'Mascota compacta', 'Ilustración propia y estática, sin animación permanente.');

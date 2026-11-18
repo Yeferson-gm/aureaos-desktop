@@ -284,3 +284,33 @@
 .di-library .di-search StIcon { color: #aebacd; padding-right: 8px; }
 .di-library .di-search { padding: 12px; }
 .di-library-tile:active { background-color: rgba(81,158,255,0.18); }
+
+.di-context-page { spacing: 12px; }
+.di-context-heading { color: #f5f7fa; font-size: 16px; font-weight: 600; padding-top: 4px; }
+.di-context-list { spacing: 8px; }
+.di-context-card { padding: 12px; border-radius: 14px; background-color: #12151b; border: 1px solid rgba(255,255,255,0.09); color: #f5f7fa; transition-duration: 120ms; }
+.di-context-card:hover, .di-context-card:focus { background-color: #1c2430; border-color: #527aa5; }
+.di-context-card:active { background-color: #20364f; }
+.di-context-enabled { background-color: #142b42; border-color: #3d6893; }
+.di-context-enabled .di-context-icon { color: #8bc7ff; }
+.di-context-row { spacing: 12px; }
+.di-context-copy { spacing: 5px; }
+.di-context-title { color: #f5f7fa; font-size: 14px; font-weight: 600; }
+.di-context-description { color: #bdc7d6; font-size: 12px; }
+.di-context-icon { color: #a3b4cd; }
+.di-context-time { font-size: 28px; font-weight: 400; }
+.di-context-download { spacing: 4px; }
+.di-context-download .di-context-title, .di-context-download .di-context-description { max-width: 238px; }
+.di-glance-card { background-color: #12151b; }
+.di-glance-preview { background-color: #101319; }
+.di-weather-large { color: #f5f7fa; }
+.di-weather-hour .di-dashboard-detail { color: #f5f7fa; }
+.di-weather-hour StIcon { color: #ffd76b; padding: 4px 0; }
+.di-glance-actions .di-chip { padding: 8px 9px; }
+
+.di-module-music StIcon, .di-module-studio StIcon { color: #ff8daa; }
+.di-module-today StIcon, .di-module-notifications StIcon { color: #ffae91; }
+.di-module-weather StIcon, .di-module-clock StIcon { color: #ffd774; }
+.di-module-notes StIcon, .di-module-clip StIcon { color: #d0b1ff; }
+.di-module-system StIcon, .di-module-devices StIcon { color: #7ce0bb; }
+.di-module-files StIcon, .di-module-downloads StIcon { color: #91caff; }

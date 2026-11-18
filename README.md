@@ -73,6 +73,9 @@ o **Organizar → Ver estadísticas** en el panel lateral.
 La isla superior es negra y opaca. **Más → Herramientas** agrupa los accesos por
 función; el scroll permanece disponible sin barras visibles en las superficies
 de Aurea. La guía enlazada incluye cómo corregir una preferencia de vidrio anterior.
+En Herramientas también están Descargas recientes, Relojes del mundo, Pantallas
+y discos y Controles rápidos. La comparación completa con el video y las
+integraciones todavía pendientes están en [la revisión de SideDock](tasks/video-2057.md).
 
 Bun se utiliza automáticamente si está instalado; Node queda como alternativa
 y validador sintáctico. Para elegir: `AUREA_RUNTIME=bun ./aurea.sh check` o

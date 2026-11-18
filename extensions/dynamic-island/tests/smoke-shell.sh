@@ -7,6 +7,11 @@ export XDG_CONFIG_HOME="$test_dir/config"
 export XDG_CACHE_HOME="$test_dir/cache"
 export XDG_RUNTIME_DIR="$test_dir/runtime"
 mkdir -m 0700 "$XDG_RUNTIME_DIR"
+mkdir -p "$XDG_CONFIG_HOME" "$test_dir/downloads"
+printf 'XDG_DOWNLOAD_DIR="%s/downloads"\n' "$test_dir" > "$XDG_CONFIG_HOME/user-dirs.dirs"
+printf 'Downloaded fixture' > "$test_dir/downloads/example.txt"
+printf 'Incomplete fixture' > "$test_dir/downloads/example.part"
+mkdir "$test_dir/downloads/folder"
 export GSETTINGS_BACKEND=keyfile
 export WAYLAND_DISPLAY=island-smoke
 export GDK_BACKEND=wayland
@@ -14,7 +19,7 @@ export GTK_A11Y=none
 unset DISPLAY
 test_extension="$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local"
 mkdir -p "$test_extension"
-cp "$project_dir/"{extension.js,activities.js,motion.js,workspace.js,assistants.js,content-models.js,media-extras.js,studio.js,agent-bridge.js,aurea-task.py,audio-meter.js,audio-tools.py,shelf-bridge.js,shelf-window.py,file-services.js,ornaments.js,app-launcher.js,prefs.js,file-tools.py,hardware-metrics.py,metadata.json,stylesheet.css} "$test_extension/"
+cp "$project_dir/"{extension.js,context-tools.js,activities.js,motion.js,workspace.js,assistants.js,content-models.js,media-extras.js,studio.js,agent-bridge.js,aurea-task.py,audio-meter.js,audio-tools.py,shelf-bridge.js,shelf-window.py,file-services.js,ornaments.js,app-launcher.js,prefs.js,file-tools.py,hardware-metrics.py,metadata.json,stylesheet.css} "$test_extension/"
 cp -aL "$project_dir/shared" "$test_extension/"
 cp -a "$project_dir/schemas" "$test_extension/"
 cp -a "$project_dir/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
