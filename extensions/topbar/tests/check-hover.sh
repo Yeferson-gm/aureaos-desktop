@@ -11,7 +11,7 @@ mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions"
 cp -aL "$DI_PROJECT_DIR" "$XDG_DATA_HOME/gnome-shell/extensions/lintel-v2@local"
 cp -a "$DI_PROJECT_DIR/../dynamic-island/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"
 if [[ "${AUREA_TEST_ISLAND:-0}" == 1 ]]; then
-    cp -a "$DI_PROJECT_DIR/../dynamic-island" "$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local"
+    cp -aL "$DI_PROJECT_DIR/../dynamic-island" "$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local"
     glib-compile-schemas "$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local/schemas"
 fi
 mkdir -p "$XDG_DATA_HOME/gnome-shell/extensions/caffeine@patapon.info/schemas"

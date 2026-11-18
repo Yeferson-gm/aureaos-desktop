@@ -184,26 +184,59 @@ export class IslandWorkspace {
         const e = this.island;
         const page = e._newPage('library');
         page.add_style_class_name('di-library');
-        const search = new St.Entry({style_class: 'di-search', hint_text: 'Buscar una herramienta…', can_focus: true});
+        const search = new St.Entry({style_class: 'di-search', hint_text: 'Buscar herramientas…', accessible_name: 'Buscar herramientas', can_focus: true});
+        search.set_primary_icon(new St.Icon({icon_name: 'edit-find-symbolic', icon_size: 16}));
+        search.clutter_text.editable = false;
+        search.clutter_text.connect('key-focus-in', text => { text.editable = true; });
+        search.clutter_text.connect('key-focus-out', text => { text.editable = false; });
         page.add_child(search);
+        const scroll = e._scroll(340);
         const list = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-library-list'});
-        page.add_child(list);
+        scroll.set_child(list); page.add_child(scroll);
+        const groups = [
+            ['Organizar', [['files', 'Archivos a mano'], ['clip', 'Copiar y recuperar'], ['notes', 'Ideas y pendientes']]],
+            ['Tu día', [['today', 'Agenda y eventos'], ['weather', 'Tiempo y pronóstico'], ['clock', 'Cuenta regresiva'], ['notifications', 'Avisos recientes']]],
+            ['Multimedia', [['music', 'Reproducir y controlar'], ['mirror', 'Vista de tu cámara'], ['studio', 'Dictado y teleprompter']]],
+            ['Sistema', [['system', 'Estado del equipo'], ['tools', 'Acciones rápidas'], ['agents', 'Codex, Claude y OpenCode'], ['applications', 'Abrir aplicaciones']]],
+        ];
+        const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
         const render = () => {
             list.destroy_all_children();
-            const query = search.text.toLocaleLowerCase('es');
-            let row;
-            let index = 0;
-            for (const [id, name, icon] of MODULES.filter(m => m[0] !== 'home' && (m[0] !== 'applications' || e._settings.get_boolean('app-launcher')) && m[1].toLocaleLowerCase('es').includes(query))) {
-                if (index++ % 2 === 0) { row = new St.BoxLayout({style_class: 'di-library-row'}); list.add_child(row); }
-                const button = e._chip(name, () => e._selectTab(id), icon);
-                button.width = 182;
-                button._label.width = 134;
-                button._label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
-                button.add_style_class_name('di-library-tile');
-                row.add_child(button);
+            const query = normalize(search.text);
+            let count = 0;
+            for (const [title, items] of groups) {
+                const matches = items.filter(([id, description]) => {
+                    const module = MODULES.find(item => item[0] === id);
+                    return (id !== 'applications' || e._settings.get_boolean('app-launcher')) && normalize(`${title} ${module[1]} ${description}`).includes(query);
+                });
+                if (!matches.length) continue;
+                const group = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-library-group'});
+                group.add_child(e._label(title, 'di-library-heading'));
+                let row;
+                matches.forEach(([id, description], index) => {
+                    if (index % 2 === 0) { row = new St.BoxLayout({style_class: 'di-library-row'}); group.add_child(row); }
+                    const [, name, icon] = MODULES.find(item => item[0] === id);
+                    const button = new St.Button({style_class: 'di-library-tile', width: 186, reactive: true, can_focus: true, accessible_name: `${name}: ${description}`});
+                    const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-library-content'});
+                    content.add_child(new St.Icon({icon_name: icon, icon_size: 22, style_class: 'di-library-icon', x_align: Clutter.ActorAlign.START}));
+                    for (const [text, style] of [[name, 'di-library-title'], [description, 'di-library-description']]) {
+                        const label = e._label(text, style, {width: 160});
+                        label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
+                        content.add_child(label);
+                    }
+                    button.set_child(content); button.connect('clicked', () => e._selectTab(id));
+                    button.connect('key-focus-in', () => {
+                        const [, y] = button.get_transformed_position(), [, top] = scroll.get_transformed_position();
+                        const adjustment = scroll.vadjustment;
+                        if (y < top) adjustment.ease(adjustment.value + y - top, {duration: e._duration(140), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+                        else if (y + button.height > top + scroll.height) adjustment.ease(adjustment.value + y + button.height - top - scroll.height, {duration: e._duration(140), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+                    });
+                    row.add_child(button); count++;
+                });
+                list.add_child(group);
             }
-            if (!index) list.add_child(e._label('No se encontraron herramientas.', 'di-hint'));
-            e._resizeIsland();
+            if (!count) list.add_child(e._label('No hay resultados. Prueba con otro nombre.', 'di-hint'));
+            scroll.vadjustment.remove_transition('value'); scroll.vadjustment.value = 0;
         };
         search.clutter_text.connect('text-changed', render);
         e._connect(e._settings, 'changed::app-launcher', render);

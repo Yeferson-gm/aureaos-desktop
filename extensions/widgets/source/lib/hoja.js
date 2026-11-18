@@ -1,3 +1,4 @@
+import {scrollView} from '../shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
@@ -59,9 +60,9 @@ export class Hoja {
         if (this.o.sinScroll) {
             caja.add_child(this.cuerpo);
         } else {
-            const sc = new St.ScrollView({
+            const sc = scrollView({
                 x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER,
-                vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
+                vscrollbar_policy: St.PolicyType.EXTERNAL, overlay_scrollbars: true,
                 style: this.o.alto ? '' : `max-height: ${Math.max(200, m.height - 220)}px;`,
             });
             sc.add_child(this.cuerpo);

@@ -1,3 +1,4 @@
+import {scrollView} from '../shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -231,14 +232,14 @@ export function abrirAjustes(core, sel = 'general') {
     h.cuerpo.orientation = Clutter.Orientation.HORIZONTAL;
     h.cuerpo.style = 'spacing: 14px;';
     const lado = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, width: 190, style: 'spacing: 2px;'});
-    const der = new St.ScrollView({
+    const der = scrollView({
         x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER,
-        vscrollbar_policy: St.PolicyType.AUTOMATIC, overlay_scrollbars: true,
+        vscrollbar_policy: St.PolicyType.EXTERNAL, overlay_scrollbars: true,
     });
     const cont = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style: 'spacing: 10px; padding-right: 12px;'});
     der.add_child(cont);
-    const sc = new St.ScrollView({
-        hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC,
+    const sc = scrollView({
+        hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL,
         overlay_scrollbars: true, y_expand: true,
     });
     sc.add_child(lado);

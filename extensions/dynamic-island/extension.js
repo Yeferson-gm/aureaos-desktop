@@ -1,3 +1,4 @@
+import {scrollView} from './shared/scroll-view.js';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
@@ -549,10 +550,10 @@ export default class DynamicIsland extends Extension {
     }
 
     _scroll(height) {
-        return new St.ScrollView({
+        return scrollView({
             style_class: 'di-scroll', width: WIDTH, height, overlay_scrollbars: true,
-            hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC,
-        });
+            hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL,
+        }, () => this._duration(160));
     }
 
     _newPage(id, height = -1) {
@@ -756,8 +757,8 @@ export default class DynamicIsland extends Extension {
             context.closePath();
         }
         const glass = this._settings.get_string('theme') === 'glass';
-        context.setSourceRGBA(glass ? 0.10 : 0.031, glass ? 0.13 : 0.035,
-            glass ? 0.18 : 0.047, this._settings.get_double('opacity'));
+        context.setSourceRGBA(glass ? 0.10 : 0, glass ? 0.13 : 0,
+            glass ? 0.18 : 0, glass ? this._settings.get_double('opacity') : 1);
         context.fillPreserve();
         context.setSourceRGBA(1, 1, 1, 0.12);
         context.setLineWidth(1);
@@ -967,7 +968,7 @@ export default class DynamicIsland extends Extension {
 
 
         this._island = new St.Widget({
-            reactive: true, visible: false, clip_to_allocation: true,
+            reactive: true, visible: false, clip_to_allocation: true, style_class: 'di-island',
             layout_manager: new Clutter.FixedLayout(),
         });
         this._glass = new St.Widget({reactive: false, clip_to_allocation: true});
@@ -1287,7 +1288,7 @@ export default class DynamicIsland extends Extension {
         this._tab = id;
         for (const [k, page] of Object.entries(this._pages)) page.visible = k === id;
         this._pagesBox.set_height(this._pages[id]?._h ?? -1);
-        this._sectionTitle.set_text(id === 'library' ? 'Tu espacio' : TAB_NAMES[id] ?? id);
+        this._sectionTitle.set_text(id === 'library' ? 'Herramientas' : TAB_NAMES[id] ?? id);
         const page = this._pages[id];
         page.remove_all_transitions();
         page.opacity = 255;

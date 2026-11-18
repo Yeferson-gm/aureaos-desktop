@@ -1,3 +1,4 @@
+import {scrollView} from '../shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -191,7 +192,7 @@ export class Widget extends WidgetBase {
         const h = new Hoja(this.core, {titulo: 'Contactos', ancho: 480, alto: 540, sinScroll: true});
         let q = '';
         const lista = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, style: 'spacing: 2px;'});
-        const sc = new St.ScrollView({x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER, overlay_scrollbars: true});
+        const sc = scrollView({x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL, overlay_scrollbars: true});
         sc.add_child(lista);
         const pintar = () => {
             lista.destroy_all_children();

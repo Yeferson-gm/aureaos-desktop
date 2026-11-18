@@ -1,9 +1,10 @@
+import {scrollView} from './shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import {column, label, button} from './ui.js';
+import {column, label, button, buttonContent} from './ui.js';
 import {cpuSnapshot, cpuUsage, memorySnapshot, networkSnapshot, networkRate, appendSample, calendarDays} from './metrics-model.js';
 const read = path => { const [ok, bytes] = GLib.file_get_contents(path); return ok ? new TextDecoder().decode(bytes) : ''; };
 const size = value => Number.isFinite(value) ? GLib.format_size(Math.max(0, value)) : '—';
@@ -19,7 +20,7 @@ export class Statistics {
         head.add_child(button('Cerrar estadísticas', () => this.show(false), 'window-close-symbolic'));
         this.detailPanel = column({style_class: 'ai-stat-detail-panel', x_align: Clutter.ActorAlign.CENTER, width: 460});
         this.detailPanel.add_child(head); this.actor.add_child(this.detailPanel);
-        this.scroll = new St.ScrollView({x_expand: true, hscrollbar_policy: St.PolicyType.NEVER});
+        this.scroll = scrollView({x_expand: true, hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL});
         this.body = column({style_class: 'ai-list'}); this.scroll.set_child(this.body); this.detailPanel.add_child(this.scroll);
         this.footer = label('Datos de este equipo · últimos 2 minutos', 'ai-muted'); this.detailPanel.add_child(this.footer);
         this.strip = new St.BoxLayout({style_class: 'ai-stat-strip', x_expand: true}); this.actor.add_child(this.strip);
@@ -145,6 +146,7 @@ export class Statistics {
         this.charts.push(area); area.connect('destroy', () => { this.charts = this.charts.filter(chart => chart !== area); }); return area;
     }
     select(id) {
+        if (id === this.page && this.body.get_n_children()) return;
         this.page = id; this.axisStart = null; this.body.destroy_all_children(); this.values = this.stripValues;
         this.detailPanel.visible = !!id;
         this.title.text = ITEMS.find(item => item[0] === id)?.[1] ?? 'Tu equipo';
@@ -158,13 +160,18 @@ export class Statistics {
             this.details = column({style_class: 'ai-list'}); this.body.add_child(this.details);
             if (id === 'uptime') this.body.add_child(button('Copiar fecha y hora', () => { St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD, new Date().toLocaleString('es')); this.footer.text = 'Fecha y hora copiadas'; }));
             const app = id === 'disk' ? 'org.gnome.Nautilus.desktop' : id === 'uptime' ? 'org.gnome.Calendar.desktop' : id === 'battery' ? 'gnome-power-panel.desktop' : 'org.gnome.SystemMonitor.desktop';
-            this.body.add_child(button(id === 'disk' ? 'Abrir Archivos' : id === 'uptime' ? 'Abrir Calendario' : id === 'battery' ? 'Ajustes de energía' : 'Abrir Monitor del sistema', () => {
+            const action = button(id === 'disk' ? 'Abrir Archivos' : id === 'uptime' ? 'Abrir Calendario' : id === 'battery' ? 'Ajustes de energía' : 'Abrir Monitor del sistema', () => {
                 const info = Gio.DesktopAppInfo.new(app);
                 if (info) info.launch([], global.create_app_launch_context(0, -1));
                 else this.footer.text = 'Esta aplicación no está instalada';
-            }));
+            });
+            buttonContent(action, action.accessible_name, id === 'disk' ? 'folder-symbolic' : id === 'uptime' ? 'x-office-calendar-symbolic' : id === 'battery' ? 'preferences-system-symbolic' : 'computer-symbolic');
+            action.add_style_class_name('ai-stat-action'); this.body.add_child(action);
         }
         this.render(); this.position();
+        this.body.remove_all_transitions();
+        this.body.opacity = this.open && id ? 0 : 255;
+        if (this.open && id) this.body.ease({opacity: 255, duration: this.owner._duration(160), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
     }
     detail(title, value) {
         const row = new St.BoxLayout({style_class: 'ai-stat-detail'});

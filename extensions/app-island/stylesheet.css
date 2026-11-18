@@ -69,7 +69,7 @@
 .ai-dark .ai-category-toggle { color: #e3e7ef; }
 .ai-category-head { padding-top: 4px; padding-bottom: 6px; }
 .ai-tile .ai-button { background-color: rgba(128,140,160,0.06); border-radius: 14px; padding: 14px 4px 8px; }
-.ai-statistics { background-color: transparent; border: none; border-radius: 0; padding: 0; spacing: 10px; }
+.ai-statistics { color: #f5f7fa; background-color: transparent; border: none; border-radius: 0; padding: 0; spacing: 10px; }
 .ai-stat-detail-panel { background-color: rgba(9,10,13,0.90); border: 1px solid rgba(255,255,255,0.16); border-radius: 22px; padding: 20px; spacing: 10px; }
 .ai-stat-strip { background-color: rgba(9,10,13,0.90); border: 1px solid rgba(255,255,255,0.16); border-radius: 18px; padding: 6px; spacing: 4px; }
 .ai-metric-cell { padding: 8px 10px; border-radius: 12px; width: 96px; background-color: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.07); }
@@ -102,3 +102,12 @@
 .ai-statistics.ai-solid .ai-stat-strip, .ai-statistics.ai-solid .ai-stat-detail-panel { background-color: #090a0d; }
 .ai-statistics.ai-contrast .ai-stat-strip, .ai-statistics.ai-contrast .ai-stat-detail-panel { background-color: black; border: 2px solid white; }
 .ai-statistics.ai-contrast .ai-muted, .ai-statistics.ai-contrast .ai-metric-caption { color: white; }
+
+.ai-statistics .ai-title, .ai-statistics .ai-stat-hero,
+.ai-statistics .ai-metric-value, .ai-statistics .ai-name,
+.ai-statistics .ai-button { color: #f5f7fa; }
+.ai-statistics StIcon { color: #c4cedd; }
+.ai-statistics .ai-button:hover, .ai-statistics .ai-button:focus { background-color: rgba(255,255,255,0.10); }
+.ai-statistics .ai-stat-action { color: #9dcdff; background-color: rgba(81,158,255,0.12); }
+.ai-statistics .ai-stat-action StIcon { color: #9dcdff; }
+.ai-button, .ai-preview-cell { transition-duration: 120ms; }

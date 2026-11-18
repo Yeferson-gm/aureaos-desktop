@@ -1,3 +1,4 @@
+import {scrollView} from './shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -33,7 +34,7 @@ export class QuickPreview {
         const head = new St.BoxLayout({style_class: 'ai-head'}); this.title = label(title, 'ai-title'); this.title.x_expand = true; head.add_child(this.title);
         head.add_child(button('Cerrar', () => this.close(), 'window-close-symbolic')); this.actor.add_child(head);
         this.status = label('', 'ai-muted'); this.actor.add_child(this.status);
-        this.scroll = new St.ScrollView({x_expand: true, hscrollbar_policy: St.PolicyType.NEVER});
+        this.scroll = scrollView({x_expand: true, hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL});
         this.body = column({style_class: 'ai-list'}); this.scroll.set_child(this.body); this.actor.add_child(this.scroll);
         this.footer = new St.BoxLayout({style_class: 'ai-line'}); this.actor.add_child(this.footer);
         if (this.hoverSignal) this.actor.disconnect(this.hoverSignal);

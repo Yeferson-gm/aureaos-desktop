@@ -1,3 +1,4 @@
+import {scrollView} from './shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -331,8 +332,8 @@ export default class AppIsland extends Extension {
         this._filter = button('Solo abiertas', () => { this._onlyRunning = !this._onlyRunning; this._render(); });
         this._profileButton.x_expand = true;
         controls.add_child(this._profileButton); controls.add_child(this._back); controls.add_child(this._filter); this._panel.add_child(controls);
-        this._scroll = new St.ScrollView({x_expand: true, y_expand: true, overlay_scrollbars: true,
-            hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
+        this._scroll = scrollView({x_expand: true, y_expand: true, overlay_scrollbars: true,
+            hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL});
         this._list = column({style_class: 'ai-list', x_expand: true, y_align: Clutter.ActorAlign.START}); this._scroll.set_child(this._list); this._panel.add_child(this._scroll);
         this._status = label(this._store.error ?? this._initialMessage ?? '', 'ai-status');
         this._status.clutter_text.line_wrap = true; this._status.clutter_text.ellipsize = Pango.EllipsizeMode.END;
@@ -490,7 +491,7 @@ export default class AppIsland extends Extension {
         const box = column({style_class: 'ai-popover', x_expand: true, y_expand: true});
         const head = new St.BoxLayout({style_class: 'ai-head'}); const name = label(title, 'ai-section-title'); name.x_expand = true;
         head.add_child(name); head.add_child(button('Cerrar opciones', () => this._clearPopup(), 'window-close-symbolic')); box.add_child(head);
-        const scroll = new St.ScrollView({x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER});
+        const scroll = scrollView({x_expand: true, y_expand: true, hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL});
         const body = column({style_class: 'ai-list'}); scroll.set_child(body); box.add_child(scroll);
         this._popup = box; this._root.add_child(box); head.get_last_child().grab_key_focus(); return body;
     }

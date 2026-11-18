@@ -114,3 +114,11 @@ independiente. La copia activa se llama `Aurea27`; GRUB sigue siendo el motor de
 arranque de Fedora. Se conservan BLS, UUID de discos y parámetros del kernel.
 La entrada manual obsoleta se retira por título exacto; no se escanean ni modifican
 particiones. Los respaldos por equipo quedan fuera del repositorio.
+
+
+`shared/scroll-view.js` crea las vistas desplazables de las islas, Centro de Control
+y paneles de widgets. Usa St/Clutter, mantiene las coordenadas de scroll y no
+reemplaza la entrada continua del panel táctil. Cada paquete recibe su copia del
+módulo compartido mediante build; los enlaces de desarrollo apuntan a esta única
+fuente. La prueba con puntero virtual verifica rueda, inversión de dirección,
+movimiento reducido y ausencia de barras en GNOME 50 y 51.

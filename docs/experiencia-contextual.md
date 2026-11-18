@@ -175,8 +175,9 @@ eliminó `padding` al limpiar CSS queda cubierta por esas medidas reales.
 
 ## Material y rendimiento
 
-Las dos islas usan negro con vidrio discreto: 90 % de opacidad en el espacio
-lateral y 92 % en la isla superior. Se reutiliza el desenfoque nativo ya existente;
+La isla superior usa negro puro y opaco por defecto, tanto cerrada como abierta.
+El espacio lateral conserva negro con vidrio discreto al 90 % de opacidad.
+Se reutiliza el desenfoque nativo ya existente en el material de vidrio;
 los gráficos usan Cairo y las imágenes, los iconos de GNOME y el tema instalado.
 Las estadísticas usan tarjetas translúcidas con cifra principal, unidad o contexto
 secundario y color por métrica. No se añaden procesos web ni dependencias de red.
@@ -190,3 +191,43 @@ cuando está cerrado. Los datos y preferencias personales permanecen fuera del r
 El desenfoque superior se activa únicamente al terminar la apertura, con ancho
 y alto válidos. Se desactiva durante transiciones y al cerrar para evitar texturas
 de tamaño cero y reducir el coste de las animaciones.
+
+
+## Contraste, herramientas y desplazamiento
+
+Las estadísticas definen su propio color de texto claro, incluidos botones, títulos,
+cifras y valores. No heredan el texto oscuro del tema claro de Shell. Los títulos
+usan 18 px, la cifra de detalle 32 px y la información secundaria 11–12 px; los
+colores de los gráficos identifican la métrica, no sustituyen las etiquetas.
+La prueba aislada carga un tema con texto oscuro y verifica los colores calculados.
+
+En la isla superior, **Más → Herramientas** organiza los accesos en Organizar,
+Tu día, Multimedia y Sistema. Cada herramienta tiene icono, nombre y propósito.
+La búsqueda admite palabras sin acentos y coincide también con las descripciones.
+Las tarjetas enfocadas mediante teclado se desplazan hasta quedar visibles.
+
+Las islas, las vistas de estadísticas y carpetas, el Centro de Control y los
+paneles de widgets usan `St.PolicyType.EXTERNAL`: oculta las barras sin quitar
+el desplazamiento. `shared/scroll-view.js` utiliza las transiciones nativas de
+`St.Adjustment` para la rueda, permite invertir la dirección durante el movimiento
+y conserva la respuesta nativa del panel táctil. No instala un motor web ni un
+bucle permanente. Respeta «Reducir animaciones» de GNOME y detiene las transiciones
+al ocultar la vista. Los cambios entre detalles de estadísticas usan un fundido
+corto; las cifras que se actualizan no saltan ni se animan continuamente.
+
+Referencias de la implementación nativa:
+[St.ScrollView](https://gnome.pages.gitlab.gnome.org/gnome-shell/st/class.ScrollView.html)
+y [código de desplazamiento de GNOME 50](https://github.com/GNOME/gnome-shell/blob/50.0/src/st/st-scroll-view.c).
+
+Para una instalación que conserva la preferencia de vidrio anterior, aplicar:
+
+```bash
+schema="$HOME/.local/share/gnome-shell/extensions/dynamic-island-gnome50@local/schemas"
+gsettings --schemadir "$schema" set org.gnome.shell.extensions.dynamic-island theme dark
+gsettings --schemadir "$schema" set org.gnome.shell.extensions.dynamic-island opacity 1.0
+```
+
+La preferencia cambia en la sesión actual; el código nuevo instalado se carga en
+el próximo inicio de sesión. El tema de vidrio sigue siendo una elección explícita
+en Ajustes, nunca el valor predeterminado. En modo oscuro la opacidad siempre es
+completa, aunque una instalación conserve una opacidad antigua.

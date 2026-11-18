@@ -272,3 +272,15 @@
 .di-glance-content StIcon { color: #89bdff; }
 .di-glance-preview { padding: 16px; spacing: 10px; border-radius: 16px; background-color: rgba(28,34,44,0.78); border: 1px solid rgba(180,200,230,0.09); }
 .di-search:focus { border-color: #79b7ff; }
+
+.di-island { color: #f5f7fa; }
+.di-library-group { spacing: 8px; padding-top: 6px; }
+.di-library-heading { color: #b7c4d8; font-size: 12px; font-weight: 600; padding: 4px 0; }
+.di-library-tile { padding: 12px; color: #f5f7fa; border: 1px solid rgba(255,255,255,0.08); transition-duration: 120ms; }
+.di-library-content { spacing: 8px; }
+.di-library-title { color: #f5f7fa; font-size: 12px; font-weight: 600; }
+.di-library-description { color: #aebacd; font-size: 11px; }
+.di-library-icon { color: #9dcdff; }
+.di-library .di-search StIcon { color: #aebacd; padding-right: 8px; }
+.di-library .di-search { padding: 12px; }
+.di-library-tile:active { background-color: rgba(81,158,255,0.18); }

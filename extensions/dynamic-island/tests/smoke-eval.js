@@ -5,6 +5,7 @@
     const ext = Main.extensionManager.lookup('dynamic-island-gnome50@local');
     if (!ext?.stateObj) throw new Error('No se cargó la extensión: ' + ext?.error);
     const island = ext.stateObj;
+    if (island._settings.get_string('theme') !== 'dark' || island._settings.get_double('opacity') !== 1) throw new Error('La isla debe iniciar negra y opaca');
     Main.overview.hide();
     await wait(500);
     const {Notification, Source, Urgency} = await import('resource:///org/gnome/shell/ui/messageTray.js');
@@ -150,6 +151,19 @@
     if (!island._fileResultPath || !Gio.File.new_for_path(island._fileResultPath).query_exists(null)) throw new Error('No se generó ZIP desde la isla');
     result.fileTool = 'ZIP generado mediante proceso auxiliar';
     island._settings.set_boolean('agent-events', true);
+    island._selectTab('library'); island._openIsland(); await wait(400);
+    const library = island._pages.library;
+    const librarySearch = library.get_first_child();
+    const libraryScroll = library.get_children()[1];
+    const libraryList = libraryScroll.get_child();
+    if (libraryList.get_n_children() !== 4 || !librarySearch.get_primary_icon()) throw new Error('Biblioteca sin grupos o icono de búsqueda');
+    if (libraryScroll.vscrollbar_visible || libraryScroll.vadjustment.upper <= libraryScroll.vadjustment.page_size) throw new Error('Biblioteca sin desplazamiento oculto');
+    librarySearch.text = 'camara'; await wait(100);
+    if (libraryList.get_n_children() !== 1 || !libraryList.get_first_child().get_last_child().get_first_child().accessible_name.startsWith('Cámara')) throw new Error('Búsqueda de herramientas sin acentos');
+    librarySearch.text = ''; await wait(100);
+    const {testScroll} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/scroll-runtime.js`);
+    await testScroll(libraryScroll, wait);
+    island._closeIsland(); await wait(250);
     if (!island._agents.publish(JSON.stringify({id: 'fixture', title: 'Tarea aislada', state: 'running', progress: 0.4})))
         throw new Error('No se recibió la actividad local');
     if (!island._live.entries.some(item => item.key === 'agent-fixture')) throw new Error('Actividad local ausente');

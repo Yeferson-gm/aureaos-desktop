@@ -70,6 +70,9 @@ Las nuevas vistas de carpetas, grupos, estadísticas, clima y asistentes se expl
 en [Espacios contextuales](docs/experiencia-contextual.md), con comandos y límites.
 Estadísticas: cursor en el borde inferior izquierdo (24–80 px desde la esquina)
 o **Organizar → Ver estadísticas** en el panel lateral.
+La isla superior es negra y opaca. **Más → Herramientas** agrupa los accesos por
+función; el scroll permanece disponible sin barras visibles en las superficies
+de Aurea. La guía enlazada incluye cómo corregir una preferencia de vidrio anterior.
 
 Bun se utiliza automáticamente si está instalado; Node queda como alternativa
 y validador sintáctico. Para elegir: `AUREA_RUNTIME=bun ./aurea.sh check` o

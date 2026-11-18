@@ -53,20 +53,35 @@ export async function run() {
             await new Shell.Screenshot().screenshot(false, stream); stream.close(null);
         }
         check(!d._statistics.open && !d._statistics.actor.visible, 'Appearance changes do not open statistics');
+        const lightThemeFile = Gio.File.new_for_path(`${dir}/light-foreground.css`);
+        GLib.file_set_contents(lightThemeFile.get_path(), 'stage { color: #242832; }');
+        const shellTheme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+        shellTheme.load_stylesheet(lightThemeFile);
+        const probe = new St.Label({text: 'Theme probe'}); Main.uiGroup.add_child(probe);
+        check(probe.get_theme_node().get_foreground_color().red < 100, 'Light theme regression fixture'); probe.destroy();
+        const assertWhite = actor => {
+            const color = actor.get_theme_node().get_foreground_color();
+            check(color.red >= 230 && color.green >= 230 && color.blue >= 230, `Readable foreground: ${actor.style_class}`);
+        };
         d._statistics.show(true); await wait(3300);
+        Object.values(d._statistics.stripValues).forEach(assertWhite);
+        check(!d._statistics.scroll.vscrollbar_visible, 'Statistics scrollbar hidden');
         check(d._statistics.data.memory?.total > 0 && d._statistics.data.disk?.total > 0, 'Real memory and filesystem readings');
         check(/\d+%/.test(d._statistics.values.cpu.text), 'Live CPU statistics');
         check(d._statistics.timer, 'Visible statistics refresh');
         const statsStream = Gio.File.new_for_path(`${dir}/statistics.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
         await new Shell.Screenshot().screenshot(false, statsStream); statsStream.close(null);
         for (const page of ['cpu', 'memory', 'disk', 'network', 'battery', 'uptime']) {
-            d._statistics.select(page); await wait(80);
+            d._statistics.select(page); await wait(180);
+            assertWhite(d._statistics.title); assertWhite(d._statistics.hero);
+            d._statistics.details.get_children().filter(row => row.has_style_class_name('ai-stat-detail')).forEach(row => assertWhite(row.get_last_child()));
             check(d._statistics.hero.text.length > 0, 'Statistics detail ' + page);
         }
-        d._statistics.select('cpu');
+        d._statistics.select('cpu'); await wait(180);
         const detailStream = Gio.File.new_for_path(`${dir}/statistics-detail.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
         await new Shell.Screenshot().screenshot(false, detailStream); detailStream.close(null);
         d._statistics.show(false); check(!d._statistics.timer && !d._statistics.capture, 'Hidden statistics stop polling and event capture');
+        shellTheme.unload_stylesheet(lightThemeFile);
         const resourceDir = `${dir}/resources`; GLib.mkdir_with_parents(resourceDir, 448);
         GLib.file_set_contents(`${resourceDir}/example.txt`, 'Aurea fixture');
         d._addResource(resourceDir);

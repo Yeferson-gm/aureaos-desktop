@@ -1,3 +1,4 @@
+import {scrollView} from './shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import Atk from 'gi://Atk';
 import Gio from 'gi://Gio';
@@ -39,7 +40,7 @@ export class ControlCenter {
         this.title = new St.Label({text: 'Centro de Control', y_align: Clutter.ActorAlign.CENTER, x_expand: true, style_class: 'aurea-controls-title'});
         this.header.add_child(this.back); this.header.add_child(this.title);
         this.header.add_child(this.action('document-edit-symbolic', 'Editar controles', () => { button.menu.close(); ctx.openPreferences(); }));
-        this.scroll = new St.ScrollView({style_class: 'aurea-controls-scroll', overlay_scrollbars: true, hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.AUTOMATIC});
+        this.scroll = scrollView({style_class: 'aurea-controls-scroll', overlay_scrollbars: true, hscrollbar_policy: St.PolicyType.NEVER, vscrollbar_policy: St.PolicyType.EXTERNAL});
         this.body = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'aurea-controls-body', x_expand: true});
         this.scroll.set_child(this.body); this.root.add_child(this.scroll);
         this.footer = this.row('Ajustes del Sistema', 'Abrir Ajustes ↗', () => { button.menu.close(); run('gnome-control-center'); });
