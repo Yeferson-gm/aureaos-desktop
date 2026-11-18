@@ -101,6 +101,8 @@
         await wait(500);
         if (side._open || side._grab) throw new Error('La isla lateral no liberó la entrada');
     }
+    const {testMusic} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/music-runtime.js`);
+    await testMusic(island, wait);
     island._command('PlayPause');
     await wait(150);
     if (island._status !== 'Paused') throw new Error('No funciona PlayPause por D-Bus');

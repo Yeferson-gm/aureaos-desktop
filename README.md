@@ -83,6 +83,11 @@ galería para quitarlas. Admite seis tarjetas sin duplicados; Listo guarda, Canc
 descarta y Deshacer revierte el último cambio. También se puede usar el teclado.
 [Uso y alcance del editor](tasks/video-0921.md).
 
+**Música:** isla superior → Música. La estrella guarda favoritas de Aurea; los
+botones de aleatorio y repetición controlan el reproductor conectado. «Más» incluye
+saltos de 15 segundos, velocidad compatible, detener, abrir app, copiar y opciones
+de audio/letras. [Controles, compatibilidad y pruebas](tasks/music-player.md).
+
 Bun se utiliza automáticamente si está instalado; Node queda como alternativa
 y validador sintáctico. Para elegir: `AUREA_RUNTIME=bun ./aurea.sh check` o
 `AUREA_RUNTIME=node ./aurea.sh check`. Las extensiones siguen ejecutándose en GJS.

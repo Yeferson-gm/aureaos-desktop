@@ -22,6 +22,7 @@ sleep 3
 if [[ ${DI_BENCHMARK:-0} != 1 && ${DI_TEST_CLICK:-0} != 1 ]]; then GSK_RENDERER=gl /usr/bin/python3 "$DI_PROJECT_DIR/tests/shelf-gtk.py" >"$DI_TEST_DIR/shelf-test.log" 2>&1; fi
 evaluation="$DI_PROJECT_DIR/tests/smoke-eval.js"
 if [[ ${DI_BENCHMARK:-0} == 1 ]]; then evaluation="$DI_PROJECT_DIR/tests/benchmark-eval.js"; fi
+if [[ ${DI_TEST_MUSIC:-0} == 1 ]]; then evaluation="$DI_PROJECT_DIR/tests/music-eval.js"; fi
 if [[ ${DI_TEST_CLICK:-0} == 1 ]]; then evaluation="$DI_PROJECT_DIR/tests/click-eval.js"; fi
 result=$(gdbus call --timeout 120 --session --dest org.gnome.Shell --object-path /org/gnome/Shell \
     --method org.gnome.Shell.Eval "$(< "$evaluation")")

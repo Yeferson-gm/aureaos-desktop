@@ -12,7 +12,7 @@ export class MediaExtras {
         this.pending = false;
     }
 
-    build(page) {
+    build(page, width = 360) {
         const e = this.island;
         this.button = e._chip('Letras · LRCLIB', () => {
             this.box.visible = !this.box.visible;
@@ -22,7 +22,7 @@ export class MediaExtras {
         page.add_child(this.button);
         this.box = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, visible: false, style_class: 'di-lyrics'});
         this.labels = ['di-hint', 'di-lyric-current', 'di-hint'].map(cls => {
-            const label = e._label('', cls, {width: 360});
+            const label = e._label('', cls, {width});
             label.clutter_text.set_line_wrap(true);
             label.clutter_text.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR);
             this.box.add_child(label);

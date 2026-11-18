@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {trackInfo, cleanFavorites, playbackRates, repeatLabel} from '../music-model.js';
+const metadata = {'xesam:title': 'Song', 'xesam:artist': ['Artist'], 'xesam:album': 'Album', 'xesam:url': 'https://example.org/song'};
+assert.equal(trackInfo(null).key, '');
+assert.equal(trackInfo({}).key, '');
+assert.equal(trackInfo(metadata).key, trackInfo({...metadata, 'mpris:trackid': '/session/new'}).key);
+assert.notEqual(trackInfo({...metadata, 'xesam:url': ''}).key, trackInfo({...metadata, 'xesam:url': '', 'xesam:album': 'Live'}).key);
+assert.equal(trackInfo({...metadata, 'xesam:url': 'javascript:alert(1)'}).url, '');
+const track = trackInfo(metadata);
+assert.equal(cleanFavorites([null, false, track, track]).length, 1);
+assert.equal(cleanFavorites(Array.from({length: 250}, (_, i) => ({title: String(i)}))).length, 200);
+assert.deepEqual(cleanFavorites({}), []);
+assert.deepEqual(playbackRates({CanControl: true, Rate: 1, MinimumRate: 0.75, MaximumRate: 1.5}), [0.75, 1, 1.25, 1.5]);
+assert.deepEqual(playbackRates({CanControl: false, Rate: 1, MinimumRate: 0.5, MaximumRate: 2}), []);
+assert.deepEqual(playbackRates({}), []);
+assert.equal(repeatLabel('Track'), 'Repetir: esta canción');
+console.log('PASS: favoritas estables, datos inválidos, enlaces seguros y capacidades de velocidad');

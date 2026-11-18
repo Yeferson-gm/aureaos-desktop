@@ -36,6 +36,30 @@ propietario de Alcove o NotchNook.
   aparece si el evento proporciona un enlace compatible. La fuente de GNOME puede
   entregar únicamente el resumen; no siempre publica enlaces o descripciones.
 
+## Reproductor de música
+
+Música conserva portada, título/artista y progreso, con controles principales en
+una fila: aleatorio, anterior, reproducir/pausar, siguiente, repetición y estrella.
+Repetición alterna apagado → lista → canción → apagado. Los estados activos se
+resaltan; los controles no admitidos quedan deshabilitados.
+
+La estrella añade o quita una **favorita de Aurea**, guardada en este equipo. No
+modifica la biblioteca de Spotify ni de otra app. Favoritas permite abrir el enlace
+compartido por el reproductor o copiar el nombre cuando no proporciona enlace.
+Puedes quitar entradas individualmente; máximo 200, sin duplicados. El archivo
+`$XDG_DATA_HOME/dynamic-island/music-favorites.json` (normalmente bajo
+`~/.local/share`) contiene solo título, artista, álbum y enlace; no audio ni portadas.
+
+**Más** agrupa −15/+15 segundos, velocidad (0,5–2× dentro del rango que anuncie la
+app), detener, abrir app y copiar enlace/nombre. También incluye selección de
+salida, mezclador por aplicación y Letras. El altavoz junto al deslizador silencia
+la salida del sistema; si no hay salida Gvc, se usa el volumen MPRIS disponible.
+Los modos y la velocidad se leen del reproductor y muestran errores si la app
+rechaza una orden. Algunas aplicaciones del navegador solo ofrecen reproducción
+y pausa: no se inventan las funciones ausentes.
+
+[Implementación y pruebas del reproductor](../tasks/music-player.md).
+
 ## Opciones y dependencias
 
 El diseño predeterminado conserva el notch unido al borde, esquinas pequeñas y

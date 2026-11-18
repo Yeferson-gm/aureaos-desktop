@@ -20,6 +20,7 @@ import {IslandWorkspace, MODULES} from './workspace.js';
 import {ContextTools} from './context-tools.js';
 import {ShelfBridge} from './shelf-bridge.js';
 import {MediaExtras} from './media-extras.js';
+import {MusicTools} from './music-tools.js';
 import {IslandStudio} from './studio.js';
 import {AgentBridge} from './agent-bridge.js';
 import {AudioMeter} from './audio-meter.js';
@@ -254,6 +255,7 @@ export default class DynamicIsland extends Extension {
         this._workspace = new IslandWorkspace(this);
         this._contextTools = new ContextTools(this);
         this._mediaExtras = new MediaExtras(this);
+        this._musicTools = new MusicTools(this);
         this._studio = new IslandStudio(this);
         this._agents = new AgentBridge(this);
         this._audioMeter = new AudioMeter(this);
@@ -1135,6 +1137,7 @@ export default class DynamicIsland extends Extension {
         this._pageViewport.set_height(Math.min(available, Math.ceil(this._pagesBox.get_preferred_height(WIDTH)[1]) + 2));
         const cx = this._notch.x + this._notch.w / 2;
         const x = clamp(Math.round(cx - ISLAND_W / 2), mon.x + 6, mon.x + mon.width - ISLAND_W - 6);
+        this._content.queue_relayout();
         const h = Math.ceil(this._content.get_preferred_height(ISLAND_W)[1]);
         this._fin = {x, y: this._notch.y, w: ISLAND_W, h};
     }
@@ -1144,6 +1147,7 @@ export default class DynamicIsland extends Extension {
         const mon = this._monitor();
         this._pageViewport.set_height(Math.min(Math.max(80, mon.height - this._topSpacer.height - 130),
             Math.ceil(this._pagesBox.get_preferred_height(WIDTH)[1]) + 2));
+        this._content.queue_relayout();
         const h = Math.ceil(this._content.get_preferred_height(ISLAND_W)[1]);
         if (h === this._fin.h) return;
         this._fin.h = h;
@@ -1452,14 +1456,20 @@ export default class DynamicIsland extends Extension {
         this._seek = new Slider(0);
         this._seek.add_style_class_name('di-slider');
         this._seek.set_width(RIGHT);
-        this._seek.connect('drag-begin', () => { this._seekDrag = true; return Clutter.EVENT_PROPAGATE; });
+        this._seek.connect('drag-begin', () => {
+            this._seekDrag = true;
+            this._seekTrackKey = this._musicTools.track.key;
+            return Clutter.EVENT_PROPAGATE;
+        });
         this._seek.connect('drag-end', () => {
             this._seekDrag = false;
-            if (this._length > 0) this._seekTo(this._seek.value * this._length);
+            if (this._length > 0 && this._seekTrackKey === this._musicTools.track.key) this._seekTo(this._seek.value * this._length);
             return Clutter.EVENT_PROPAGATE;
         });
         this._seek.connect('notify::value', () => {
+            if (this._syncingSeek) return;
             if (this._seekDrag) this._setTimes(this._seek.value * this._length);
+            else if (this._length > 0) this._seekTo(this._seek.value * this._length);
         });
         right.add_child(this._seek);
 
@@ -1471,7 +1481,7 @@ export default class DynamicIsland extends Extension {
         times.add_child(this._remaining);
         right.add_child(times);
 
-        const controls = new St.BoxLayout({style_class: 'di-controls', width: RIGHT, y_align: Clutter.ActorAlign.CENTER});
+        const controls = new St.BoxLayout({style_class: 'di-controls di-music-transport', width: WIDTH, y_align: Clutter.ActorAlign.CENTER});
         controls.add_child(new St.Widget({x_expand: true}));
         const addControl = (icon, cb, kind = '') => {
             const button = new St.Button({style_class: `di-control ${kind}`.trim(), reactive: true, can_focus: true});
@@ -1488,19 +1498,27 @@ export default class DynamicIsland extends Extension {
         this._nextBtn = addControl('media-skip-forward-symbolic', () => this._command('Next'));
         this._loopBtn = addControl('media-playlist-repeat-symbolic', () => this._toggleLoop());
         controls.add_child(new St.Widget({x_expand: true}));
-        right.add_child(controls);
         main.add_child(right);
         page.add_child(main);
+        page.add_child(controls);
         this._largeArt = new St.Bin({style_class: 'di-art', width: WIDTH, height: 260, visible: false});
         page.add_child(this._largeArt);
 
         const vol = new St.BoxLayout({style_class: 'di-volume-row', width: WIDTH, y_align: Clutter.ActorAlign.CENTER});
         this._volIcon = new St.Icon({icon_name: 'audio-volume-high-symbolic', icon_size: 14, style_class: 'di-vol-icon'});
-        vol.add_child(this._volIcon);
+        this._muteButton = new St.Button({style_class: 'di-control', reactive: true, can_focus: true,
+            accessible_name: 'Silenciar salida de audio'});
+        this._muteButton.set_child(this._volIcon);
+        this._muteButton.connect('clicked', () => {
+            if (this._sink) this._sink.change_is_muted(!this._sink.is_muted);
+            else this._musicTools.setProperty('Volume', new GLib.Variant('d', this._musicTools.props.Volume > 0 ? 0 : this._musicTools.lastVolume ?? 0.5));
+        });
+        vol.add_child(this._muteButton);
         this._volume = new Slider(0.5);
         this._volume.add_style_class_name('di-slider');
         this._volume.add_style_class_name('di-volume');
-        this._volume.set_width(WIDTH - 34);
+        this._volume.set_width(WIDTH - 48);
+        this._volume.accessible_name = 'Volumen de salida de audio';
         this._volume.connect('drag-begin', () => { this._volDrag = true; return Clutter.EVENT_PROPAGATE; });
         this._volume.connect('drag-end', () => { this._volDrag = false; return Clutter.EVENT_PROPAGATE; });
         this._volume.connect('notify::value', () => {
@@ -1521,11 +1539,12 @@ export default class DynamicIsland extends Extension {
             this._appAudio.visible = !this._appAudio.visible;
             if (this._appAudio.visible) this._renderAppAudio();
             this._resizeIsland();
-        }));
-        page.add_child(audioTools);
-        this._mediaExtras.build(page);
+        }, 'applications-multimedia-symbolic'));
+        this._musicTools.build(page, controls, right);
+        this._musicTools.more.add_child(audioTools);
+        this._mediaExtras.build(this._musicTools.more, 330);
         this._appAudio = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list', visible: false});
-        page.add_child(this._appAudio);
+        this._musicTools.more.add_child(this._appAudio);
     }
 
     _renderAppAudio() {
@@ -2863,6 +2882,11 @@ export default class DynamicIsland extends Extension {
             this._syncing = false;
         }
         this._updateVolIcon(shown);
+        if (this._musicTools) {
+            this._musicTools.setEnabled(this._muteButton, true);
+            this._musicTools.setEnabled(this._volume, true, 'Volumen de salida del sistema');
+        }
+        if (this._muteButton) this._muteButton.accessible_name = this._sink.is_muted ? 'Activar salida de audio' : 'Silenciar salida de audio';
         const changed = this._lastVol === null || Math.abs(value - this._lastVol.v) > 0.004 || this._sink.is_muted !== this._lastVol.m;
         if (announce && changed && this._lastVol !== null && !this._menu.isOpen) {
             this._toast({icon: this._volIconName(shown), fraction: shown, text: this._sink.is_muted ? 'Silencio' : `${Math.round(value * 100)}%`, ms: 1400});
@@ -2879,7 +2903,7 @@ export default class DynamicIsland extends Extension {
             this._sink.push_volume();
             if (v > 0 && this._sink.is_muted) this._sink.change_is_muted(false);
         } else {
-            this._setProperty('Volume', new GLib.Variant('d', v));
+            this._musicTools.setProperty('Volume', new GLib.Variant('d', v));
         }
     }
 
@@ -3661,6 +3685,8 @@ export default class DynamicIsland extends Extension {
                 this._sub = 0;
                 this._name = next;
                 this._requestGeneration++;
+                this._syncMediaCapabilities({});
+                this._musicTools.update({});
                 this._length = 0;
                 this._position = 0;
                 this._status = 'Stopped';
@@ -3677,14 +3703,14 @@ export default class DynamicIsland extends Extension {
     }
 
     _syncMediaCapabilities(props) {
-        const control = !!this._name && props.CanControl !== false && Object.keys(props).length > 0;
+        const control = !!this._name && props.CanControl === true;
         const set = (button, enabled, label) => {
             button.reactive = enabled;
             button.can_focus = enabled;
             button.opacity = enabled ? 255 : 80;
             button.accessible_name = label;
         };
-        set(this._playBtn.button, control && (this._status === 'Playing' ? props.CanPause !== false : props.CanPlay !== false), 'Reproducir o pausar');
+        set(this._playBtn.button, control && (this._status === 'Playing' ? props.CanPause === true : props.CanPlay === true), 'Reproducir o pausar');
         set(this._previousBtn.button, control && props.CanGoPrevious === true, 'Canción anterior');
         set(this._nextBtn.button, control && props.CanGoNext === true, 'Canción siguiente');
         set(this._shuffleBtn.button, control && 'Shuffle' in props, 'Reproducción aleatoria');
@@ -3714,7 +3740,11 @@ export default class DynamicIsland extends Extension {
             this._updateProgress();
             this._updatePill();
             this._renderHome();
+            this._shuffle = false;
+            this._loop = 'None';
+            this._updateToggles();
             this._syncMediaCapabilities({});
+            this._musicTools.update({});
             return;
         }
         const generation = ++this._requestGeneration;
@@ -3741,6 +3771,7 @@ export default class DynamicIsland extends Extension {
             this._setArt(String(metadata['mpris:artUrl'] ?? ''));
             this._readPosition();
             this._syncMediaCapabilities(props);
+            this._musicTools.update(props);
             this._renderHome();
             if (oldTitle !== title && this._status === 'Playing')
                 this._toast({key: 'music', icon: 'audio-x-generic-symbolic', text: title, priority: 10});
@@ -3844,16 +3875,21 @@ export default class DynamicIsland extends Extension {
         this._mediaExtras?.refresh();
         const ratio = this._length > 0 ? clamp(this._position / this._length) : 0;
         if (!this._seekDrag) {
+            this._syncingSeek = true;
             this._seek.value = ratio;
+            this._syncingSeek = false;
             this._setTimes(this._position);
         }
     }
 
     _seekTo(target) {
         if (!this._canSeek) return;
-        const delta = Math.round((target - this._position) * 1000000);
-        this._position = target;
-        this._request(this._name, PLAYER, 'Seek', new GLib.Variant('(x)', [delta]), () => this._readPosition());
+        const position = Math.round(clamp(target, 0, Math.max(0, this._length - 0.001)) * 1000000);
+        const trackId = this._musicTools.props.Metadata?.['mpris:trackid'];
+        if (typeof trackId === 'string' && GLib.Variant.is_object_path(trackId) && trackId !== '/org/mpris/MediaPlayer2/TrackList/NoTrack')
+            this._musicTools.request(PLAYER, 'SetPosition', new GLib.Variant('(ox)', [trackId, position]), () => this._readPosition());
+        else
+            this._musicTools.request(PLAYER, 'Seek', new GLib.Variant('(x)', [position - Math.round(this._position * 1000000)]), () => this._readPosition());
     }
 
     _startTick() {
@@ -3885,15 +3921,15 @@ export default class DynamicIsland extends Extension {
     }
 
     _toggleShuffle() {
-        this._setProperty('Shuffle', new GLib.Variant('b', !this._shuffle), () => this._refresh());
+        this._musicTools.setProperty('Shuffle', new GLib.Variant('b', !this._shuffle));
     }
 
     _toggleLoop() {
         const next = {None: 'Playlist', Playlist: 'Track', Track: 'None'}[this._loop] ?? 'None';
-        this._setProperty('LoopStatus', new GLib.Variant('s', next), () => this._refresh());
+        this._musicTools.setProperty('LoopStatus', new GLib.Variant('s', next));
     }
 
     _command(method) {
-        this._request(this._name, PLAYER, method, null, () => this._refresh());
+        this._musicTools.command(method);
     }
 }
