@@ -141,3 +141,24 @@ una aplicación junto a la papelera y actualiza repetidamente los separadores.
 Forma parte de la prueba aislada de ampliación, incluidas ventanas y escalas mixtas.
 La comprobación con vídeo mantiene cero cuadros de lente en reposo y cero
 reasignaciones de la capa de vidrio durante el barrido de 120 cuadros.
+
+## Recorte tras mover o mostrar el dock
+
+El límite de pantalla se calcula antes del dibujo, una vez terminada la asignación
+de tamaños y posiciones. Calcularlo dentro de `vfunc_allocate` podía usar la
+traslación anterior del contenedor inferior: al volver a su posición, el límite
+quedaba por encima del borde y cortaba los iconos. La prueba de regresión reproduce
+el desfase con un desplazamiento de 24 píxeles y falla con el código anterior.
+
+Los cambios de asignación, traslación y escala solicitan una actualización agrupada
+para el próximo dibujo. No se añade un temporizador ni un bucle permanente. El
+ocultamiento conserva su recorte local durante la animación y el dock abierto
+conserva el límite de su monitor, incluyendo configuraciones de varias pantallas.
+Al destruir el contenedor se cancela cualquier actualización pendiente.
+
+Verificación: la suite aislada completa pasó en GNOME 51.1 con ventanas y dos
+monitores, y también con escala del 125 %. En GNOME 50.6 pasaron la regresión de
+posición, tamaños y separadores, y las preferencias GTK4. La suite completa de
+ampliación no se certificó en ese contenedor: `St.Settings` desactiva las animaciones
+aunque la preferencia de GSettings esté activada. No se modifica la política de
+movimiento reducido del escritorio para eludir esa limitación de las pruebas.

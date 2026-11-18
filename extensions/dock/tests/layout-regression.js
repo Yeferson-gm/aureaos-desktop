@@ -2,6 +2,7 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 export async function testLayout(dockManager, wait) {
     const dash = dockManager.mainDock.dash;
@@ -16,6 +17,21 @@ export async function testLayout(dockManager, wait) {
             blurScale: dash._glassShelf.blur.scale_x, shelf: {...controller._shelf}});
     };
     try {
+        const dock = dockManager.mainDock;
+        const originalTranslation = dock.translation_y;
+        try {
+            dock.translation_y = originalTranslation + 24;
+            dock._slider.queue_relayout();
+            await wait(180);
+            dock.translation_y = originalTranslation;
+            await wait(180);
+            const monitor = Main.layoutManager.monitors[dock.monitorIndex];
+            const [, clipY, , clipHeight] = dock._box.get_clip();
+            const [, top] = dock._box.get_transformed_position();
+            const scale = dock._box.get_transformed_size()[1] / dock._box.height;
+            if (Math.abs(top + (clipY + clipHeight) * scale - monitor.y - monitor.height) > 1)
+                throw new Error('El límite del dock queda desfasado tras desplazar su contenedor');
+        } finally { dock.translation_y = originalTranslation; }
         controller._pointer = null;
         controller._startFrames();
         await wait(800);

@@ -130,6 +130,10 @@ const DashSlideContainer = GObject.registerClass({
 
         this._slideoutSize = 0;
         this.connect('notify::slide-x', () => this.queue_relayout());
+        this.connect('destroy', () => {
+            if (this._clipLater) Utils.laterRemove(this._clipLater);
+            this._clipLater = 0;
+        });
 
         if (this.side === St.Side.TOP && DockManager.settings.dockFixed) {
             this._signalsHandler = new Utils.GlobalSignalsHandler(this);
@@ -186,16 +190,21 @@ const DashSlideContainer = GObject.registerClass({
         if (shouldClipSlideContainer(this.slideX)) {
             this.child.set_clip(-childBox.x1, -childBox.y1,
                 availWidth, availHeight);
-        } else {
+        } else this.queueMonitorClip();
+    }
 
-
+    queueMonitorClip() {
+        if (this._clipLater) return;
+        this._clipLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
+            this._clipLater = 0;
+            if (!this.child?.has_allocation() || shouldClipSlideContainer(this.slideX)) return GLib.SOURCE_REMOVE;
             const monitor = Main.layoutManager.monitors[this.monitorIndex];
-            if (monitor) {
-                const [ok, x, y] = this.child.transform_stage_point(monitor.x, monitor.y);
-                const [endOk, right, bottom] = this.child.transform_stage_point(monitor.x + monitor.width, monitor.y + monitor.height);
-                if (ok && endOk) this.child.set_clip(x, y, Math.max(0, right - x), Math.max(0, bottom - y));
-            }
-        }
+            if (!monitor) return GLib.SOURCE_REMOVE;
+            const [ok, x, y] = this.child.transform_stage_point(monitor.x, monitor.y);
+            const [endOk, right, bottom] = this.child.transform_stage_point(monitor.x + monitor.width, monitor.y + monitor.height);
+            if (ok && endOk) this.child.set_clip(x, y, Math.max(0, right - x), Math.max(0, bottom - y));
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
 
@@ -413,8 +422,12 @@ const DockedDash = GObject.registerClass({
 
 
 
-        this.connect('notify::allocation',
-            Main.layoutManager._queueUpdateRegions.bind(Main.layoutManager));
+        this.connect('notify::allocation', () => {
+            Main.layoutManager._queueUpdateRegions();
+            this._slider.queueMonitorClip();
+        });
+        for (const property of ['translation-x', 'translation-y', 'scale-x', 'scale-y'])
+            this.connect(`notify::${property}`, () => this._slider.queueMonitorClip());
 
 
 

@@ -8,7 +8,9 @@ fi
 gsettings set org.gnome.shell favorite-apps "['org.gnome.Nautilus.desktop', 'firefox.desktop', 'org.gnome.TextEditor.desktop']"
 monitors=(--virtual-monitor "${AUREA_DOCK_RESOLUTION:-1280x800}")
 if [[ "${AUREA_DOCK_DUAL:-0}" == 1 ]]; then monitors+=(--virtual-monitor 1920x1080); fi
-if [[ -n "${AUREA_TEST_SCALE:-}" ]]; then gsettings set org.gnome.mutter experimental-features "['scale-monitor-framebuffer']"; fi
+if [[ -n "${AUREA_TEST_SCALE:-}" ]] && gsettings list-keys org.gnome.mutter | rg -q '^experimental-features$'; then
+    gsettings set org.gnome.mutter experimental-features "['scale-monitor-framebuffer']"
+fi
 gnome-shell --headless --wayland --wayland-display dock-test --no-x11 "${monitors[@]}" --debug-control >"$DI_TEST_DIR/shell.log" 2>&1 &
 test_pid=$!
 trap 'kill "$test_pid" 2>/dev/null || true' EXIT
