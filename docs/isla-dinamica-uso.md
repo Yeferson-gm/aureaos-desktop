@@ -50,13 +50,22 @@ Puedes quitar entradas individualmente; máximo 200, sin duplicados. El archivo
 `$XDG_DATA_HOME/dynamic-island/music-favorites.json` (normalmente bajo
 `~/.local/share`) contiene solo título, artista, álbum y enlace; no audio ni portadas.
 
-**Más** agrupa −15/+15 segundos, velocidad (0,5–2× dentro del rango que anuncie la
-app), detener, abrir app y copiar enlace/nombre. También incluye selección de
-salida, mezclador por aplicación y Letras. El altavoz junto al deslizador silencia
+**Opciones → Reproducción** agrupa aleatorio, repetición, −15/+15 segundos y velocidad (0,5–2× dentro del rango que anuncie la
+app) y detener. La fila Repetir abre No repetir, Lista y Canción.
+**Sonido** muestra la salida actual, permite elegir un dispositivo por nombre y
+abrir el mezclador por aplicación. **Canción** reúne abrir reproductor, copiar
+enlace/nombre y Letras. El altavoz junto al deslizador silencia
 la salida del sistema; si no hay salida Gvc, se usa el volumen MPRIS disponible.
 Los modos y la velocidad se leen del reproductor y muestran errores si la app
 rechaza una orden. Algunas aplicaciones del navegador solo ofrecen reproducción
 y pausa: no se inventan las funciones ausentes.
+
+Los cambios de aleatorio/repetición se leen de nuevo después de escribirlos. Si
+la aplicación responde éxito sin modificar el valor, se indica «En la app» y se
+explica el límite al pulsar. BStream Music 1.2.9 no publica Shuffle e ignora
+LoopStatus en la instalación examinada; ambas funciones deben cambiarse en BStream.
+Abrir reproductor utiliza Raise cuando existe y, para BStream, su lanzador de
+escritorio oficial. No se reemplaza ni recompila BStream.
 
 [Implementación y pruebas del reproductor](../tasks/music-player.md).
 

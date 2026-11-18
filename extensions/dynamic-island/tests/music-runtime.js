@@ -1,4 +1,5 @@
 import Gio from 'gi://Gio';
+import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Shell from 'gi://Shell';
@@ -58,12 +59,16 @@ export async function testMusic(island, wait) {
     assert(fixture.Position === 90000000, 'Un arrastre antiguo busca en una canción nueva');
     island._readPosition();
     await wait(100);
+    tools.panel.select('track');
+    await wait(100);
     tools.raise.emit('clicked', 1);
     await wait(180);
     assert(fixture.raised, 'Abrir app no llama Raise');
     tools.copy.emit('clicked', 1);
     const clipboard = await new Promise(resolve => St.Clipboard.get_default().get_text(St.ClipboardType.CLIPBOARD, (_c, text) => resolve(text)));
     assert(clipboard === 'https://example.org/test-track', 'Copiar no conserva el enlace');
+    tools.panel.select('playback');
+    await wait(100);
     tools.stop.emit('clicked', 1);
     await wait(180);
     assert(island._status === 'Stopped', 'Detener no se refleja');
@@ -109,11 +114,60 @@ export async function testMusic(island, wait) {
     await capture('music-more');
     const [panelX] = island._pageViewport.get_transformed_position();
     const [panelWidth] = island._pageViewport.get_transformed_size();
-    for (const actor of [tools.star, tools.stop, tools.copy, tools.forward, tools.rate]) {
-        const [x] = actor.get_transformed_position();
-        const [width] = actor.get_transformed_size();
-        assert(x >= panelX - 1 && x + width <= panelX + panelWidth + 1, `Control desborda la isla: ${actor.accessible_name}`);
+    for (const [section, actors] of [['playback', [tools.star, tools.stop, tools.forward, tools.rate, tools.shuffleRow, tools.repeatRow]],
+        ['audio', [tools.output, tools.appAudio]], ['track', [tools.copy, tools.raise, island._mediaExtras.button]]]) {
+        tools.panel.select(section); await wait(300);
+        await capture(`music-options-${section}`);
+        assert(Object.values(tools.panel.sections).filter(item => item.visible).length === 1, 'Se mezclan secciones del panel');
+        for (const actor of actors) {
+            const [x] = actor.get_transformed_position();
+            const [width] = actor.get_transformed_size();
+            assert(x >= panelX - 1 && x + width <= panelX + panelWidth + 1, `Control desborda la isla: ${actor.accessible_name}`);
+        }
     }
+    tools.panel.select('playback');
+    const seat = global.stage.context.get_backend().get_default_seat();
+    const pointer = seat.create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
+    const click = async actor => {
+        const [x, y] = actor.get_transformed_position(), [w, h] = actor.get_transformed_size();
+        for (let attempt = 0; attempt < 10; attempt++) {
+            pointer.notify_absolute_motion(GLib.get_monotonic_time(), x + w / 2, y + h / 2);
+            await wait(35);
+            const [px, py] = global.get_pointer();
+            if (Math.abs(px - x - w / 2) < 2 && Math.abs(py - y - h / 2) < 2) break;
+        }
+        pointer.notify_button(GLib.get_monotonic_time(), Clutter.BUTTON_PRIMARY, Clutter.ButtonState.PRESSED);
+        await wait(50);
+        pointer.notify_button(GLib.get_monotonic_time(), Clutter.BUTTON_PRIMARY, Clutter.ButtonState.RELEASED);
+        await wait(300);
+    };
+    await wait(300);
+    await click(tools.repeatRow);
+    assert(tools.repeatChoices.visible, 'El clic no abre opciones de repetición');
+    await click(tools.repeatButtons.get('Track'));
+    assert(fixture.LoopStatus === 'Track' && !tools.repeatChoices.visible, 'Elegir canción no activa repetición');
+    await click(tools.panel.tabs.track);
+    assert(tools.panel.sections.track.visible, 'La pestaña Canción no responde al clic');
+    tools.panel.select('playback');
+    const withoutShuffle = {...props}; delete withoutShuffle.Shuffle;
+    tools.update(withoutShuffle);
+    tools.shuffleRow.emit('clicked', 1);
+    assert(tools.status.visible && tools.status.text.includes('aleatorio') && tools.shuffleRow._value.text === 'En la app', 'Shuffle ausente no explica la limitación');
+    tools.update(props);
+    fixture.LoopStatus = 'None';
+    fixture.ignoreLoop = true;
+    island._refresh(); await wait(150);
+    island._loopBtn.button.emit('clicked', 1);
+    assert(tools.repeatRow._value.text === 'Aplicando…' && !tools.repeatRow.reactive, 'Falta estado pendiente');
+    await wait(700);
+    assert(island._loop === 'None' && tools.unsupported.has('LoopStatus') && tools.repeatRow._value.text === 'En la app', 'La escritura ignorada simula éxito');
+    assert(tools.status.text.includes('repetición') && !tools.propertyWrites.size, 'Repetición ignorada sin explicación o pendiente infinito');
+    fixture.ignoreLoop = false;
+    tools.unsupported.clear(); tools.update(props);
+    tools.setProperty('LoopStatus', new GLib.Variant('b', true)); await wait(180);
+    assert(tools.unsupported.has('LoopStatus') && !tools.propertyWrites.size, 'Error de escritura no libera pendiente');
+    tools.unsupported.clear();
+    tools.update(props); tools.message('');
     tools.update({});
     assert(!tools.star.reactive && !tools.copy.reactive, 'Sin pista todavía permite favoritos');
     tools.update(props);

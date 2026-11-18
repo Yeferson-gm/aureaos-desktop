@@ -76,3 +76,46 @@ activa Eval inseguro en el escritorio habitual.
 
 Al cerrar Más se invalida la medida anterior del contenido antes de calcular la
 altura. La regresión verifica el espacio inferior, además del ancho de los botones.
+
+## Corrección de opciones y modos de reproducción
+
+La captura posterior a la entrega mostró botones pequeños, sin agrupación clara,
+y una ambigüedad real entre controles no admitidos y controles defectuosos. El
+panel ahora tiene tres pestañas: Reproducción, Sonido y Canción. Las filas muestran
+icono y nombre a la izquierda, valor a la derecha. Repetir abre una selección
+explícita; los saltos usan nombres completos. El selector de salida enumera los
+dispositivos por nombre. Los controles deshabilitados conservan texto legible.
+
+### Causa comprobada en BStream Music
+
+Se consultó el servicio real de BStream Music 1.2.9: GetAll e Introspect no
+publican Shuffle, CanRaise es false y MinimumRate/MaximumRate valen 1. La llamada
+Set LoopStatus=Track devuelve éxito, pero Get LoopStatus devuelve None. No era
+un fallo de animación: el reproductor omite o ignora esas órdenes. Su última
+[entrega estable publicada](https://github.com/BryamContreras/BStream-Music/releases/tag/v1.2.9)
+coincide con la instalada. No se sustituyó por una compilación de desarrollo.
+
+Se conserva el valor confirmado por la aplicación. Cada escritura de modo impide
+órdenes concurrentes para esa propiedad, muestra Aplicando y vuelve a leer el valor.
+Si aún difiere, hace una única comprobación adicional a los 450 ms. No añade sondeo
+permanente. Error, desconexión y respuesta ignorada liberan el estado pendiente;
+las respuestas de un reproductor anterior se descartan mediante una generación.
+
+Los modos no admitidos se muestran como «En la app», explican el motivo al pulsar
+y permiten abrir el reproductor desde Canción. El lanzador oficial de BStream
+sirve de alternativa a Raise; no se usa inyección de teclado ni ejecución en una
+shell. Esto no habilita una función que BStream no expone y no se anuncia como tal.
+
+### Regresión
+
+El reproductor de prueba también simula una escritura aceptada pero ignorada.
+Se comprueba que no cambien los indicadores a un estado falso, que aparezca una
+explicación y que no quede una operación pendiente. Se prueban rechazo D-Bus,
+Shuffle ausente, estados de las tres pestañas, límites geométricos y selección de
+Canción mediante un puntero virtual, además de los controles ya existentes.
+
+Validación de esta corrección: GNOME 50.6 pasó la prueba musical focalizada con
+selección mediante puntero y preferencias GTK4. GNOME 51.1 pasó la suite completa
+con dos monitores, cien interrupciones y liberación de recursos al desactivar.
+La comprobación general validó 420 archivos de código, 25 288 enlaces y 33 grupos
+de pruebas. Se revisaron capturas de cada pestaña y del estado compacto.

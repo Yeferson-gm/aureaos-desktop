@@ -373,3 +373,24 @@
 .di-music-favorite-row { spacing: 6px; }
 .di-music-feedback { color: #d9dbe4; font-size: 11px; padding-top: 4px; }
 .di-page-music .di-chip:checked { color: #ffffff; background-color: rgba(255,255,255,0.14); }
+
+.di-page-music .di-music-nav-button { padding: 9px 12px; border-radius: 10px; font-size: 12px; background-color: #141416; color: #e9e9ee; }
+.di-page-music .di-music-nav-button:checked { background-color: #28282d; color: #ffffff; }
+.di-music-options { spacing: 10px; }
+.di-music-option-tabs { spacing: 4px; padding: 4px; border-radius: 12px; background-color: #151517; }
+.di-page-music .di-music-option-tab { padding: 8px 5px; border-radius: 8px; background-color: transparent; color: #bfc1ca; font-size: 11px; }
+.di-page-music .di-music-option-tab:checked { background-color: #343438; color: #ffffff; }
+.di-music-option-section { spacing: 2px; padding: 6px; border-radius: 14px; background-color: #141416; border: 1px solid #2b2b30; }
+.di-music-option-row { padding: 10px 8px; border-radius: 9px; color: #ededf2; }
+.di-music-option-row:hover, .di-music-option-row:focus { background-color: #29292e; }
+.di-music-option-row:active { background-color: #35353c; }
+.di-music-option-content { spacing: 10px; }
+.di-music-option-icon { color: #bec1cd; }
+.di-music-option-label { color: #ededf2; font-size: 12px; }
+.di-music-option-value { color: #aeb1c0; font-size: 11px; }
+.di-music-option-active .di-music-option-value { color: #ff8cab; }
+.di-music-option-active .di-music-option-icon { color: #ff8cab; }
+.di-music-jump-row { spacing: 6px; padding: 7px 6px; }
+.di-page-music .di-music-jump { padding: 9px 7px; border-radius: 8px; background-color: #252529; color: #ededf2; font-size: 11px; }
+.di-music-outputs { padding: 2px 4px; spacing: 2px; }
+.di-music-option-row:disabled .di-music-option-value { color: #aeb1c0; }

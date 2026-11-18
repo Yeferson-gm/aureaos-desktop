@@ -12,14 +12,17 @@ export class MediaExtras {
         this.pending = false;
     }
 
-    build(page, width = 360) {
+    build(page, width = 360, panel = null) {
         const e = this.island;
-        this.button = e._chip('Letras · LRCLIB', () => {
+        const toggle = () => {
             this.box.visible = !this.box.visible;
             if (this.box.visible) this.load();
+            if (panel) panel.state(this.button, this.box.visible ? 'Ocultar' : 'Ver');
             e._resizeIsland();
-        }, 'view-list-symbolic');
-        page.add_child(this.button);
+        };
+        this.button = panel ? panel.row(page, 'Letras de la canción', 'view-list-symbolic', toggle, 'Ver')
+            : e._chip('Letras', toggle, 'view-list-symbolic');
+        if (!panel) page.add_child(this.button);
         this.box = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, visible: false, style_class: 'di-lyrics'});
         this.labels = ['di-hint', 'di-lyric-current', 'di-hint'].map(cls => {
             const label = e._label('', cls, {width});

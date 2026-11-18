@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
+import {MusicPanel} from './music-panel.js';
 import {cleanFavorites, playbackRates, trackInfo, repeatLabel} from './music-model.js';
 
 const PLAYER = 'org.mpris.MediaPlayer2.Player';
@@ -16,6 +17,8 @@ export class MusicTools {
         this.track = trackInfo();
         this.pending = new Set();
         this.epoch = 0;
+        this.propertyWrites = new Map();
+        this.unsupported = new Set();
         this.favorites = [];
         this.file = Gio.File.new_for_path(`${island._dataDir}/music-favorites.json`);
         try {
@@ -35,28 +38,60 @@ export class MusicTools {
         metadataBox.insert_child_at_index(this.album, 2);
         const navigation = new St.BoxLayout({style_class: 'di-music-navigation'});
         this.libraryButton = e._chip('Favoritas', () => this.togglePanel('favorites'), 'starred-symbolic');
-        this.moreButton = e._chip('Más', () => this.togglePanel('more'), 'view-more-symbolic');
+        this.moreButton = e._chip('Opciones', () => this.togglePanel('more'), 'preferences-system-symbolic');
+        this.libraryButton.add_style_class_name('di-music-nav-button');
+        this.moreButton.add_style_class_name('di-music-nav-button');
+        this.libraryButton.x_expand = this.moreButton.x_expand = true;
         navigation.add_child(this.libraryButton);
-        navigation.add_child(new St.Widget({x_expand: true}));
         navigation.add_child(this.moreButton);
         page.add_child(navigation);
-        this.more = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-music-tools', visible: false});
-        const jumps = new St.BoxLayout({style_class: 'di-head'});
-        this.back = e._chip('−15 s', () => e._seekTo(e._position - 15), 'media-seek-backward-symbolic');
-        this.forward = e._chip('+15 s', () => e._seekTo(e._position + 15), 'media-seek-forward-symbolic');
-        this.rate = e._chip('1×', () => this.cycleRate(), 'preferences-system-time-symbolic');
-        for (const button of [this.back, this.forward, this.rate]) jumps.add_child(button);
-        this.more.add_child(jumps);
-        const actions = new St.BoxLayout({style_class: 'di-head'});
-        this.stop = e._chip('Detener', () => this.command('Stop'), 'media-playback-stop-symbolic');
-        this.raise = e._chip('Abrir app', () => this.request(ROOT, 'Raise'), 'application-x-executable-symbolic');
-        this.copy = e._chip('Copiar', () => {
+        this.panel = new MusicPanel(this);
+        this.more = this.panel.actor;
+        const {playback, audio, track} = this.panel.sections;
+        this.shuffleRow = this.panel.row(playback, 'Aleatorio', 'media-playlist-shuffle-symbolic', () => e._toggleShuffle());
+        this.repeatRow = this.panel.row(playback, 'Repetir', 'media-playlist-repeat-symbolic', () => {
+            if (!('LoopStatus' in this.props) || this.unsupported.has('LoopStatus')) { this.unavailable('LoopStatus'); return; }
+            this.repeatChoices.visible = !this.repeatChoices.visible;
+            e._resizeIsland();
+        });
+        this.repeatChoices = new St.BoxLayout({style_class: 'di-music-jump-row', visible: false});
+        this.repeatButtons = new Map();
+        for (const [value, label] of [['None', 'No repetir'], ['Playlist', 'Lista'], ['Track', 'Canción']]) {
+            const button = e._chip(label, () => {
+                this.repeatChoices.visible = false;
+                this.setProperty('LoopStatus', new GLib.Variant('s', value));
+                e._resizeIsland();
+            });
+            button.add_style_class_name('di-music-jump'); button.x_expand = true;
+            this.repeatButtons.set(value, button); this.repeatChoices.add_child(button);
+        }
+        playback.add_child(this.repeatChoices);
+        const jumps = new St.BoxLayout({style_class: 'di-music-jump-row'});
+        this.back = e._chip('Retroceder 15 s', () => e._seekTo(e._position - 15), 'media-seek-backward-symbolic');
+        this.forward = e._chip('Avanzar 15 s', () => e._seekTo(e._position + 15), 'media-seek-forward-symbolic');
+        for (const button of [this.back, this.forward]) { button.x_expand = true; button.add_style_class_name('di-music-jump'); jumps.add_child(button); }
+        playback.add_child(jumps);
+        this.rate = this.panel.row(playback, 'Velocidad', 'preferences-system-time-symbolic', () => this.cycleRate(), '1×');
+        this.stop = this.panel.row(playback, 'Detener reproducción', 'media-playback-stop-symbolic', () => this.command('Stop'));
+        this.output = this.panel.row(audio, 'Salida de audio', 'audio-headphones-symbolic', () => {
+            this.outputs.visible = !this.outputs.visible;
+            this.refreshOutputs();
+            e._resizeIsland();
+        });
+        this.outputs = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-music-outputs', visible: false});
+        audio.add_child(this.outputs);
+        this.appAudio = this.panel.row(audio, 'Volumen por aplicación', 'applications-multimedia-symbolic', () => {
+            e._appAudio.visible = !e._appAudio.visible;
+            if (e._appAudio.visible) e._renderAppAudio();
+            this.panel.state(this.appAudio, e._appAudio.visible ? 'Ocultar' : 'Ver');
+            e._resizeIsland();
+        }, 'Ver');
+        this.raise = this.panel.row(track, 'Abrir reproductor', 'application-x-executable-symbolic', () => this.openPlayer());
+        this.copy = this.panel.row(track, 'Copiar canción', 'edit-copy-symbolic', () => {
             St.Clipboard.get_default().set_text(St.ClipboardType.CLIPBOARD,
                 this.track.url || [this.track.title, this.track.artist].filter(Boolean).join(' — '));
-            this.message('Canción copiada.');
-        }, 'edit-copy-symbolic');
-        for (const button of [this.stop, this.raise, this.copy]) actions.add_child(button);
-        this.more.add_child(actions);
+            this.message(this.track.url ? 'Enlace copiado.' : 'Título y artista copiados.');
+        });
         page.add_child(this.more);
         this.library = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-music-tools', visible: false});
         this.library.add_child(e._label('Favoritas de Aurea · guardadas en este equipo', 'di-hint', {width: 350}));
@@ -74,7 +109,8 @@ export class MusicTools {
 
     setEnabled(actor, enabled, label) {
         actor.reactive = actor.can_focus = !!enabled;
-        actor.opacity = enabled ? 255 : 85;
+        actor.opacity = enabled ? 255 : 170;
+        actor[enabled ? 'remove_style_pseudo_class' : 'add_style_pseudo_class']('disabled');
         if (label) actor.accessible_name = label;
     }
 
@@ -100,7 +136,7 @@ export class MusicTools {
         const next = trackInfo(props.Metadata);
         const playerChanged = this.player !== e._name;
         const changed = next.key !== this.track.key || playerChanged;
-        if (playerChanged) this.epoch++;
+        if (playerChanged) { this.epoch++; this.unsupported.clear(); this.propertyWrites.clear(); this.lastVolume = null; this.playerApp = null; }
         this.player = e._name;
         this.props = props;
         this.track = next;
@@ -114,7 +150,7 @@ export class MusicTools {
         this.setEnabled(this.back, control && props.CanSeek === true && e._length > 0, 'Retroceder 15 segundos');
         this.setEnabled(this.forward, control && props.CanSeek === true && e._length > 0, 'Avanzar 15 segundos');
         this.rates = playbackRates(props);
-        this.rate._label.text = `${Number.isFinite(props.Rate) ? props.Rate : 1}×`;
+        this.panel.state(this.rate, `${Number.isFinite(props.Rate) ? props.Rate : 1}×${this.rates.length < 2 ? ' · fija' : ''}`);
         this.setEnabled(this.rate, control && this.rates.length > 1, 'Cambiar velocidad de reproducción');
         this.setEnabled(this.stop, control, 'Detener reproducción');
         this.setEnabled(this.copy, !!next.key, 'Copiar enlace o nombre de la canción');
@@ -132,18 +168,82 @@ export class MusicTools {
             e._updateVolIcon(props.Volume);
             e._muteButton.accessible_name = props.Volume > 0 ? 'Silenciar reproductor' : 'Activar sonido del reproductor';
         }
-        this.setEnabled(this.raise, !!e._name && this.canRaise, 'Abrir el reproductor');
+        this.setEnabled(this.raise, !!e._name && (this.canRaise || this.playerApp), 'Abrir el reproductor');
         if (playerChanged) {
             this.canRaise = false;
             this.setEnabled(this.raise, false);
             if (e._name) this.request(PROPS, 'GetAll', new GLib.Variant('(s)', [ROOT]), reply => {
-                this.canRaise = reply.recursiveUnpack()[0].CanRaise === true;
-                this.setEnabled(this.raise, this.canRaise);
+                const root = reply.recursiveUnpack()[0];
+                this.canRaise = root.CanRaise === true;
+                const desktopId = root.DesktopEntry || (e._name.startsWith('org.mpris.MediaPlayer2.com.bstream.bstream_music.') ? 'com.bstream.bstream_music' : '');
+                this.playerApp = desktopId ? Gio.DesktopAppInfo.new(`${desktopId.replace(/\.desktop$/, '')}.desktop`) : null;
+                this.setEnabled(this.raise, this.canRaise || this.playerApp);
+                this.panel.state(this.raise, root.Identity || '');
             }, {quiet: true, trackBound: false});
         }
-        e._shuffleBtn.button.accessible_name = `Aleatorio: ${e._shuffle ? 'activado' : 'desactivado'}`;
-        e._loopBtn.button.accessible_name = repeatLabel(e._loop);
+        this.syncModes();
         this.libraryButton._label.text = `Favoritas · ${this.favorites.length}`;
+        this.panel.state(this.copy, next.url ? 'Enlace' : 'Título y artista');
+        if (this.panel.selected === 'audio') this.refreshOutputs();
+    }
+
+    openPlayer() {
+        if (this.canRaise) this.request(ROOT, 'Raise', null, null, {trackBound: false});
+        else if (this.playerApp) {
+            try { this.playerApp.launch([], global.create_app_launch_context(0, -1)); }
+            catch { this.message('No se pudo abrir el reproductor.'); }
+        }
+    }
+
+    refreshOutputs() {
+        if (!this.output) return;
+        const e = this.island;
+        const sinks = e._mixer?.get_sinks?.() ?? [];
+        const current = e._mixer?.get_default_sink?.();
+        const name = current?.get_description?.() || current?.get_name?.() || 'Sin dispositivo';
+        this.output._label.text = name;
+        this.panel.state(this.output, 'Cambiar');
+        this.setEnabled(this.output, sinks.length > 0, `Salida de audio: ${name}`);
+        if (!this.outputs.visible) return;
+        this.outputs.destroy_all_children();
+        for (const sink of sinks) {
+            const button = this.panel.row(this.outputs, sink.get_description?.() || sink.get_name?.() || 'Salida',
+                'audio-speakers-symbolic', () => {
+                    e._mixer.set_default_sink(sink);
+                    this.outputs.visible = false;
+                    this.refreshOutputs(); e._resizeIsland();
+                }, sink === current ? 'Actual' : '');
+            if (sink === current) button.add_style_class_name('di-music-option-active');
+        }
+    }
+
+    syncModes() {
+        const e = this.island;
+        const control = !!e._name && this.props.CanControl === true;
+        for (const [property, row, primary] of [['Shuffle', this.shuffleRow, e._shuffleBtn.button], ['LoopStatus', this.repeatRow, e._loopBtn.button]]) {
+            const supported = property in this.props && !this.unsupported.has(property);
+            const pending = this.propertyWrites.has(property);
+            const active = supported && (property === 'Shuffle' ? e._shuffle : e._loop !== 'None');
+            const state = !supported ? 'En la app' : property === 'Shuffle' ? (e._shuffle ? 'Activado' : 'Desactivado')
+                : {None: 'Desactivado', Track: 'Esta canción', Playlist: 'Toda la lista'}[e._loop] || 'Desactivado';
+            if (property === 'LoopStatus') {
+                for (const [value, button] of this.repeatButtons) {
+                    this.setEnabled(button, control && !pending);
+                    button[value === e._loop ? 'add_style_pseudo_class' : 'remove_style_pseudo_class']('checked');
+                }
+            }
+            this.panel.state(row, pending ? 'Aplicando…' : state, active);
+            this.setEnabled(row, control && !pending);
+            this.setEnabled(primary, control && !pending, `${property === 'Shuffle' ? 'Aleatorio' : 'Repetir'}: ${state}`);
+            primary.opacity = supported ? 255 : 170;
+            primary[active ? 'add_style_class_name' : 'remove_style_class_name']('di-active');
+        }
+    }
+
+    unavailable(property) {
+        const label = property === 'Shuffle' ? 'el modo aleatorio' : 'la repetición';
+        this.message(`Este reproductor no permite controlar ${label} desde la isla. Cámbialo en su aplicación.`);
+        this.syncModes();
     }
 
     isFavorite() { return this.favorites.some(item => item.key === this.track.key); }
@@ -195,7 +295,7 @@ export class MusicTools {
         }
     }
 
-    request(iface, method, params = null, callback = null, {quiet = false, trackBound = true} = {}) {
+    request(iface, method, params = null, callback = null, {quiet = false, trackBound = true, onError = null} = {}) {
         const e = this.island;
         const name = e._name;
         const track = this.track.key;
@@ -210,6 +310,7 @@ export class MusicTools {
             try { reply = bus.call_finish(result); } catch (failure) { error = failure; }
             if (!e._alive || epoch !== this.epoch || name !== e._name || (trackBound && track !== this.track.key)) return;
             if (error) {
+                onError?.(error);
                 if (!quiet && !error.matches?.(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
                     this.message('El reproductor no permite esta acción en este momento.');
                 return;
@@ -220,8 +321,44 @@ export class MusicTools {
     }
 
     setProperty(property, variant) {
-        if (this.props.CanControl !== true || !(property in this.props)) return;
-        this.request(PROPS, 'Set', new GLib.Variant('(ssv)', [PLAYER, property, variant]), () => this.island._refresh());
+        if (this.props.CanControl !== true || this.propertyWrites.has(property)) return;
+        const mode = ['Shuffle', 'LoopStatus'].includes(property);
+        if (!(property in this.props) || this.unsupported.has(property)) {
+            if (mode) this.unavailable(property);
+            return;
+        }
+        if (!mode) {
+            this.request(PROPS, 'Set', new GLib.Variant('(ssv)', [PLAYER, property, variant]), () => this.island._refresh());
+            return;
+        }
+        const epoch = this.epoch;
+        const expected = variant.deep_unpack();
+        this.propertyWrites.set(property, expected);
+        this.syncModes();
+        const fail = () => {
+            this.propertyWrites.delete(property);
+            this.unsupported.add(property);
+            this.unavailable(property);
+        };
+        const verify = attempt => {
+            if (!this.island._alive || epoch !== this.epoch) return;
+            this.request(PROPS, 'Get', new GLib.Variant('(ss)', [PLAYER, property]), reply => {
+                const value = reply.recursiveUnpack()[0];
+                if (value === expected) {
+                    this.propertyWrites.delete(property);
+                    this.props[property] = value;
+                    if (property === 'Shuffle') this.island._shuffle = value;
+                    else this.island._loop = value;
+                    this.island._updateToggles();
+                    this.syncModes();
+                    this.message(property === 'Shuffle' ? `Aleatorio ${value ? 'activado' : 'desactivado'}.` : repeatLabel(value));
+                    this.island._refresh();
+                } else if (attempt === 0) this.island._timeout(450, () => { verify(1); return GLib.SOURCE_REMOVE; });
+                else fail();
+            }, {quiet: true, trackBound: false, onError: fail});
+        };
+        this.request(PROPS, 'Set', new GLib.Variant('(ssv)', [PLAYER, property, variant]), () => verify(0),
+            {quiet: true, trackBound: false, onError: fail});
     }
 
     command(method) {

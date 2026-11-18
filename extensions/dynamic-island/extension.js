@@ -1527,24 +1527,10 @@ export default class DynamicIsland extends Extension {
         });
         vol.add_child(this._volume);
         page.add_child(vol);
-        const audioTools = new St.BoxLayout({style_class: 'di-head'});
-        this._outputButton = this._chip('Salida de audio', () => {
-            const sinks = this._mixer?.get_sinks() ?? [];
-            if (!sinks.length) return;
-            const index = sinks.indexOf(this._sink);
-            this._mixer.set_default_sink(sinks[(index + 1) % sinks.length]);
-        }, 'audio-headphones-symbolic');
-        audioTools.add_child(this._outputButton);
-        audioTools.add_child(this._chip('Aplicaciones', () => {
-            this._appAudio.visible = !this._appAudio.visible;
-            if (this._appAudio.visible) this._renderAppAudio();
-            this._resizeIsland();
-        }, 'applications-multimedia-symbolic'));
         this._musicTools.build(page, controls, right);
-        this._musicTools.more.add_child(audioTools);
-        this._mediaExtras.build(this._musicTools.more, 330);
+        this._mediaExtras.build(this._musicTools.panel.sections.track, 350, this._musicTools.panel);
         this._appAudio = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-list', visible: false});
-        this._musicTools.more.add_child(this._appAudio);
+        this._musicTools.panel.sections.audio.add_child(this._appAudio);
     }
 
     _renderAppAudio() {
@@ -1557,7 +1543,7 @@ export default class DynamicIsland extends Extension {
             row.add_child(label);
             const slider = new Slider(clamp(stream.volume / this._mixer.get_vol_max_norm()));
             slider.add_style_class_name('di-slider');
-            slider.set_width(220);
+            slider.set_width(208);
             slider.accessible_name = `Volumen de ${label.get_text()}`;
             const id = stream.get_id();
             slider.connect('notify::value', () => {
@@ -2862,7 +2848,7 @@ export default class DynamicIsland extends Extension {
         if (this._sink) for (const id of this._sinkSignals) { try { this._sink.disconnect(id); } catch (e) {            } }
         this._sinkSignals = [];
         this._sink = sink;
-        if (this._outputButton) this._outputButton._label.set_text(sink ? 'Cambiar salida' : 'Sin salida de audio');
+        this._musicTools?.refreshOutputs();
         this._lastVol = null;
         if (sink) {
             this._sinkSignals.push(sink.connect('notify::volume', () => this._syncVolume(true)));

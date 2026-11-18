@@ -18,7 +18,11 @@ export default class Driver extends Extension {
             Position: 30000000,
             CanControl: true, CanPlay: true, CanPause: true,
             CanGoPrevious: true, CanGoNext: true, CanSeek: true,
-            Shuffle: false, LoopStatus: 'None', Rate: 1, MinimumRate: 0.5, MaximumRate: 2, Volume: 0.6,
+            Shuffle: false, _loopStatus: 'None', ignoreLoop: false,
+            get LoopStatus() { return this._loopStatus; },
+            set LoopStatus(value) {
+                if (!this.ignoreLoop) this._loopStatus = value;
+            }, Rate: 1, MinimumRate: 0.5, MaximumRate: 2, Volume: 0.6,
             Identity: 'Aurea fixture', CanRaise: true, Raise() { this.raised = true; },
             Stop() { this.PlaybackStatus = 'Stopped'; },
             SetPosition(track, position) { if (track === '/org/mpris/MediaPlayer2/track/test') this.Position = position; },
