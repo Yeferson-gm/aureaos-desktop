@@ -77,6 +77,12 @@ En Herramientas también están Descargas recientes, Relojes del mundo, Pantalla
 y discos y Controles rápidos. La comparación completa con el video y las
 integraciones todavía pendientes están en [la revisión de SideDock](tasks/video-2057.md).
 
+**Editar la isla:** isla superior → Inicio → Editar. Arrastra tarjetas desde la
+galería a Inicio para añadirlas, entre tarjetas para ordenarlas y de vuelta a la
+galería para quitarlas. Admite seis tarjetas sin duplicados; Listo guarda, Cancelar
+descarta y Deshacer revierte el último cambio. También se puede usar el teclado.
+[Uso y alcance del editor](tasks/video-0921.md).
+
 Bun se utiliza automáticamente si está instalado; Node queda como alternativa
 y validador sintáctico. Para elegir: `AUREA_RUNTIME=bun ./aurea.sh check` o
 `AUREA_RUNTIME=node ./aurea.sh check`. Las extensiones siguen ejecutándose en GJS.

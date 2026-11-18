@@ -45,6 +45,7 @@ const tests = [
     'tests/theme-tokens.test.mjs',
     'extensions/dynamic-island/tests/activities.mjs',
     'extensions/dynamic-island/tests/content-models.mjs',
+    'extensions/dynamic-island/tests/workspace-model.mjs',
     'extensions/dynamic-island/tests/studio-lifecycle.mjs',
     'extensions/dynamic-island/tests/native-banners.mjs',
     'extensions/dynamic-island/tests/validate-notifications.mjs',

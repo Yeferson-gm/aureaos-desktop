@@ -60,6 +60,8 @@
     island._selectTab('weather');
     if (island._workspace.weatherBody.get_n_children() < 5) throw new Error('Pronóstico incompleto');
     island._closeIsland();
+    const {testWorkspaceEditor} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/workspace-editor-runtime.js`);
+    await testWorkspaceEditor(island, wait);
     const result = {state: ext.state, pages: Object.keys(island._builders)};
     const inspect = actor => {
         if (actor.get_text?.().startsWith('Esta sección falló')) throw new Error(actor.get_text());

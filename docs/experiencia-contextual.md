@@ -55,10 +55,20 @@ exponga. Los enlaces a herramientas externas informan si estas no están instala
 
 ## Isla superior y widgets
 
-Inicio presenta tres tarjetas configurables. Pasar el cursor o darles foco cambia
+Inicio presenta hasta seis tarjetas configurables. Pasar el cursor o darles foco cambia
 el detalle contextual; clic abre el módulo completo. Música ofrece controles MPRIS,
 Agenda el próximo evento disponible y Clima temperatura, sensación y humedad.
 Clima incluye seis horas de pronóstico y cinco días con máximas y mínimas.
+
+**Editar como en la referencia:** abre la isla superior → Inicio → Editar.
+La galería permite arrastrar módulos a Inicio, soltar antes de otra tarjeta para
+ordenarlos o devolverlos a la galería para quitarlos. La franja inferior también
+acepta tarjetas para retirarlas. Quitar un acceso no borra notas, archivos ni tareas.
+«En uso» identifica los módulos presentes y evita duplicados. Listo aplica el orden
+al instante; Cancelar y Escape descartan los cambios. Deshacer y Restaurar permiten
+recuperar la organización dentro de la edición. Con teclado: Tab para recorrer,
+Enter para añadir, Alt+flechas para ordenar y Suprimir para quitar una tarjeta.
+El [análisis de la referencia](../tasks/video-0921.md) detalla alcance y pruebas.
 
 El proveedor es Open-Meteo. Se conserva la localización aproximada por IP y Lima
 como respaldo. Requiere red; una petición en curso se reutiliza y el clima almacenado

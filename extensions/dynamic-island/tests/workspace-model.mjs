@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {homeModules, placeModule, HOME_LIMIT} from '../workspace-model.js';
+assert.deepEqual(homeModules(['music','unknown','music','home','notes']), ['music','notes']);
+assert.deepEqual(placeModule(['music','today','weather'],'notes','today'), ['music','notes','today','weather']);
+assert.deepEqual(placeModule(['music','today','weather'],'music','weather'), ['today','music','weather']);
+assert.deepEqual(placeModule(['music','today'],'music','music'), ['music','today']);
+assert.deepEqual(placeModule(['music','today'],'music'), ['today','music']);
+const full = ['music','today','weather','notes','files','clock'];
+assert.equal(full.length, HOME_LIMIT);
+assert.deepEqual(placeModule(full,'system'), full);
+assert.deepEqual(placeModule(full,'today','music'), ['today','music','weather','notes','files','clock']);
+assert.deepEqual(placeModule(full,'__proto__'), full);
+assert.deepEqual(homeModules([]), []);
+console.log('PASS: organización sin duplicados, movimientos estables, límite y módulos desconocidos');

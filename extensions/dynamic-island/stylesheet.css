@@ -314,3 +314,50 @@
 .di-module-notes StIcon, .di-module-clip StIcon { color: #d0b1ff; }
 .di-module-system StIcon, .di-module-devices StIcon { color: #7ce0bb; }
 .di-module-files StIcon, .di-module-downloads StIcon { color: #91caff; }
+
+.di-workspace-heading { spacing: 12px; }
+.di-glance-grid { spacing: 8px; }
+.di-glance-card { border-color: rgba(255,255,255,0.10); background-color: #171719; }
+.di-glance-card:hover, .di-glance-card:focus, .di-glance-selected { border-color: rgba(255,255,255,0.38); background-color: #252528; }
+.di-glance-card.di-module-music { background-gradient-direction: vertical; background-gradient-start: #7127a9; background-gradient-end: #a02c80; }
+.di-glance-card.di-module-weather { background-gradient-direction: vertical; background-gradient-start: #236bb6; background-gradient-end: #1686b2; }
+.di-glance-card.di-module-today { background-color: #25191c; border-color: #623137; }
+.di-glance-card.di-module-notes, .di-glance-card.di-module-clock { background-color: #282217; border-color: #5c4925; }
+.di-glance-card .di-dashboard-caption { color: #ffffff; font-weight: 600; }
+.di-glance-card .di-glance-summary { color: #e5e7ed; }
+.di-glance-card.di-module-weather StIcon, .di-glance-card.di-module-music StIcon { color: #ffffff; }
+.di-glance-preview { background-color: #141416; border: 1px solid rgba(255,255,255,0.10); }
+
+.di-editor-backdrop { background-color: rgba(4,5,8,0.78); color: #ffffff; }
+.di-editor-panel { padding: 24px; spacing: 14px; border-radius: 26px; background-color: rgba(25,25,29,0.96); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 16px 48px rgba(0,0,0,0.5); color: #ffffff; }
+.di-editor-heading, .di-editor-toolbar { spacing: 10px; }
+.di-editor-titles { spacing: 5px; }
+.di-editor-title { color: #ffffff; font-size: 22px; font-weight: 600; }
+.di-editor-description { color: #c3c3cc; font-size: 12px; }
+.di-editor-panel .di-chip { padding: 8px 12px; color: #f5f5f7; font-size: 12px; border-radius: 12px; }
+.di-editor-panel .di-editor-done { background-color: #397df1; color: #ffffff; }
+.di-editor-panel .di-editor-done:hover, .di-editor-panel .di-editor-done:focus { background-color: #4b8bff; }
+.di-editor-preview { padding: 12px; spacing: 12px; background-color: #000000; border-radius: 20px; border: 1px solid #303034; }
+.di-editor-gallery { spacing: 12px; padding: 2px 12px; }
+.di-editor-row { spacing: 12px; }
+.di-editor-tile { padding: 12px; border-radius: 16px; border: 1px solid #414146; background-color: #242428; color: #ffffff; }
+.di-editor-tile:hover, .di-editor-tile:focus { border-color: #8b8b98; background-color: #303035; }
+.di-editor-tile-content { spacing: 9px; }
+.di-editor-tile-header { spacing: 10px; }
+.di-editor-tile-title { color: #ffffff; font-size: 14px; font-weight: 600; }
+.di-editor-tile-summary { color: #e0e0e8; font-size: 12px; }
+.di-editor-badge { color: #ffffff; background-color: rgba(0,0,0,0.32); border-radius: 7px; padding: 3px 6px; font-size: 10px; }
+.di-editor-tile.di-module-music { background-gradient-direction: vertical; background-gradient-start: #7929ad; background-gradient-end: #ac2b84; border-color: #b45bc3; }
+.di-editor-tile.di-module-weather { background-gradient-direction: vertical; background-gradient-start: #256dba; background-gradient-end: #168bb8; border-color: #6bbaec; }
+.di-editor-tile.di-module-today { background-color: #342025; border-color: #77404b; }
+.di-editor-tile.di-module-clock, .di-editor-tile.di-module-notes { background-color: #342a1a; border-color: #7c6030; }
+.di-editor-tile.di-module-system, .di-editor-tile.di-module-devices { background-color: #1b302b; border-color: #385a50; }
+.di-editor-tile.di-module-music StIcon, .di-editor-tile.di-module-weather StIcon { color: #ffffff; }
+.di-editor-tile.di-module-notes StIcon { color: #ffd46a; }
+.di-editor-remove { spacing: 8px; padding: 12px; border-radius: 12px; border: 1px dashed #64646e; color: #c3c3cc; }
+.di-editor-panel .di-editor-drop { border-color: #79b4ff; box-shadow: inset 0 0 0 2px #79b4ff; }
+.di-editor-ghost { background-color: #202024; border: 1px solid #9ac8ff; border-radius: 16px; padding: 12px; color: #ffffff; box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+.di-editor-empty { color: #c8c8d0; padding: 24px; font-size: 13px; }
+.di-editor-value { color: #ffffff; font-size: 24px; font-weight: 600; }
+.di-glance-value { color: #ffffff; font-size: 24px; font-weight: 600; }
+.di-glance-visual { spacing: 6px; }

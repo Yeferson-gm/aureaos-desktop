@@ -52,8 +52,8 @@ export default class IslandPreferences extends ExtensionPreferences {
         choices(navigation, 'initial-page', 'Página inicial',
             ['home', 'music', 'files', 'notes', 'system', 'clock', 'today', 'notifications'],
             ['Inicio', 'Música', 'Archivos', 'Notas', 'Sistema', 'Temporizador', 'Calendario', 'Notificaciones']);
-        const space = group('Espacio personal', 'Hasta tres tarjetas en Inicio y dos accesos principales. Los demás módulos siguen disponibles en Más.');
-        for (const [key, title, limit] of [['home-modules', 'Tarjetas de Inicio', 3], ['pinned-modules', 'Accesos principales', 2]]) {
+        const space = group('Espacio personal', 'Hasta seis tarjetas en Inicio y dos accesos principales. Los demás módulos siguen disponibles en Más.');
+        for (const [key, title, limit] of [['home-modules', 'Tarjetas de Inicio', 6], ['pinned-modules', 'Accesos principales', 2]]) {
             const row = new Adw.ExpanderRow({title});
             space.add(row);
             const modules = [['music', 'Música'], ['files', 'Archivos'], ['clip', 'Portapapeles'], ['notes', 'Notas y tareas'],

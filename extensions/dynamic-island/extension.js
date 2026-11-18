@@ -326,6 +326,7 @@ export default class DynamicIsland extends Extension {
 
     disable() {
         this._alive = false;
+        this._workspace?.editor.close(false, false);
         this._contextTools?.destroy();
         this._contextTools = null;
         this._bannerOverrides?.clear();
@@ -1153,7 +1154,7 @@ export default class DynamicIsland extends Extension {
 
     _openIsland() {
         if (!this._alive || !this._island || this._menu.isOpen) return;
-        if (!this._monitor() || Main.sessionMode.isLocked || Main.overview.visible || this._shelfBridge?.process) return;
+        if (this._workspace?.editor.actor || !this._monitor() || Main.sessionMode.isLocked || Main.overview.visible || this._shelfBridge?.process) return;
         this._centerPill();
         const [nx, ny] = this._pill.get_transformed_position();
         const [nw, nh] = this._pill.get_transformed_size();

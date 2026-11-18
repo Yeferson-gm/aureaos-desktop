@@ -2,31 +2,15 @@ import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 
-export const MODULES = [
-    ['home', 'Inicio', 'go-home-symbolic'],
-    ['music', 'Música', 'audio-x-generic-symbolic'],
-    ['files', 'Archivos', 'folder-symbolic'],
-    ['clip', 'Portapapeles', 'edit-paste-symbolic'],
-    ['notes', 'Notas y tareas', 'document-edit-symbolic'],
-    ['system', 'Sistema', 'computer-symbolic'],
-    ['clock', 'Temporizador', 'alarm-symbolic'],
-    ['today', 'Calendario', 'x-office-calendar-symbolic'],
-    ['weather', 'Clima', 'weather-clear-symbolic'],
-    ['notifications', 'Notificaciones', 'preferences-system-notifications-symbolic'],
-    ['mirror', 'Cámara', 'camera-web-symbolic'],
-    ['tools', 'Controles rápidos', 'applications-utilities-symbolic'],
-    ['downloads', 'Descargas', 'folder-download-symbolic'],
-    ['world', 'Relojes del mundo', 'preferences-system-time-symbolic'],
-    ['devices', 'Pantallas y discos', 'video-display-symbolic'],
-    ['studio', 'Estudio', 'audio-input-microphone-symbolic'],
-    ['agents', 'Asistentes', 'utilities-terminal-symbolic'],
-    ['applications', 'Aplicaciones', 'view-app-grid-symbolic'],
-];
+import {MODULES, homeModules} from './workspace-model.js';
+import {WorkspaceEditor} from './workspace-editor.js';
+export {MODULES} from './workspace-model.js';
 
 export class IslandWorkspace {
     constructor(island) {
         this.island = island;
         this.cards = [];
+        this.editor = new WorkspaceEditor(this);
         this.peekSignature = null;
     }
 
@@ -35,8 +19,12 @@ export class IslandWorkspace {
         const page = e._newPage('home');
         page.add_style_class_name('di-dashboard');
         this.date = e._label('', 'di-dashboard-date');
-        page.add_child(this.date);
-        this.cardsBox = new St.BoxLayout({style_class: 'di-glance-row', x_expand: true});
+        const header = new St.BoxLayout({style_class: 'di-workspace-heading'});
+        this.date.x_expand = true;
+        header.add_child(this.date);
+        header.add_child(e._chip('Editar', () => this.editor.open(), 'document-edit-symbolic'));
+        page.add_child(header);
+        this.cardsBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-glance-grid', x_expand: true});
         page.add_child(this.cardsBox);
         this.preview = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-glance-preview'});
         page.add_child(this.preview);
@@ -58,16 +46,22 @@ export class IslandWorkspace {
     rebuild() {
         if (!this.cardsBox) return;
         const e = this.island;
+        if (this.hoverTimer) e._clear(this.hoverTimer);
+        this.hoverTimer = 0;
         this.cardsBox.destroy_all_children();
         this.cards = [];
         this.peekSignature = null;
-        const selected = [...new Set(e._settings.get_strv('home-modules'))]
-            .filter(id => MODULES.some(m => m[0] === id && id !== 'home')).slice(0, 3);
-        for (const id of selected) {
+        const selected = homeModules(e._settings.get_strv('home-modules'));
+        let row;
+        for (const [index, id] of selected.entries()) {
+            if (index % 3 === 0) { row = new St.BoxLayout({style_class: 'di-glance-row', x_expand: true}); this.cardsBox.add_child(row); }
             const [, name, icon] = MODULES.find(m => m[0] === id);
             const card = new St.Button({style_class: `di-glance-card di-module-${id}`, reactive: true, can_focus: true, track_hover: true, x_expand: true, accessible_name: name});
             const content = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-glance-content'});
-            content.add_child(new St.Icon({icon_name: icon, icon_size: 24, x_align: Clutter.ActorAlign.CENTER}));
+            const visual = new St.BoxLayout({style_class: 'di-glance-visual', x_align: Clutter.ActorAlign.CENTER});
+            visual.add_child(new St.Icon({icon_name: icon, icon_size: 22, y_align: Clutter.ActorAlign.CENTER}));
+            const value = e._label(this.value(id), 'di-glance-value');
+            value.visible = !!value.text; visual.add_child(value); content.add_child(visual);
             content.add_child(e._label(name, 'di-dashboard-caption'));
             const title = e._label('', 'di-glance-summary', {width: 100}); title.clutter_text.set_ellipsize(Pango.EllipsizeMode.END); content.add_child(title);
             card.set_child(content); card.connect('clicked', () => e._selectTab(id));
@@ -77,18 +71,17 @@ export class IslandWorkspace {
                 if (card.hover) this.hoverTimer = e._timeout(220, () => { this.hoverTimer = 0; if (card.hover && e._tab === 'home') { this.peekId = id; this.renderPeek(); e._resizeIsland(); } return false; });
             });
             card.connect('key-focus-in', () => { this.peekId = id; this.renderPeek(); });
-            this.cardsBox.add_child(card); this.cards.push({id, title, card});
+            row.add_child(card); this.cards.push({id, title, card, value});
         }
         this.peekId = selected.includes(this.peekId) ? this.peekId : selected[0];
-        if (!selected.length) this.cardsBox.add_child(e._label('Elige tus tarjetas en Ajustes → Espacio personal.', 'di-hint'));
+        if (!selected.length) this.cardsBox.add_child(e._label('Pulsa Editar para añadir tus primeras tarjetas.', 'di-hint'));
         this.refresh();
+        e._resizeIsland();
     }
 
-    refresh() {
-        if (!this.date) return;
+    summaries() {
         const e = this.island;
-        this.date.text = new Date().toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long'});
-        const details = {
+        return {
             music: e._name ? `${e._status === 'Playing' ? '▶' : 'Ⅱ'}  ${e._title?.text ?? 'Música'}` : 'Sin reproducción',
             clock: e._tm.running ? `${Math.ceil(e._timerLeft() / 60000)} min restantes` : 'Un momento para concentrarte',
             system: e._bat ? `${e._bat.pct}% · ${[1, 5].includes(e._bat.state) ? 'Cargando' : 'Batería'}` : 'Estado de tu equipo',
@@ -104,7 +97,28 @@ export class IslandWorkspace {
             tools: 'Concentración, tema y micrófono',
             downloads: 'Archivos recientes', world: 'Hora en tus ciudades', devices: 'Monitores y unidades conectadas',
         };
-        for (const {id, title} of this.cards) title.text = details[id] ?? 'Abrir';
+    }
+
+    value(id) {
+        const e = this.island;
+        if (id === 'today') return String(new Date().getDate());
+        if (id === 'weather' && e._weather) return `${Math.round(e._weather.w.temperature_2m)}°`;
+        if (id === 'system' && e._bat) return `${e._bat.pct}%`;
+        if (id === 'notes') return String((e._tasks ?? []).filter(task => !task.done).length);
+        if (id === 'files') return String(e._shelf.length);
+        if (id === 'clock' && e._tm.running) return `${Math.ceil(e._timerLeft() / 60000)}′`;
+        return '';
+    }
+
+    refresh() {
+        if (!this.date) return;
+        const e = this.island;
+        this.date.text = new Date().toLocaleDateString('es', {weekday: 'long', day: 'numeric', month: 'long'});
+        const details = this.summaries();
+        for (const {id, title, value} of this.cards) {
+            title.text = details[id] ?? 'Abrir';
+            value.text = this.value(id); value.visible = !!value.text;
+        }
         this.renderPeek();
         this.liveBox.destroy_all_children();
         for (const activity of e._live.entries.filter(item => !this.cards.some(card => card.id === item.page)).slice(0, 3)) {
@@ -244,7 +258,7 @@ export class IslandWorkspace {
         };
         search.clutter_text.connect('text-changed', render);
         e._connect(e._settings, 'changed::app-launcher', render);
-        page.add_child(e._chip('Personalizar este espacio', () => { e._closeIsland(); e.openPreferences(); }, 'preferences-system-symbolic'));
+        page.add_child(e._chip('Personalizar este espacio', () => this.editor.open(), 'document-edit-symbolic'));
         render();
     }
 }
