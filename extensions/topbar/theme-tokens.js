@@ -22,6 +22,10 @@ export class ThemeTokens {
 .lintel-menu .popup-menu-item.lintel-item:hover StLabel, .lintel-menu .popup-menu-item.lintel-item:focus StLabel,
 .lintel-menu .lintel-cc-tile:hover StLabel, .lintel-menu .lintel-cc-tile:focus StLabel,
 .lintel-menu .aurea-detail-row:hover StLabel, .lintel-menu .aurea-detail-row:focus StLabel { color: ${foreground}; }
+.lintel-menu .lintel-menu-content .popup-menu-item.lintel-item:hover .lintel-item-icon,
+.lintel-menu .lintel-menu-content .popup-menu-item.lintel-item:focus .lintel-item-icon,
+.lintel-menu .lintel-menu-content .popup-menu-item.lintel-item:hover .lintel-item-trailing,
+.lintel-menu .lintel-menu-content .popup-menu-item.lintel-item:focus .lintel-item-trailing { color: ${foreground}; }
 .lintel-menu.lintel-dark .lintel-cc-tile:hover, .lintel-menu.lintel-dark .lintel-cc-tile:focus,
 .lintel-menu.lintel-dark .lintel-cc-tile:hover StLabel, .lintel-menu.lintel-dark .lintel-cc-tile:focus StLabel { color: ${darkForeground}; }
 .lintel-menu .lintel-slider { -barlevel-active-background-color: ${accent}; }

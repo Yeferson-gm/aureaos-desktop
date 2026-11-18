@@ -34,6 +34,26 @@ prioridad sobre la duración elegida.
 
 ## Controles
 
+### Iconos de las opciones
+
+La opción Barra → Iconos de menús → Todas las acciones completa la manzana,
+menús del escritorio, acciones de aplicaciones y ajustes de los indicadores.
+El antiguo valor `selective` se normaliza a `all`; una elección explícita `none`
+se conserva. Los iconos de dispositivos y las marcas de selección son información
+funcional y permanecen visibles con cualquiera de los dos ajustes.
+
+`menu-icons.js` reutiliza los símbolos del tema GNOME. Las acciones exportadas
+conservan su `Gio.Icon`; cuando falta, se resuelve por identificador de acción,
+etiqueta o un símbolo genérico. Las marcas de selección aparecen separadas a la
+derecha, sin sustituir el icono del dispositivo o comando. Los encabezados
+informativos y separadores no se presentan como acciones.
+
+Los iconos heredan los estados claro, oscuro y desactivado. En una acción
+resaltada siguen el contraste calculado para el acento elegido. No hay descargas,
+temporizadores ni servicios nuevos. `tests/menu-icons-runtime.js`, integrado en
+`check-hover.sh`, comprueba los menús, la selección, iconos exportados y activación
+de acciones en una sesión aislada y genera capturas de ambos temas.
+
 - Elegir módulos, orden y tamaño compacto/ancho en **Controles**. Los módulos
   que dependen de hardware ausente se omiten y los siguientes ocupan el espacio.
 - Wi-Fi y Bluetooth: pulsar el control para activar/desactivar; la flecha abre

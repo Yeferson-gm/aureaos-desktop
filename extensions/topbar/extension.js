@@ -2,6 +2,8 @@ import {Sound, Brightness, PowerProfiles, BatteryCare, AirplaneMode, Bluetooth, 
 import {KeyboardLight} from './keyboard-light.js';
 import {run, busCall, settingsFor, settingsForExtension} from './platform.js';
 import {ThemeTokens} from './theme-tokens.js';
+import {iconFor} from './menu-icons.js';
+import Atk from 'gi://Atk';
 import {PublishedMenus} from './published-menus.js';
 import {PanelLayout, AdaptiveContrast} from './panel-layout.js';
 import {MenuSurface} from './menu-surface.js';
@@ -47,75 +49,6 @@ const iconProps = name => name.startsWith('lintel-')
     ? {gicon: fileIcon(name)}
     : {icon_name: name};
 
-const ICON_RULES = [
-    [/^Acerca de/, 'help-about-symbolic'],
-    [/Tienda de aplicaciones/, 'system-software-install-symbolic'],
-    [/^(Ajustes|Configuración)/, 'emblem-system-symbolic'],
-    [/Forzar salida/, 'process-stop-symbolic'],
-    [/^Suspender/, 'media-playback-pause-symbolic'],
-    [/^Reiniciar/, 'system-reboot-symbolic'],
-    [/^Apagar/, 'system-shutdown-symbolic'],
-    [/^Bloquear/, 'system-lock-screen-symbolic'],
-    [/^Cerrar sesión/, 'system-log-out-symbolic'],
-    [/Captura/, 'camera-photo-symbolic'],
-    [/Vista general/, 'focus-windows-symbolic'],
-    [/^Aplicaciones$/, 'view-app-grid-symbolic'],
-    [/fondo de pantalla|^Aspecto/, 'preferences-desktop-wallpaper-symbolic'],
-    [/Abrir Calendario/, 'x-office-calendar-symbolic'],
-    [/Abrir Archivos/, 'folder-symbolic'],
-    [/Nueva ventana privada/, 'security-high-symbolic'],
-    [/Nueva ventana/, 'window-new-symbolic'],
-    [/Nueva carpeta/, 'folder-new-symbolic'],
-    [/siguiente/i, 'go-next-symbolic'],
-    [/anterior/i, 'go-previous-symbolic'],
-    [/Nueva pestaña/, 'tab-new-symbolic'],
-    [/Guardar/, 'document-save-symbolic'],
-    [/Imprimir/, 'document-print-symbolic'],
-    [/Ir a ubicación|Abrir ubicación/, 'folder-open-symbolic'],
-    [/^Abrir/, 'document-open-symbolic'],
-    [/Salir de/, 'application-exit-symbolic'],
-    [/^Cerrar/, 'window-close-symbolic'],
-    [/^Deshacer/, 'edit-undo-symbolic'],
-    [/^Rehacer/, 'edit-redo-symbolic'],
-    [/^Cortar/, 'edit-cut-symbolic'],
-    [/^Copiar/, 'edit-copy-symbolic'],
-    [/^Pegar/, 'edit-paste-symbolic'],
-    [/Seleccionar todo/, 'edit-select-all-symbolic'],
-    [/^Buscar/, 'edit-find-symbolic'],
-    [/Acercar/, 'zoom-in-symbolic'],
-    [/Alejar/, 'zoom-out-symbolic'],
-    [/Tamaño real/, 'zoom-original-symbolic'],
-    [/Pantalla completa/, 'view-fullscreen-symbolic'],
-    [/Recargar|Actualizar/, 'view-refresh-symbolic'],
-    [/^Minimizar|^Ocultar/, 'window-minimize-symbolic'],
-    [/^Zoom$/, 'window-maximize-symbolic'],
-    [/izquierda/, 'go-previous-symbolic'],
-    [/derecha/, 'go-next-symbolic'],
-    [/historial/i, 'document-open-recent-symbolic'],
-    [/Añadir marcador/, 'bookmark-new-symbolic'],
-    [/marcador/i, 'user-bookmarks-symbolic'],
-    [/^Mostrar todo$/, 'view-restore-symbolic'],
-    [/archivos ocultos/, 'view-reveal-symbolic'],
-    [/^Atrás/, 'go-previous-symbolic'],
-    [/^Adelante/, 'go-next-symbolic'],
-    [/^Inicio|Carpeta personal/, 'go-home-symbolic'],
-    [/Carpeta superior/, 'go-up-symbolic'],
-    [/Propiedades/, 'document-properties-symbolic'],
-    [/Como iconos/, 'view-grid-symbolic'],
-    [/Como lista/, 'view-list-symbolic'],
-    [/Código fuente/, 'text-x-generic-symbolic'],
-    [/^Ayuda/, 'help-browser-symbolic'],
-];
-
-function iconFor(label) {
-    if (!label)
-        return null;
-    for (const [re, icon] of ICON_RULES) {
-        if (re.test(label))
-            return icon;
-    }
-    return null;
-}
 
 
 const MODS = {
@@ -234,11 +167,11 @@ class LintelItem extends PopupMenu.PopupBaseMenuItem {
             this.add_style_class_name('lintel-item-heading');
         if (!info) {
 
-            if (gicon || checked || icon) {
+            if (gicon || icon) {
                 this._icon = new St.Icon({
                     style_class: 'popup-menu-icon lintel-item-icon',
                     y_align: CENTER,
-                    ...(gicon ? {gicon} : {icon_name: checked ? 'object-select-symbolic' : icon}),
+                    ...(gicon ? {gicon} : iconProps(icon)),
                 });
                 this.add_child(this._icon);
             } else {
@@ -253,6 +186,13 @@ class LintelItem extends PopupMenu.PopupBaseMenuItem {
         });
         this.add_child(this.label);
         this.label_actor = this.label;
+        if (checked) {
+            this.add_accessible_state(Atk.StateType.CHECKED);
+            this.add_child(new St.Icon({
+                icon_name: 'object-select-symbolic', y_align: CENTER,
+                style_class: 'lintel-item-trailing lintel-item-selection',
+            }));
+        }
         if (hint) {
             this.add_child(new St.Label({
                 text: hint, y_align: CENTER, style_class: 'lintel-item-hint',
@@ -284,6 +224,10 @@ const LintelToggleItem = GObject.registerClass({
         super._init();
         this.add_style_class_name('lintel-item');
         this.add_style_class_name('lintel-toggle-item');
+        this.add_child(new St.Icon({
+            icon_name: iconFor(label), y_align: CENTER,
+            style_class: 'popup-menu-icon lintel-item-icon',
+        }));
         this.label = new St.Label({
             text: label,
             x_expand: true,
@@ -318,8 +262,8 @@ const LintelToggleItem = GObject.registerClass({
 });
 
 function addItem(menu, opts, cb) {
-    if (opts.icon === undefined && !opts.gicon && !opts.checked && !opts.info)
-        opts = {...opts, icon: theme.menuIcons === 'none' ? null : /^(Apagar|Reiniciar|Suspender|Bloquear|Captura|Personalizar)/.test(opts.label) ? iconFor(opts.label) : null};
+    if (opts.icon === undefined && !opts.gicon && !opts.info)
+        opts = {...opts, icon: theme.menuIcons === 'none' ? null : iconFor(opts.label, opts.action)};
     const item = new LintelItem(opts);
     if (cb) {
         if (opts.keepOpen)
@@ -635,9 +579,9 @@ function fillMenu(menu, specs, ctx, app) {
         if (spec === 'windows') {
             const wins = app?.get_windows() ?? [];
             if (!wins.length)
-                addItem(menu, {label: 'Sin ventanas', disabled: true});
+                addItem(menu, {label: 'Sin ventanas', icon: 'focus-windows-symbolic', disabled: true});
             for (const w of wins) {
-                addItem(menu, {label: w.get_title() || app.get_name(), checked: w === ctx.win},
+                addItem(menu, {label: w.get_title() || app.get_name(), icon: 'focus-windows-symbolic', checked: w === ctx.win},
                     () => Main.activateWindow(w));
             }
             continue;
@@ -702,6 +646,7 @@ class AppleButton extends LintelButton {
         addSep(menu);
 
         const favs = new PopupMenu.PopupSubMenuMenuItem('Aplicaciones favoritas', true);
+        favs.add_style_class_name('lintel-item');
         favs.icon.icon_name = 'starred-symbolic';
         favs.icon.add_style_class_name('lintel-item-icon');
         for (const fav of AppFavorites.getAppFavorites().getFavorites()) {
@@ -771,7 +716,7 @@ class AppNameButton extends TextButton {
         if (actions.length) {
             addSep(menu);
             for (const a of actions) {
-                addItem(menu, {label: info.get_action_name(a)},
+                addItem(menu, {label: info.get_action_name(a), action: a},
                     () => info.launch_action(a, global.create_app_launch_context(0, -1)));
             }
         }
@@ -1277,7 +1222,7 @@ class WifiButton extends LintelButton {
         }
         const row = r => addItem(list, {
             label: r.ssid,
-            icon: null,
+            icon: 'network-wireless-symbolic',
             checked: r.active,
             hint: this._connecting === r.ssid ? 'Conectando…' : undefined,
             trailing: [
@@ -1415,7 +1360,7 @@ class SoundButton extends LintelButton {
             addSep(menu);
             addItem(menu, {label: 'Salida', bold: true, info: true});
             for (const s of sinks) {
-                addItem(menu, {label: s.description ?? s.name, checked: s === sound.sink},
+                addItem(menu, {label: s.description ?? s.name, icon: 'audio-speakers-symbolic', checked: s === sound.sink},
                     () => sound.setDefault(s));
             }
         }
@@ -1523,7 +1468,7 @@ class KeyboardButton extends LintelButton {
         const menu = this.menu, current = this._mgr?.currentSource;
         menu.removeAll();
         for (const source of this._sources()) {
-            addItem(menu, {label: source.displayName ?? source.shortName, checked: source === current},
+            addItem(menu, {label: source.displayName ?? source.shortName, icon: 'input-keyboard-symbolic', checked: source === current},
                 () => source.activate(true));
         }
         addSep(menu);

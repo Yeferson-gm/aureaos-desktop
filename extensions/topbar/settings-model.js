@@ -14,7 +14,7 @@ export const DEFAULTS = {
     material: 'glass', blur: 18, opacity: 0.72, accent: '#3584e4', spacing: 6,
     reducedMotion: false, contrast: false, adaptiveContrast: false,
     clockFormat: 'system', clockDate: true, clockSeconds: false, shortcuts: 'linux',
-    autohide: 'never', menuIcons: 'selective',
+    autohide: 'never', menuIcons: 'all',
     modules: ['wifi', 'bluetooth', 'brightness', 'keyboardLight', 'sound', 'microphone', 'power', 'battery', 'focus', 'caffeine', 'night', 'appearance', 'privacy', 'screenshot'],
     sizes: {}, indicators: Object.keys(INDICATORS), visibility: {},
 };
@@ -45,7 +45,7 @@ export function normalizeConfig(input = {}) {
     out.clockFormat = choices(raw.clockFormat, ['system', '12h', '24h'], DEFAULTS.clockFormat);
     out.shortcuts = choices(raw.shortcuts, ['linux', 'mac'], DEFAULTS.shortcuts);
     out.autohide = choices(raw.autohide, ['never', 'fullscreen', 'always'], DEFAULTS.autohide);
-    out.menuIcons = choices(raw.menuIcons, ['selective', 'none'], DEFAULTS.menuIcons);
+    out.menuIcons = choices(raw.menuIcons, ['all', 'none'], DEFAULTS.menuIcons);
     out.modules = ordered(raw.modules, MODULES, DEFAULTS.modules);
     out.indicators = ordered(raw.indicators, INDICATORS, DEFAULTS.indicators);
     for (const id of Object.keys(INDICATORS)) if (!out.indicators.includes(id)) out.indicators.push(id);

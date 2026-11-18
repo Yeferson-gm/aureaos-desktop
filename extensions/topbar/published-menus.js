@@ -1,8 +1,16 @@
 import Gio from 'gi://Gio';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import {iconFor} from './menu-icons.js';
 
 const attribute = (model, index, key) => model.get_item_attribute_value(index, key, null)?.deepUnpack();
 const label = text => String(text ?? '').replace(/__|_([^_])/g, (match, letter) => letter ?? '_');
+function menuIcon(model, index) {
+    const value = model.get_item_attribute_value(index, 'icon', null);
+    if (!value) return null;
+    try { return Gio.Icon.deserialize(value); }
+    catch { return null; }
+}
+
 export class PublishedMenus {
     constructor(changed) { this.changed = changed; this.signals = []; }
     setWindow(window) {
@@ -52,9 +60,14 @@ export class PublishedMenus {
             const section = model.get_item_link(index, 'section');
             if (section) { if (index) menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem()); this.fill(menu, section, addItem, depth + 1); continue; }
             const title = label(attribute(model, index, 'label'));
+            const gicon = menuIcon(model, index);
             const submenu = model.get_item_link(index, 'submenu');
             if (submenu) {
-                const item = new PopupMenu.PopupSubMenuMenuItem(title);
+                const item = new PopupMenu.PopupSubMenuMenuItem(title, true);
+                item.add_style_class_name('lintel-item');
+                item.icon.add_style_class_name('lintel-item-icon');
+                if (gicon) item.icon.gicon = gicon;
+                else item.icon.icon_name = iconFor(title, '', 'view-list-symbolic');
                 this.fill(item.menu, submenu, addItem, depth + 1); menu.addMenuItem(item); continue;
             }
             const full = attribute(model, index, 'action') ?? '';
@@ -64,7 +77,7 @@ export class PublishedMenus {
             const state = group?.has_action(action) ? group.get_action_state(action) : null;
             const target = model.get_item_attribute_value(index, 'target', null);
             const checked = state && (target ? state.equal(target) : state.get_type_string() === 'b' && state.get_boolean());
-            addItem(menu, {label: title, disabled: !enabled, checked: !!checked}, () => {
+            addItem(menu, {label: title, gicon, action: full, disabled: !enabled, checked: !!checked}, () => {
                 if (group?.has_action(action) && group.get_action_enabled(action)) group.activate_action(action, target);
             });
         }

@@ -169,6 +169,8 @@
     }
     ctx.sound = originalSound; ctx.brightness = originalBrightness; ctx.batteryCare = originalCare;
     bar._cfg.values = oldConfig; cc.menu.close(); await wait(250);
+    const {checkMenuIcons} = await import('file://' + ext.path + '/tests/menu-icons-runtime.js');
+    await checkMenuIcons(bar, wait);
     const published = ctx.published;
     const actions = new Gio.SimpleActionGroup();
     const action = new Gio.SimpleAction({name: 'test'});

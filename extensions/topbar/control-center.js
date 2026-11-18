@@ -1,3 +1,4 @@
+import {iconFor} from './menu-icons.js';
 import {scrollView} from './shared/scroll-view.js';
 import Clutter from 'gi://Clutter';
 import Atk from 'gi://Atk';
@@ -63,6 +64,10 @@ export class ControlCenter {
     row(title, subtitle, callback, checked = false, enabled = true) {
         const button = new St.Button({style_class: 'aurea-detail-row', can_focus: enabled, reactive: enabled, x_expand: true, accessible_name: `${title}. ${subtitle}${checked ? '. Seleccionado' : ''}`});
         const content = new St.BoxLayout({style_class: 'aurea-detail-content'});
+        content.add_child(new St.Icon({
+            icon_name: iconFor(title, '', ICONS[this.page] ?? 'emblem-system-symbolic'),
+            style_class: 'aurea-detail-icon', icon_size: 16, y_align: Clutter.ActorAlign.CENTER,
+        }));
         const labels = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true});
         labels.add_child(new St.Label({text: title, style_class: 'aurea-detail-title'}));
         if (subtitle) labels.add_child(new St.Label({text: subtitle, style_class: 'aurea-detail-subtitle'}));

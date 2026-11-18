@@ -77,7 +77,7 @@ export default class TopbarPreferences extends ExtensionPreferences {
         combo(clock, 'clockFormat', 'Hora', ['system', '12h', '24h'], ['Según GNOME', '12 horas', '24 horas']);
         toggle(clock, 'clockDate', 'Mostrar fecha'); toggle(clock, 'clockSeconds', 'Mostrar segundos');
         combo(clock, 'shortcuts', 'Símbolos de atajos', ['linux', 'mac'], ['Teclas reales de Linux', 'Símbolos Mac (⌘ representa Ctrl)']);
-        combo(clock, 'menuIcons', 'Iconos de menús', ['selective', 'none'], ['Solo acciones destacadas', 'Sin iconos decorativos']);
+        combo(clock, 'menuIcons', 'Iconos de menús', ['all', 'none'], ['Todas las acciones', 'Sin iconos decorativos']);
         const arrange = (p, collection, names, title) => {
             const g = group(p, title, 'Usa las flechas para ordenar. Los controles no disponibles indican su dependencia.');
             let rows = [];

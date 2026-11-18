@@ -26,3 +26,7 @@ assert.deepEqual(normalizeConfig({modules: ['wifi']}).modules, ['wifi']);
 assert.equal(normalizeConfig({indicators: ['clock', 'wifi', 'cc']}).indicators.at(-1), 'clock');
 
 assert.ok(normalizeConfig({texto: 'claro'}).modules.includes('microphone'));
+
+assert.equal(normalizeConfig({menuIcons: 'selective'}).menuIcons, 'all');
+assert.equal(normalizeConfig({}).menuIcons, 'all');
+assert.equal(normalizeConfig({menuIcons: 'none'}).menuIcons, 'none');

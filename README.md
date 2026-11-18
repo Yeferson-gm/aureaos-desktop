@@ -528,6 +528,12 @@ iniciar sesión carga esos módulos; no reiniciar GNOME con comandos forzados.
 
 [Controles, arquitectura, pruebas y límites de la barra](docs/topbar-experiencia.md).
 
+**Iconos de menús:** Personalizar Aurea → Barra → Iconos de menús → Todas las
+acciones. Es el valor predeterminado y sustituye el antiguo modo selectivo.
+Incluye acciones del escritorio, submenús y opciones del Centro de Control;
+la selección se indica aparte del icono. Se conservan los iconos publicados por
+las aplicaciones y se completa cualquier acción que no proporcione uno.
+
 **Luz del teclado:** activa el módulo en Personalizar Aurea → Centro de Control.
 El icono enciende/apaga y recuerda la última intensidad durante la sesión; el
 deslizador ajusta los niveles reales admitidos por el teclado. Se sincroniza con
