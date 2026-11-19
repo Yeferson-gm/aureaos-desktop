@@ -295,6 +295,7 @@ export class MagnificationController {
         actor.set_pivot_point(pivotX, pivotY);
         actor.scale_x = scale;
         actor.scale_y = scale;
+        this._resolution.update(actor.get_child?.(), scale);
 
         if (this._isHorizontal)
             actor.translation_x = offset;
@@ -353,6 +354,7 @@ export class MagnificationController {
         for (const [actor] of this._states) {
             actor.scale_x = 1;
             actor.scale_y = 1;
+            this._resolution.update(actor.get_child?.(), 1);
             if (this._isHorizontal)
                 actor.translation_x = 0;
             else

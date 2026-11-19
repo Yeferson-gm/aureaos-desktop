@@ -37,11 +37,29 @@ reutiliza mientras no cambie la geometría. El medio píxel interior evita que e
 desenfoque sobresalga del borde suavizado del tema. El recorte se aplica antes del
 desenfoque y se retira siempre al terminar de pintar. Una máscara en un framebuffer
 intermedio no servía: o no recortaba el fondo o impedía muestrearlo.
-Los iconos St.Icon se cargan a la resolución de ampliación máxima; se mantiene
-su asignación de tamaño normal y el compositor considera la escala de pantalla.
-No se recargan las imágenes en cada cuadro. Un recurso original de baja resolución
+Los iconos St.Icon conservan dos representaciones: una renderizada al tamaño
+normal para el reposo y otra a la resolución de ampliación máxima. Reducir siempre
+la imagen grande suavizaba los detalles pequeños. Ambas comparten el mismo recurso,
+tema y asignación; el compositor considera la escala de pantalla. Se intercambia
+la representación al empezar o terminar la ampliación, sin variar su opacidad ni
+recargar imágenes en cada cuadro. Un recurso original de baja resolución
 puede seguir limitado: el aumento de resolución solicitada no inventa detalle.
 El material no reproduce el shader Liquid Glass de Apple.
+
+La regresión `tests/icon-resolution-runtime.js` dibuja un patrón SVG de líneas
+finas, una referencia nativa y el método anterior en una sesión aislada. La
+comparación de píxeles verifica que el reposo coincide con la referencia y que
+el control antiguo reproduce el desenfoque. También comprueba que un barrido
+de 120 cambios de escala reutiliza las texturas y que la desactivación elimina
+la representación adicional y restaura el tamaño solicitado.
+
+Verificado en GNOME 51.1 al 100 % y 125 %, con ventanas y dos monitores; en
+GNOME 50.6 se verificó el renderizado nativo y la restauración. En las tres
+comparaciones el error frente a la referencia fue cero. Esto no elimina las
+limitaciones de los iconos originales ni del escalado fraccional del compositor.
+El ensayo de escala cierra primero la vista general: cambiar los monitores con
+previsualizaciones de ventanas abiertas provoca avisos de asignación en GNOME
+51.1, reproducidos también con el dock anterior a esta corrección.
 
 La vista desplazable usa el volumen de dibujo de sus hijos para la detección del
 puntero. En GNOME 50, StScrollView lo limita a su asignación y StViewport recorta

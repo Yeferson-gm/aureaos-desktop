@@ -4,6 +4,8 @@
     const {default: St} = await import('gi://St');
     const wait = ms => new Promise(resolve => GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {resolve(); return GLib.SOURCE_REMOVE;}));
     if (GLib.getenv('AUREA_TEST_SCALE')) {
+        Main.overview.hide();
+        await wait(500);
         const call = (method, params) => new Promise((resolve, reject) => Gio.DBus.session.call('org.gnome.Mutter.DisplayConfig', '/org/gnome/Mutter/DisplayConfig', 'org.gnome.Mutter.DisplayConfig', method, params, null, Gio.DBusCallFlags.NONE, 10000, null, (connection, result) => {
             try { resolve(connection.call_finish(result).recursiveUnpack()); } catch (error) { reject(error); }
         }));
@@ -27,6 +29,8 @@
     dockManager.settings.set_double('magnification-max-scale', 1.75);
     Main.overview.hide();
     await wait(800);
+    const {testIconResolution} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/icon-resolution-runtime.js`);
+    await testIconResolution(ext.path, wait);
     const {testLayout} = await import(`file://${GLib.getenv('DI_PROJECT_DIR')}/tests/layout-regression.js`);
     await testLayout(dockManager, wait);
     const controller = dockManager.mainDock.dash._magnification;
@@ -56,7 +60,7 @@
         if (!scalable || !(icon instanceof St.Icon)) continue;
         const required = Math.ceil(dockManager.mainDock.dash.iconSize * controller._maximumScale());
         if (icon.icon_size < required) throw new Error('Icono solicitado a resolución insuficiente');
-        const texture = icon.get_first_child()?.get_content?.()?.get_texture?.();
+        const texture = icon.get_children().find(child => !(child instanceof St.Icon))?.get_content?.()?.get_texture?.();
         if (texture) {
             textures.push({requested: required, texture: texture.get_width(), allocation: icon.width});
             if (texture.get_width() < required) throw new Error('Textura cargada insuficiente');

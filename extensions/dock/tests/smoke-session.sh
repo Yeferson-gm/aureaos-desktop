@@ -35,6 +35,7 @@ for attempt in {1..90}; do
 done
 cat "$DI_TEST_DIR/result.txt"
 rg -q '^PASS:' "$DI_TEST_DIR/result.txt"
+/usr/bin/python3 "$DI_PROJECT_DIR/tests/check-icon-sharpness.py" "$DI_TEST_DIR"
 /usr/bin/python3 "$DI_PROJECT_DIR/tests/check-glass-corners.py" "$DI_TEST_DIR"
 GI_TYPELIB_PATH=/usr/lib64/gnome-shell/girepository-1.0 gjs -m "$DI_PROJECT_DIR/tests/prefs-runtime.js" >"$DI_TEST_DIR/prefs.log" 2>&1
 cat "$DI_TEST_DIR/prefs.log"

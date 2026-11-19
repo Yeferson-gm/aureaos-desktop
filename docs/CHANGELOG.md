@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.16.2
+
+- Corrige los iconos suavizados del dock en reposo: se renderizan a su tamaño
+  normal y conservan otra representación para la ampliación, sin recargas por cuadro.
+- Añade una comparación visual automatizada contra iconos nativos y el método
+  anterior, con comprobaciones de reutilización de texturas y desactivación.
+
 ## 0.6.1
 
 - Unifica acceso GDM y bloqueo en un solo módulo global: Aurea 27 · Acceso y bloqueo.
