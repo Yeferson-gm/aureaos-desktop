@@ -654,5 +654,34 @@ actualizado; `--check` verifica archivos, no la versión ya cargada en memoria.
 ## Espacios laterales y acceso rápido
 
 Consultar [diseño y uso de las islas](docs/islas-diseno.md): favoritas, grupos,
-archivos copiados, contenido de carpetas, estadísticas en el borde opuesto y
+archivos copiados, contenido de carpetas, baterías en el borde opuesto y
 apertura por hover de la isla superior. Los atajos y preferencias se conservan.
+
+Las [mejoras basadas en los videos](docs/referencias-islas-musica.md) incluyen
+cola musical MPRIS, controles más claros, movimiento del dock con continuidad de
+velocidad e islas laterales completamente ocultas en reposo. Favoritas se revela
+en el centro del borde configurado; dispositivos en el opuesto. Con dos pantallas,
+si el borde opuesto es compartido, dispositivos usa la zona inferior del borde
+exterior de favoritas. Estadísticas aparece al pasar por el borde inferior cerca
+de la esquina izquierda. No hay botones o indicadores permanentes en esas zonas.
+
+Para instalar los tres componentes desde el paquete construido:
+
+```bash
+./aurea.sh build
+aurea_version=$(git describe --tags --exact-match HEAD)
+aurea_version=${aurea_version#v}
+aurea_paquete="dist/aurea-27-$aurea_version"
+for aurea_componente in dynamic-island app-island dock; do
+  ./aurea.sh install "$aurea_paquete" --component="$aurea_componente" --apply
+  ./aurea.sh install "$aurea_paquete" --component="$aurea_componente" --check
+done
+aurea_schema="$HOME/.local/share/gnome-shell/extensions/dynamic-island-gnome50@local/schemas"
+gsettings --schemadir "$aurea_schema" set org.gnome.shell.extensions.dynamic-island hover-open true
+gsettings --schemadir "$aurea_schema" set org.gnome.shell.extensions.dynamic-island auto-close true
+```
+
+`build` exige una etiqueta Git y un árbol limpio; no sobrescribe paquetes existentes.
+Cerrar sesión y volver a entrar carga el nuevo código. Para apertura superior solo
+con clic, establecer `hover-open false`. Las baterías no requieren paquetes nuevos;
+el porcentaje depende de que UPower o el dispositivo Bluetooth lo publiquen.

@@ -15,6 +15,7 @@ import {
     magnificationLevel,
     magnifiedScale,
     settleToward,
+    springToward,
 } from './magnification-math.js';
 import {lensOffset} from './lens-math.js';
 import {IconResolution} from './icon-resolution.js';
@@ -284,10 +285,13 @@ export class MagnificationController {
     _applyState(actor, targetScale, targetOffset, elapsedMs) {
         const state = this._states.get(actor) ?? {scale: 1, offset: 0};
         const responseMs = this._responseMs();
-        const nextScale = settleToward(state.scale, targetScale, elapsedMs, responseMs);
-        const nextOffset = settleToward(state.offset, targetOffset, elapsedMs, responseMs);
+        const scaleSpring = springToward(state.scale, state.scaleVelocity ?? 0, targetScale, elapsedMs, responseMs);
+        const offsetSpring = springToward(state.offset, state.offsetVelocity ?? 0, targetOffset, elapsedMs, responseMs);
+        const nextScale = clamp(scaleSpring.value, 1, this._maximumScale());
+        const nextOffset = offsetSpring.value;
         const settled = Math.abs(nextScale - targetScale) <= SCALE_EPSILON &&
-            Math.abs(nextOffset - targetOffset) <= OFFSET_EPSILON;
+            Math.abs(nextOffset - targetOffset) <= OFFSET_EPSILON &&
+            Math.abs(scaleSpring.velocity) < 0.02 && Math.abs(offsetSpring.velocity) < 0.5;
         const scale = settled ? targetScale : nextScale;
         const offset = settled ? targetOffset : nextOffset;
         const [pivotX, pivotY] = this._pivot();
@@ -302,7 +306,8 @@ export class MagnificationController {
         else
             actor.translation_y = offset;
 
-        this._states.set(actor, {scale, offset});
+        this._states.set(actor, {scale, offset, scaleVelocity: settled || nextScale !== scaleSpring.value ? 0 : scaleSpring.velocity,
+            offsetVelocity: settled ? 0 : offsetSpring.velocity});
         return !settled;
     }
 

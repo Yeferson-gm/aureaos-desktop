@@ -78,14 +78,19 @@ export class Statistics {
         if (!open) {
             this.owner._clear(this.detailTimer); this.detailTimer = 0;
             this.cancel?.cancel(); this.cancel = null;
-            this.actor.remove_all_transitions(); this.actor.hide(); this.previous = null; this.netPrevious = null;
+            this.actor.remove_all_transitions();
+            this.actor.ease({opacity: 0, translation_y: 8, duration: this.owner._duration(150), mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+                onComplete: () => { if (!this.open) this.actor.hide(); }});
+            this.previous = null; this.netPrevious = null;
             this.pinned = false; this.pin.remove_style_class_name('ai-selected'); this.pin.accessible_name = 'Mantener abierto';
             if (this.capture) global.stage.disconnect(this.capture); this.capture = 0;
             return;
         }
         this.history = {}; this.select(null); this.cancel = new Gio.Cancellable();
-        this.actor.show(); this.position(); this.actor.opacity = 0;
-        this.actor.ease({opacity: 255, duration: this.owner._duration(160), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+        const visible = this.actor.visible;
+        this.actor.remove_all_transitions(); this.actor.show(); this.position();
+        if (!visible) { this.actor.opacity = 0; this.actor.translation_y = 8; }
+        this.actor.ease({opacity: 255, translation_y: 0, duration: this.owner._duration(160), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
         this.capture = global.stage.connect('captured-event', (_stage, event) => {
             if (event.type() === Clutter.EventType.KEY_PRESS && event.get_key_symbol() === Clutter.KEY_Escape) { this.show(false); return Clutter.EVENT_PROPAGATE; }
             if (event.type() === Clutter.EventType.BUTTON_PRESS) {
@@ -268,6 +273,6 @@ export class Statistics {
     destroy() {
         this.show(false); if (this.hoverTimer) GLib.Source.remove(this.hoverTimer);
         Main.layoutManager.removeChrome(this.actor); Main.layoutManager.removeChrome(this.trigger);
-        this.actor.destroy(); this.trigger.destroy();
+        this.actor.remove_all_transitions(); this.actor.destroy(); this.trigger.destroy();
     }
 }

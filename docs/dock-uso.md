@@ -1,5 +1,11 @@
 # Dock Aurea: ajustes y verificación
 
+La ampliación usa un resorte críticamente amortiguado: cada icono conserva su
+velocidad cuando el cursor cambia de dirección y converge sin rebote decorativo.
+La solución analítica da el mismo resultado con pasos de 10 y 20 ms; pausas largas
+se limitan a 64 ms por cuadro. Al estabilizarse se detiene la programación de
+cuadros. Se conserva el anclaje inferior y la preferencia de respuesta existente.
+
 ## Uso
 
 Abrir las preferencias con:
@@ -15,7 +21,7 @@ no borra favoritos, posición, monitor ni acciones del ratón.
 
 Se conservan los ajustes personales de ampliación y tamaño. Para comparar un
 movimiento más contenido se puede elegir 1,60× en Ampliación máxima. El valor
-Respuesta es una constante de suavizado exponencial, no la duración total.
+Respuesta regula la rapidez del resorte de los iconos y del suavizado del fondo; no es la duración total.
 
 El movimiento reducido de GNOME detiene la ampliación y el rebote, restaura los
 iconos y no deja un bucle activo. El lanzamiento da como máximo un salto, que se

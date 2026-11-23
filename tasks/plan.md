@@ -1,5 +1,15 @@
 # Barra superior: implementación aprobada
 
+## Referencias Droppy y ExtraDock, 18 de noviembre
+
+Aplicación autorizada de ambos videos: música, cola MPRIS, baterías al pasar el
+cursor, favoritas ocultas y movimiento del dock. Omitir efectos de nieve y nuevas
+funciones de carpetas de la demostración. Conservar datos y recursos actuales.
+Especificación y límites: `docs/referencias-islas-musica.md`.
+Validar en Shell aislado los punteros, estados ausentes y respuestas tardías,
+cierre sin captura de entrada, dos monitores, movimiento reducido y reposo sin
+sondeo. Instalar únicamente dynamic-island, app-island y dock desde etiqueta Git.
+
 Especificación: los 56 puntos de `docs/investigacion-topbar.md`.
 Conservar UUID, JSON y colores elegidos; no alterar la isla ni otros diseños.
 

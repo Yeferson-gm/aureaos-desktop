@@ -19,7 +19,7 @@ export GTK_A11Y=none
 unset DISPLAY
 test_extension="$XDG_DATA_HOME/gnome-shell/extensions/dynamic-island-gnome50@local"
 mkdir -p "$test_extension"
-cp "$project_dir/"{extension.js,context-tools.js,activities.js,motion.js,workspace.js,workspace-model.js,workspace-editor.js,assistants.js,content-models.js,media-extras.js,music-tools.js,music-panel.js,music-model.js,studio.js,agent-bridge.js,aurea-task.py,audio-meter.js,audio-tools.py,shelf-bridge.js,shelf-window.py,file-services.js,ornaments.js,app-launcher.js,prefs.js,file-tools.py,hardware-metrics.py,metadata.json,stylesheet.css} "$test_extension/"
+cp "$project_dir/"{extension.js,context-tools.js,activities.js,motion.js,workspace.js,workspace-model.js,workspace-editor.js,assistants.js,content-models.js,media-extras.js,music-tools.js,music-panel.js,music-queue.js,music-model.js,studio.js,agent-bridge.js,aurea-task.py,audio-meter.js,audio-tools.py,shelf-bridge.js,shelf-window.py,file-services.js,ornaments.js,app-launcher.js,prefs.js,file-tools.py,hardware-metrics.py,metadata.json,stylesheet.css} "$test_extension/"
 cp -aL "$project_dir/shared" "$test_extension/"
 cp -a "$project_dir/schemas" "$test_extension/"
 cp -a "$project_dir/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-test-driver@local"

@@ -1,5 +1,6 @@
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 export async function testPointer(d, wait) {
     if (!GLib.getenv('DI_TEST_DIR')) throw Error('Isolated session only');
     const pointer = global.stage.context.get_backend().get_default_seat().create_virtual_device(Clutter.InputDeviceType.POINTER_DEVICE);
@@ -17,6 +18,35 @@ export async function testPointer(d, wait) {
         pointer.notify_button(GLib.get_monotonic_time(), mouse, Clutter.ButtonState.RELEASED); await wait(300);
     };
     try {
+        Main.overview.hide(); await wait(400);
+        d._setOpen(false); await move(640, 40); await wait(650);
+        if (d._root.visible || d._root.opacity !== 0) throw Error('Favorites leave a visible handle');
+        const [ex, ey] = d._edgeTrigger.get_transformed_position();
+        await move(ex + 1, ey + d._edgeTrigger.height / 2); await wait(450);
+        if (!d._root.visible || d._root.opacity !== 255 || d._root.translation_x !== 0)
+            throw Error(`Invisible edge does not reveal favorites: overview=${Main.overview.visible}, edge=${d._edgeTrigger.visible}, hover=${d._edgeTrigger.hover}`);
+        await move(640, 40); await wait(650);
+        const devices = d._devices;
+        devices.loader = async () => [{id: 'mouse', name: 'Mouse de prueba', percentage: 72, icon: 'input-mouse-symbolic'},
+            {id: 'headset', name: 'Audífonos de prueba', percentage: 0, icon: 'audio-headphones-symbolic'},
+            {id: 'keyboard', name: 'Teclado de prueba', percentage: null, icon: 'input-keyboard-symbolic'}];
+        const [dx, dy] = devices.trigger.get_transformed_position();
+        await move(dx + 1, dy + devices.trigger.height / 2); await wait(500);
+        if (!devices.open || devices.rows.get_n_children() !== 3) throw Error('Device island does not open on hover');
+        const [deviceX, deviceY] = devices.actor.get_transformed_position();
+        await move(deviceX + devices.actor.width / 2, deviceY + 35); await wait(500);
+        if (!devices.open || d._grab) throw Error('Device island closes while entering or captures the screen');
+        const {default: Gio} = await import('gi://Gio');
+        const {default: Shell} = await import('gi://Shell');
+        const stream = Gio.File.new_for_path(`${GLib.getenv('DI_TEST_DIR')}/devices.png`).replace(null, false, Gio.FileCreateFlags.NONE, null);
+        await new Shell.Screenshot().screenshot(false, stream); stream.close(null);
+        await move(640, 40); await wait(700);
+        if (devices.open || devices.actor.visible || devices.cancel || devices.subscriptions.length)
+            throw Error('Hidden device island leaves drawing or subscriptions');
+        let resolve;
+        devices.loader = () => new Promise(done => { resolve = done; });
+        devices.show(true); devices.show(false, false); resolve([]); await wait(100);
+        if (devices.actor.visible) throw Error('Late battery reply reopens the island');
         d._setOpen(true); d._switch('favorites'); await wait(400);
         const [, top] = d._scroll.get_transformed_position();
         const [, height] = d._scroll.get_transformed_size();

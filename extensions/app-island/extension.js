@@ -12,6 +12,7 @@ import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import {DEFAULTS, normalize, categoryFor} from './model.js';
 import {Statistics} from './statistics.js';
+import {DeviceIsland} from './device-island.js';
 import {QuickPreview} from './quick-preview.js';
 import {Store} from './store.js';
 import {column, label, button, buttonContent, entry, edit} from './ui.js';
@@ -54,28 +55,27 @@ export default class AppIsland extends Extension {
         this._handle.set_child(new St.Widget({width: 2, height: 24, opacity: 0}));
         this._root.add_child(this._handle);
         Main.layoutManager.addChrome(this._root, {trackFullscreen: true});
+        this._edgeTrigger = new St.Widget({reactive: true, track_hover: true, accessible_name: 'Mostrar favoritas'});
+        Main.layoutManager.addChrome(this._edgeTrigger, {trackFullscreen: true});
+        this._connect(this._edgeTrigger, 'notify::hover', () => this._scheduleReveal());
         for (const prop of ['x', 'y', 'width', 'height', 'translation-x'])
             this._connect(this._root, `notify::${prop}`, () => this._clip());
-        this._connect(this._root, 'notify::hover', () => {
-            this._clear(this._edgeTimer);
-            if (this._open || this._dragging) return;
-            this._edgeTimer = this._timeout(this._root.hover ? this.settings.delay : this.settings.hideDelay,
-                () => this._reveal(this._root.hover));
-        });
+        this._connect(this._root, 'notify::hover', () => this._scheduleReveal());
         this._connect(this._appSystem, 'app-state-changed', () => this._updateStates());
         this._connect(this._appSystem, 'installed-changed', () => this._render());
         this._connect(Main.layoutManager, 'monitors-changed', () => { this._setOpen(false); this._layout(); });
-        this._connect(global.display, 'in-fullscreen-changed', () => { this._statistics?.show(false); this._quickPreview?.close(); });
-        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); this._quickPreview?.close(); this._statistics?.show(false); this._statistics?.trigger.hide(); });
-        this._connect(Main.overview, 'hidden', () => { this._root.show(); this._statistics?.layout(); });
+        this._connect(global.display, 'in-fullscreen-changed', () => { this._setOpen(false); this._layout(); });
+        this._connect(Main.overview, 'showing', () => { this._setOpen(false); this._root.hide(); this._quickPreview?.close(); this._statistics?.show(false); this._statistics?.trigger.hide(); this._edgeTrigger.hide(); this._devices?.show(false, false); this._devices?.trigger.hide(); });
+        this._connect(Main.overview, 'hidden', () => this._timeout(0, () => this._layout()));
         this._connect(this._interface, 'changed', () => { this._theme(); this._layout(); });
-        this._connect(this._a11y, 'changed', () => this._theme());
+        this._connect(this._a11y, 'changed', () => { this._theme(); this._devices?.layout(); });
         this._connect(global.display, 'accelerator-activated', (_d, action) => {
             if (action === this._accelerator) this._setOpen(!this._open);
         });
         this._quickPreview = new QuickPreview(this);
         this._shortcut(); this._buildPanel(); this._renderBar(); this._layout(); this._theme();
         this._statistics = new Statistics(this);
+        this._devices = new DeviceIsland(this);
         if (Main.overview.visible) this._root.hide();
     }
     get settings() { return this._model.settings; }
@@ -116,7 +116,7 @@ export default class AppIsland extends Extension {
         const height = Math.max(112 * scale, Math.min(work.height - 24 * scale,
             this._open ? Math.max(260 * scale, Math.min(content, 620 * scale)) : this._bar.get_preferred_height(width)[1]));
         const side = this._side();
-        return {x: side === 'right' ? m.x + m.width - width - 8 * scale : m.x + 8 * scale,
+        return {x: side === 'right' ? m.x + m.width - width - (this._open ? 8 : 0) * scale : m.x + (this._open ? 8 : 0) * scale,
             y: work.y + Math.round((work.height - height) / 2), width, height};
     }
     _layout() {
@@ -125,7 +125,17 @@ export default class AppIsland extends Extension {
         const g = this._geometry(); if (!g) return;
         this._root.remove_all_transitions(); this._root.set_position(g.x, g.y); this._root.set_size(g.width, g.height);
         this._handle.x_align = this._side() === 'right' ? Clutter.ActorAlign.START : Clutter.ActorAlign.END;
-        this._reveal(this._open || this._root.hover, false); this._clip(); this._statistics?.layout();
+        this._layoutEdge(g);
+        this._reveal(this._open || this._root.hover || this._edgeTrigger.hover, false);
+        this._clip(); this._statistics?.layout(); this._devices?.layout();
+    }
+    _layoutEdge(g) {
+        const m = this._monitor();
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const edge = this.settings.edge * scale;
+        this._edgeTrigger.set_position(this._side() === 'right' ? m.x + m.width - edge : m.x, g.y);
+        this._edgeTrigger.set_size(edge, g.height);
+        this._edgeTrigger.visible = !this._sharedEdge && !(Main.overview.visibleTarget ?? Main.overview.visible) && !global.display.get_monitor_in_fullscreen(m.index);
     }
     _clip() {
         if (!this._root) return;
@@ -136,12 +146,21 @@ export default class AppIsland extends Extension {
             Math.max(0, Math.min(a.height, m.y + m.height - y) - top));
         this._mask.resize(a.width, a.height, 22 * St.ThemeContext.get_for_stage(global.stage).scale_factor);
     }
+    _scheduleReveal() {
+        this._clear(this._edgeTimer);
+        if (this._open || this._dragging) return;
+        const show = this._root.hover || this._edgeTrigger.hover;
+        this._edgeTimer = this._timeout(show ? this.settings.delay : this.settings.hideDelay,
+            () => this._reveal(this._root.hover || this._edgeTrigger.hover));
+    }
     _reveal(show, animate = true) {
         if (!show && this._quickPreview?.actor) return;
         if (this._sharedEdge && !this._open) show = false;
-        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        const offset = show ? 0 : (this._root.width + (8 - this.settings.edge) * scale) * (this._side() === 'right' ? 1 : -1);
-        this._root.ease({translation_x: offset, duration: animate ? this._duration(180) : 0, mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+        const offset = show ? 0 : this._root.width * (this._side() === 'right' ? 1 : -1);
+        this._root.show();
+        this._root.ease({translation_x: offset, opacity: show ? 255 : 0,
+            duration: animate ? this._duration(show ? 220 : 180) : 0, mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            onComplete: () => { if (!show && !this._open) this._root.hide(); }});
     }
     _shortcut() {
         if (this._accelerator) {
@@ -157,6 +176,7 @@ export default class AppIsland extends Extension {
         if (!this._root || this._open === open) return;
         this._clear(this._edgeTimer); this._clear(this._previewTimer); this._clearPopup();
         this._open = open;
+        this._root.show(); this._root.opacity = 255;
         if (open) {
             this._previousFocus = global.stage.get_key_focus();
             this._grab = Main.pushModal(this._root, {actionMode: Shell.ActionMode.POPUP});
@@ -173,7 +193,7 @@ export default class AppIsland extends Extension {
         }
         const g = this._geometry();
         this._root.ease({...g, translation_x: 0, duration: this._duration(open ? 240 : 180), mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
-            onComplete: () => { if (!this._open) this._reveal(this._root.hover); }});
+            onComplete: () => { if (!this._open) { this._layoutEdge(this._geometry()); this._reveal(this._root.hover); } }});
         this._theme();
         if (open) this._search.grab_key_focus();
     }
@@ -214,7 +234,7 @@ export default class AppIsland extends Extension {
         this._root.set_style_class_name(`ai-root ${dark ? 'ai-dark' : 'ai-light'}${contrast ? ' ai-contrast' : ''}${this.settings.density === 'compact' ? ' ai-compact' : ''}`);
         const solid = contrast || this.settings.material === 'solid';
         if (solid) this._root.add_style_class_name('ai-solid');
-        if (!this._open) this._root.add_style_class_name('ai-rail');
+        if (!this._open) { this._root.add_style_class_name('ai-rail'); this._root.add_style_class_name(`ai-edge-${this._side()}`); }
         this._blur.set_enabled(this._open && !solid);
     }
     _save() {
@@ -289,6 +309,7 @@ export default class AppIsland extends Extension {
         open.add_style_class_name('ai-rail-button'); this._bar.add_child(open);
     }
     disable() {
+        this._devices?.destroy(); this._devices = null;
         this._quickPreview?.destroy(); this._quickPreview = null;
         this._statistics?.destroy(); this._statistics = null;
         this._clearPopup(); this._release();
@@ -299,6 +320,7 @@ export default class AppIsland extends Extension {
             Main.wm.allowKeybinding(Meta.external_binding_name_for_action(this._accelerator), Shell.ActionMode.NONE);
             global.display.ungrab_accelerator(this._accelerator);
         }
+        Main.layoutManager.removeChrome(this._edgeTrigger); this._edgeTrigger.destroy();
         this._root.remove_all_transitions(); Main.layoutManager.removeChrome(this._root); this._root.destroy(); this._root = null;
         this._rows.clear(); this._pending.clear(); this._model = this._store = null;
     }

@@ -4,7 +4,7 @@
     <key name="theme" type="s"><default>'dark'</default><choices><choice value="dark"/><choice value="glass"/></choices><summary>Tema de la isla</summary></key>
     <key name="opacity" type="d"><default>1.0</default><range min="0.65" max="1.0"/><summary>Opacidad del fondo</summary></key>
     <key name="animations" type="b"><default>true</default><summary>Animaciones</summary></key>
-    <key name="hover-open" type="b"><default>false</default><summary>Abrir al pasar el cursor</summary></key>
+    <key name="hover-open" type="b"><default>true</default><summary>Abrir al pasar el cursor</summary></key>
     <key name="hover-delay" type="i"><default>450</default><range min="200" max="1500"/><summary>Espera al pasar el cursor</summary></key>
     <key name="auto-close" type="b"><default>true</default><summary>Cerrar al salir cuando se abrió por hover</summary></key>
     <key name="hide-fullscreen" type="b"><default>true</default><summary>Ocultar en pantalla completa</summary></key>

@@ -50,7 +50,7 @@ const PAD = 46;
 const PAGE_H = 160;
 const PAGE_CLIP_LIST = 190;
 const ISLAND_W = WIDTH + PAD * 2;
-const ART = 96;
+const ART = 80;
 const GAP = 16;
 const RIGHT = WIDTH - ART - GAP;
 const BAR_COUNT = 4;
@@ -328,6 +328,7 @@ export default class DynamicIsland extends Extension {
 
     disable() {
         this._alive = false;
+        this._musicTools?.queue?.destroy();
         this._workspace?.editor.close(false, false);
         this._contextTools?.destroy();
         this._contextTools = null;
@@ -1455,7 +1456,7 @@ export default class DynamicIsland extends Extension {
 
         this._seek = new Slider(0);
         this._seek.add_style_class_name('di-slider');
-        this._seek.set_width(RIGHT);
+        this._seek.set_width(WIDTH);
         this._seek.connect('drag-begin', () => {
             this._seekDrag = true;
             this._seekTrackKey = this._musicTools.track.key;
@@ -1471,21 +1472,19 @@ export default class DynamicIsland extends Extension {
             if (this._seekDrag) this._setTimes(this._seek.value * this._length);
             else if (this._length > 0) this._seekTo(this._seek.value * this._length);
         });
-        right.add_child(this._seek);
 
-        const times = new St.BoxLayout({style_class: 'di-times', width: RIGHT});
+        const times = new St.BoxLayout({style_class: 'di-times', width: WIDTH});
         this._elapsed = new St.Label({text: '0:00', style_class: 'di-time'});
         this._remaining = new St.Label({text: '-0:00', style_class: 'di-time'});
         times.add_child(this._elapsed);
         times.add_child(new St.Widget({x_expand: true}));
         times.add_child(this._remaining);
-        right.add_child(times);
 
         const controls = new St.BoxLayout({style_class: 'di-controls di-music-transport', width: WIDTH, y_align: Clutter.ActorAlign.CENTER});
         controls.add_child(new St.Widget({x_expand: true}));
         const addControl = (icon, cb, kind = '') => {
             const button = new St.Button({style_class: `di-control ${kind}`.trim(), reactive: true, can_focus: true});
-            const ic = new St.Icon({icon_name: icon, icon_size: kind === 'di-primary' ? 26 : 17});
+            const ic = new St.Icon({icon_name: icon, icon_size: kind === 'di-primary' ? 30 : 20});
             button.set_child(ic);
             button.connect('clicked', cb);
             controls.add_child(button);
@@ -1500,6 +1499,9 @@ export default class DynamicIsland extends Extension {
         controls.add_child(new St.Widget({x_expand: true}));
         main.add_child(right);
         page.add_child(main);
+        const progress = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-music-progress'});
+        progress.add_child(this._seek); progress.add_child(times);
+        page.add_child(progress);
         page.add_child(controls);
         this._largeArt = new St.Bin({style_class: 'di-art', width: WIDTH, height: 260, visible: false});
         page.add_child(this._largeArt);
@@ -3007,13 +3009,19 @@ export default class DynamicIsland extends Extension {
 
 
     _setupBluetooth() {
+        this._bluetoothEpoch = new Map();
         this._readBluetoothDevices();
         this._subscribe('org.bluez', PROPS, 'PropertiesChanged', null, null, () => this._readBluetoothDevices());
+        this._subscribe('org.bluez', 'org.freedesktop.DBus.ObjectManager', 'InterfacesAdded', null, null, () => this._readBluetoothDevices());
+        this._subscribe('org.bluez', 'org.freedesktop.DBus.ObjectManager', 'InterfacesRemoved', null, null, () => this._readBluetoothDevices());
         this._subscribe('org.bluez', PROPS, 'PropertiesChanged', null, 'org.bluez.Device1', (_c, _s, path, _i, _sig, params) => {
             const [, changed] = params.recursiveUnpack();
             if (!('Connected' in changed)) return;
             const connected = !!changed.Connected;
+            const generation = (this._bluetoothEpoch.get(path) ?? 0) + 1;
+            this._bluetoothEpoch.set(path, generation);
             this._call('org.bluez', path, PROPS, 'GetAll', new GLib.Variant('(s)', ['org.bluez.Device1']), reply => {
+                if (this._bluetoothEpoch.get(path) !== generation) return;
                 const [d] = reply.recursiveUnpack();
                 const name = d.Alias ?? d.Name ?? 'Dispositivo';
                 const kind = String(d.Icon ?? '');
@@ -3023,7 +3031,15 @@ export default class DynamicIsland extends Extension {
                 else if (/mouse/.test(kind)) icon = 'input-mouse-symbolic';
                 else if (/phone/.test(kind)) icon = 'phone-symbolic';
                 if (!connected) icon = 'bluetooth-disabled-symbolic';
-                this._toast({icon, text: connected ? `${name} conectado` : `${name} desconectado`, ms: 2800});
+                if (!connected) { this._toast({icon, text: `${name} desconectado`, ms: 2800}); return; }
+                Gio.DBus.system.call('org.bluez', path, PROPS, 'GetAll', new GLib.Variant('(s)', ['org.bluez.Battery1']),
+                    null, Gio.DBusCallFlags.NONE, 1500, this._cancel, (bus, result) => {
+                        let percent;
+                        try { percent = bus.call_finish(result).recursiveUnpack()[0].Percentage; } catch {}
+                        if (!this._alive || this._bluetoothEpoch.get(path) !== generation) return;
+                        const battery = Number.isFinite(percent) && percent >= 0 && percent <= 100 ? ` · ${percent}%` : '';
+                        this._toast({icon, text: `${name} conectado${battery}`, ms: 2800});
+                    });
             });
         });
     }
@@ -3746,7 +3762,7 @@ export default class DynamicIsland extends Extension {
             const artists = metadata['xesam:artist'] ?? [];
             this._artist.set_text(Array.isArray(artists)
                 ? (artists.join(', ') || 'Artista desconocido') : String(artists));
-            this._playerLabel.set_text(this._playerName(name));
+            this._playerLabel.set_text(this._musicTools.player === name && this._musicTools.identity || this._playerName(name));
             this._play.icon_name = this._status === 'Playing'
                 ? 'media-playback-pause-symbolic' : 'media-playback-start-symbolic';
             this._shuffle = !!props.Shuffle;
@@ -3815,7 +3831,13 @@ export default class DynamicIsland extends Extension {
 
     _showArt(path) {
         if (this._compactArt) this._compactArt.gicon = path ? Gio.FileIcon.new(Gio.File.new_for_path(path)) : Gio.ThemedIcon.new('audio-x-generic-symbolic');
+        const changed = this._artPath !== path;
         this._artPath = path;
+        if (changed && this._menu?.isOpen && this._tab === 'music') {
+            this._art.remove_all_transitions();
+            this._art.opacity = 180;
+            this._art.ease({opacity: 255, duration: this._duration(180), mode: Clutter.AnimationMode.EASE_OUT_CUBIC});
+        }
         if (this._largeArt) this._largeArt.set_style(path ?
             `background-image: url("${GLib.filename_to_uri(path, null)}"); background-size: contain;` : '');
         this._musicSurface?.set_style('');

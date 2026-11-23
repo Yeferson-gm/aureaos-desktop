@@ -2,7 +2,17 @@
 .ai-surface { border-radius: 22px; background-color: rgba(245,247,251,0.94); border: 1px solid rgba(255,255,255,0.76); }
 .ai-dark { color: #f3f4f7; }
 .ai-solid .ai-surface { background-color: #f5f7fa; }
-.ai-rail .ai-surface { background-color: rgba(14,16,21,0.94); border-color: rgba(255,255,255,0.20); }
+.ai-rail .ai-surface { background-color: #050505; border-color: transparent; }
+.ai-edge-right .ai-surface { border-radius: 22px 0 0 22px; }
+.ai-edge-left .ai-surface { border-radius: 0 22px 22px 0; }
+.ai-device-island { background-color: #050505; color: #ffffff; padding: 18px 16px; spacing: 12px; }
+.ai-device-left { border-radius: 0 24px 24px 0; }
+.ai-device-right { border-radius: 24px 0 0 24px; }
+.ai-device-heading { color: #aeb1bb; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+.ai-device-list { spacing: 14px; }
+.ai-device-row { spacing: 12px; }
+.ai-device-name { color: #ffffff; font-size: 13px; font-weight: 600; }
+.ai-device-status { color: #b6bac5; font-size: 12px; padding-top: 4px; }
 .ai-bar { padding: 8px; spacing: 4px; }
 .ai-head { spacing: 10px; }
 .ai-title { font-size: 18px; font-weight: 600; }
@@ -78,7 +88,7 @@
 .ai-metric-content .ai-muted { font-size: 10px; max-width: 80px; }
 .ai-metric-value { font-size: 18px; font-weight: 600; max-width: 100px; }
 .ai-stat-strip .ai-chart { margin: 0; }
-.ai-stat-trigger { background-color: rgba(220,225,235,0.35); border-radius: 3px; }
+.ai-stat-trigger { background-color: transparent; }
 .ai-statistics .ai-stat-hero { font-size: 32px; font-weight: 500; }
 
 .ai-brand-icon { color: #74b8ff; padding: 5px; border-radius: 10px; background-color: rgba(83,160,255,0.12); }

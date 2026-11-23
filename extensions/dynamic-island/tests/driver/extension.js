@@ -43,6 +43,24 @@ export default class Driver extends Extension {
         this._root.export(Gio.DBus.session, '/org/mpris/MediaPlayer2');
         this._object = Gio.DBusExportedObject.wrapJSObject(xml, fixture);
         this._object.export(Gio.DBus.session, '/org/mpris/MediaPlayer2');
+        const ids = ['/org/mpris/MediaPlayer2/track/test', '/org/mpris/MediaPlayer2/track/next'];
+        const queue = {
+            Tracks: [...ids], CanEditTracks: true,
+            GetTracksMetadata(tracks) { return tracks.map(id => ({'mpris:trackid': new GLib.Variant('o', id),
+                'xesam:title': new GLib.Variant('s', id === ids[0] ? 'Pista de prueba MPRIS' : 'Siguiente canción'),
+                'xesam:artist': new GLib.Variant('as', ['Artista de prueba'])})); },
+            GoTo(id) { this.selected = id; },
+            RemoveTrack(id) { this.Tracks = this.Tracks.filter(track => track !== id); },
+        };
+        this.queue = queue;
+        this._queue = Gio.DBusExportedObject.wrapJSObject(`<node><interface name="org.mpris.MediaPlayer2.TrackList">
+            <property name="Tracks" type="ao" access="read"/><property name="CanEditTracks" type="b" access="read"/>
+            <method name="GetTracksMetadata"><arg name="ids" type="ao" direction="in"/><arg name="metadata" type="aa{sv}" direction="out"/></method>
+            <method name="GoTo"><arg name="id" type="o" direction="in"/></method>
+            <method name="RemoveTrack"><arg name="id" type="o" direction="in"/></method>
+            <signal name="TrackListReplaced"><arg name="tracks" type="ao"/><arg name="current" type="o"/></signal>
+            </interface></node>`, queue);
+        this._queue.export(Gio.DBus.session, '/org/mpris/MediaPlayer2');
         this._owner = Gio.bus_own_name_on_connection(Gio.DBus.session, 'org.mpris.MediaPlayer2.islandfixture',
             Gio.BusNameOwnerFlags.NONE, null, null);
     }
@@ -50,6 +68,7 @@ export default class Driver extends Extension {
         if (this._owner) Gio.bus_unown_name(this._owner);
         this._object?.unexport();
         this._root?.unexport();
+        this._queue?.unexport();
         global.context.unsafe_mode = this._previous;
     }
 }

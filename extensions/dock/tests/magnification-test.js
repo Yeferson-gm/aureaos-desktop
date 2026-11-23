@@ -6,6 +6,7 @@ import {
     magnifiedScale,
     pointInExpandedBox,
     settleToward,
+    springToward,
 } from '../custom-effects/magnification-math.js';
 import {selectVisualActor} from '../custom-effects/actor-selection.js';
 
@@ -66,3 +67,17 @@ assertClose(offsets[1], 0, 'the active icon stays at the pointer anchor');
 assertClose(offsets[2], 22.5, 'right neighbours move away from the active icon');
 
 console.log('magnification-test: OK');
+
+const integrate = (step, target = 1.75) => {
+    let state = {value: 1, velocity: 0};
+    for (let ms = 0; ms < 240; ms += step) state = springToward(state.value, state.velocity, target, step, 100);
+    return state;
+};
+assertClose(integrate(10).value, integrate(20).value, 'Spring is independent of frame rate');
+const moving = integrate(20);
+const reverse = springToward(moving.value, moving.velocity, 1, 1, 100);
+if (Math.abs(reverse.value - moving.value) > .01) throw Error('Reversing pointer jumps');
+let rest = reverse;
+for (let i = 0; i < 100; i++) rest = springToward(rest.value, rest.velocity, 1, 16, 100);
+assertClose(rest.value, 1, 'Spring returns to native size');
+assertClose(rest.velocity, 0, 'Spring stops without an idle loop');

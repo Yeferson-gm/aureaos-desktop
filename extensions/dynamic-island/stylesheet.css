@@ -362,7 +362,7 @@
 .di-glance-value { color: #ffffff; font-size: 24px; font-weight: 600; }
 .di-glance-visual { spacing: 6px; }
 
-.di-page-music .di-music-transport { spacing: 14px; padding: 6px 0; }
+.di-page-music .di-music-transport { spacing: 10px; padding: 0; }
 .di-page-music .di-music-transport .di-control { color: #f5f5f7; min-width: 22px; min-height: 22px; }
 .di-page-music .di-music-transport .di-control.di-active { color: #ff7196; background-color: rgba(255,113,150,0.12); }
 .di-page-music .di-music-transport .di-control.di-favorite-active { color: #ffd36b; background-color: rgba(255,211,107,0.12); }
@@ -374,7 +374,19 @@
 .di-music-feedback { color: #d9dbe4; font-size: 11px; padding-top: 4px; }
 .di-page-music .di-chip:checked { color: #ffffff; background-color: rgba(255,255,255,0.14); }
 
-.di-page-music .di-music-nav-button { padding: 9px 12px; border-radius: 10px; font-size: 12px; background-color: #141416; color: #e9e9ee; }
+.di-page-music .di-music-nav-button { padding: 9px 7px; border-radius: 10px; font-size: 11px; background-color: #141416; color: #e9e9ee; }
+.di-music-progress { spacing: 3px; }
+.di-page-music .di-time { color: #b7b7c0; font-size: 11px; }
+.di-page-music .di-primary { background-color: #f2f2f7; color: #090909; border-radius: 24px; }
+.di-page-music .di-music-transport .di-primary StIcon { color: #090909; }
+.di-queue-heading { color: #f5f5f7; font-size: 12px; font-weight: 600; }
+.di-queue-row { border-radius: 10px; spacing: 4px; }
+.di-queue-current { background-color: #242428; }
+.di-queue-track { padding: 9px; border-radius: 10px; color: #ffffff; }
+.di-queue-track:hover, .di-queue-track:focus { background-color: #323238; }
+.di-queue-content { spacing: 10px; }
+.di-queue-title { color: #ffffff; font-size: 12px; font-weight: 600; }
+.di-queue-artist, .di-queue-empty { color: #b9bac5; font-size: 11px; }
 .di-page-music .di-music-nav-button:checked { background-color: #28282d; color: #ffffff; }
 .di-music-options { spacing: 10px; }
 .di-music-option-tabs { spacing: 4px; padding: 4px; border-radius: 12px; background-color: #151517; }

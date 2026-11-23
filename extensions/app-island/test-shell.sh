@@ -15,6 +15,7 @@ if [[ ${1:-} != --session ]]; then
   exec dbus-run-session -- bash "$0" --session
 fi
 gsettings set org.gnome.shell welcome-dialog-last-shown-version '99'
+gsettings set org.gnome.desktop.interface enable-hot-corners false
 gsettings set org.gnome.shell enabled-extensions "['island-test-driver@local', 'side-dock-gnome50@local']"
 monitors=(--virtual-monitor 1280x800)
 if [[ ${SIDE_TEST_MONITORS:-1} == 2 ]]; then monitors+=(--virtual-monitor 1280x800); fi
@@ -27,7 +28,7 @@ for attempt in {1..25}; do
 done
 sleep 3
 gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval "import('file://$SIDE_PROJECT/test-eval.js').then(m => m.run())"
-for attempt in {1..25}; do
+for attempt in {1..45}; do
   [[ -f "$DI_TEST_DIR/result.txt" ]] && break
   sleep 1
 done

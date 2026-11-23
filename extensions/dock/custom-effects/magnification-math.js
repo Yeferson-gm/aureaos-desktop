@@ -50,6 +50,18 @@ export function settleToward(current, target, elapsedMs, responseMs) {
     return current + (target - current) * progress;
 }
 
+export function springToward(current, velocity, target, elapsedMs, responseMs) {
+    if (elapsedMs <= 0) return {value: current, velocity};
+    if (responseMs <= 0) return {value: target, velocity: 0};
+    const elapsed = Math.min(elapsedMs, 64) / 1000;
+    const frequency = 2000 / responseMs;
+    const offset = current - target;
+    const impulse = velocity + frequency * offset;
+    const decay = Math.exp(-frequency * elapsed);
+    return {value: target + (offset + impulse * elapsed) * decay,
+        velocity: (velocity - frequency * impulse * elapsed) * decay};
+}
+
 
 
 

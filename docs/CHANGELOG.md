@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.17.0
+
+- Islas laterales sin marcas permanentes: favoritas desde el borde y baterías de
+  mouse, teclado, audífonos y equipo al pasar el cursor, con UPower/BlueZ.
+- Música con progreso de ancho completo, portada compacta, nombre del reproductor,
+  cola MPRIS, selección de pistas y retirada cuando la aplicación lo permite.
+- Avisos de conexión Bluetooth con porcentaje disponible; respuestas antiguas no
+  sustituyen un estado de conexión más reciente.
+- Apertura superior por hover activada por defecto, cierre suave de estadísticas
+  y movimiento del dock con velocidad continua al cambiar de dirección.
+- Mantiene los favoritos y archivos existentes, la nitidez de iconos y los límites
+  de monitor. Sin nuevos efectos de nieve ni funciones de carpetas de la referencia.
+
 ## 0.16.2
 
 - Corrige los iconos suavizados del dock en reposo: se renderizan a su tamaño

@@ -2,6 +2,7 @@ import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import St from 'gi://St';
+import {MusicQueue} from './music-queue.js';
 import {MusicPanel} from './music-panel.js';
 import {cleanFavorites, playbackRates, trackInfo, repeatLabel} from './music-model.js';
 
@@ -101,6 +102,7 @@ export class MusicTools {
         scroll.add_child(this.favoriteRows);
         this.library.add_child(scroll);
         page.add_child(this.library);
+        this.queue = new MusicQueue(this, page, navigation);
         this.status = e._label('', 'di-music-feedback', {width: 380, visible: false});
         this.status.clutter_text.set_line_wrap(true);
         page.add_child(this.status);
@@ -121,12 +123,13 @@ export class MusicTools {
     }
 
     togglePanel(panel) {
-        const target = panel === 'favorites' ? this.library : this.more;
+        const target = panel === 'favorites' ? this.library : panel === 'queue' ? this.queue.actor : this.more;
         const show = !target.visible;
-        this.library.visible = this.more.visible = false;
+        this.library.visible = this.more.visible = this.queue.actor.visible = false;
         target.visible = show;
+        if (panel === 'queue' && show) this.queue.refresh();
         if (panel === 'favorites' && show) this.renderFavorites();
-        for (const [button, box] of [[this.libraryButton, this.library], [this.moreButton, this.more]])
+        for (const [button, box] of [[this.libraryButton, this.library], [this.moreButton, this.more], [this.queue.button, this.queue.actor]])
             button[box.visible ? 'add_style_pseudo_class' : 'remove_style_pseudo_class']('checked');
         this.island._resizeIsland();
     }
@@ -136,10 +139,11 @@ export class MusicTools {
         const next = trackInfo(props.Metadata);
         const playerChanged = this.player !== e._name;
         const changed = next.key !== this.track.key || playerChanged;
-        if (playerChanged) { this.epoch++; this.unsupported.clear(); this.propertyWrites.clear(); this.lastVolume = null; this.playerApp = null; }
+        if (playerChanged) { this.epoch++; this.unsupported.clear(); this.propertyWrites.clear(); this.lastVolume = null; this.playerApp = null; this.identity = ''; }
         this.player = e._name;
         this.props = props;
         this.track = next;
+        this.queue?.sync();
         if (changed) this.message('');
         const control = !!e._name && props.CanControl === true;
         this.album.text = next.album;
@@ -174,6 +178,8 @@ export class MusicTools {
             this.setEnabled(this.raise, false);
             if (e._name) this.request(PROPS, 'GetAll', new GLib.Variant('(s)', [ROOT]), reply => {
                 const root = reply.recursiveUnpack()[0];
+                this.identity = typeof root.Identity === 'string' ? root.Identity.slice(0, 120) : '';
+                if (this.identity) e._playerLabel.text = this.identity;
                 this.canRaise = root.CanRaise === true;
                 const desktopId = root.DesktopEntry || (e._name.startsWith('org.mpris.MediaPlayer2.com.bstream.bstream_music.') ? 'com.bstream.bstream_music' : '');
                 this.playerApp = desktopId ? Gio.DesktopAppInfo.new(`${desktopId.replace(/\.desktop$/, '')}.desktop`) : null;

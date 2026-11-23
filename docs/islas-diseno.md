@@ -8,15 +8,16 @@ Aurea y controles GNOME; no distribuye código ni imágenes de esas aplicaciones
 
 ## Distribución
 
-- Borde de favoritas: cápsula oscura de 64 px, separada 8 px del borde cuando se
-  revela, iconos de 36 px y botón de cuadrícula para entrar a «Tu espacio».
-  No hay botón de flecha exterior. En reposo solo queda el indicador estrecho.
+- Borde de favoritas: cápsula negra de 64 px pegada al borde cuando se revela,
+  iconos de 36 px y botón de cuadrícula para entrar a «Tu espacio».
+  En reposo queda totalmente oculta; la zona de activación es transparente.
 - Panel: 360 px, superficie clara u oscura, radio de 22 px, buscador, perfil y
   filtro; categorías plegables, cuadrícula o lista. Sin repetir todas las apps
   fijadas en otra sección del mismo panel. Indicadores de actividad pequeños.
-- Borde opuesto: estadísticas de CPU, RAM, almacenamiento del directorio personal
-  y tiempo encendido. Apertura tras 300 ms, cierre al salir y botón explícito.
-  Muestra datos reales de Linux, actualizados cada dos segundos solo al abrir.
+- Borde opuesto: baterías de dispositivos, apertura tras 180 ms y cierre al salir.
+  Nombres, iconos y porcentajes reales de UPower/BlueZ; no consume consultas en reposo.
+- Estadísticas: zona invisible cerca de la esquina inferior izquierda; CPU, RAM,
+  disco y red actualizados cada dos segundos mientras el panel está abierto.
 - Isla superior: accesos directos en Inicio a Estante, Equipo y Enfoque. Mantiene
   reproducción MPRIS, archivos, notas, calendario y demás módulos existentes.
 
@@ -46,9 +47,10 @@ gsettings --schemadir "$aurea_schema" set org.gnome.shell.extensions.dynamic-isl
 ```
 
 Para volver a apertura solo con clic, cambiar `hover-open` a `false`.
-Las referencias también incluyen funciones propias de macOS e integraciones de IA;
-esta entrega no implementa AirDrop, un asistente de IA ni las más de 50 tarjetas
-anunciadas por SideDock. No se presentan como funciones de Aurea.
+La integración local de asistentes se documenta en la guía de la isla dinámica.
+No se implementa AirDrop ni se anuncian las tarjetas exclusivas de SideDock como
+funciones de Aurea. La adaptación de los videos más recientes y sus límites están
+en [referencias de música e islas](referencias-islas-musica.md).
 
 ## Verificación
 
