@@ -33,6 +33,7 @@ import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import { SettingsData } from './settings_data.js';
+import {smoothPhase} from './motion.js';
 
 const MINIMIZE_EFFECT_NAME = 'minimize-magic-lamp-effect';
 const UNMINIMIZE_EFFECT_NAME = 'unminimize-magic-lamp-effect';
@@ -67,7 +68,7 @@ export default class CompizMagicLampEffectExtension extends Extension {
         };
 
         this.minimizeId = global.window_manager.connect("minimize", (e, actor) => {
-            if (Main.overview.visible) {
+            if (this.motionDisabled() || !actor.width || !actor.height) {
                 Main.wm._shellwm.original_completed_minimize(actor);
                 return;
             }
@@ -82,7 +83,7 @@ export default class CompizMagicLampEffectExtension extends Extension {
         this.unminimizeId = global.window_manager.connect("unminimize", (e, actor) => {
             actor.show();
 
-            if (Main.overview.visible) {
+            if (this.motionDisabled() || !actor.width || !actor.height) {
                 Main.wm._shellwm.original_completed_unminimize(actor);
                 return;
             }
@@ -126,6 +127,12 @@ export default class CompizMagicLampEffectExtension extends Extension {
         }
     }
 
+    motionDisabled() {
+        const settings = St.Settings.get();
+        return Main.overview.visible || !settings.enable_animations ||
+            (St.ReducedMotion && settings.reduced_motion === St.ReducedMotion.REDUCE);
+    }
+
     getIcon(actor) {
         let [success, icon] = actor.meta_window.get_icon_geometry();
         if (success) {
@@ -134,7 +141,6 @@ export default class CompizMagicLampEffectExtension extends Extension {
 
         let monitor = Main.layoutManager.monitors[actor.meta_window.get_monitor()];
         if (monitor && Main.overview.dash) {
-            Main.overview.dash._redisplay();
 
             let dashIcon = null;
             let transformed_position = null;
@@ -233,6 +239,8 @@ class AbstractCommonMagicLampEffect extends Clutter.DeformEffect {
         this.Y_TILES = this.settingsData.Y_TILES.get();
 
         this.initialized = false;
+        this.destroyed = false;
+        this.actorDestroyId = 0;
     }
 
     destroy_actor(actor) {}
@@ -304,14 +312,19 @@ class AbstractCommonMagicLampEffect extends Clutter.DeformEffect {
 
         this.set_n_tiles(this.X_TILES, this.Y_TILES);
 
-        this.timerId = new Clutter.Timeline({ actor: this.actor, duration: this.DURATION + (this.monitor.width * this.monitor.height) / (this.window.width * this.window.height) });
+        this.actorDestroyId = actor.connect('destroy', () => this.destroy());
+        this.timerId = new Clutter.Timeline({actor, duration: Math.max(1, Math.round(this.DURATION))});
         this.newFrameEvent = this.timerId.connect('new-frame', this.on_tick_elapsed.bind(this));
         this.completedEvent = this.timerId.connect('completed', this.destroy.bind(this));
         this.timerId.start();
     }
 
     destroy() {
+        if (this.destroyed)
+            return;
+        this.destroyed = true;
         if (this.timerId) {
+            this.timerId.stop();
             if (this.newFrameEvent) {
                 this.timerId.disconnect(this.newFrameEvent);
                 this.newFrameEvent = null;
@@ -325,6 +338,10 @@ class AbstractCommonMagicLampEffect extends Clutter.DeformEffect {
 
         let actor = this.get_actor();
         if (actor) {
+            if (this.actorDestroyId) {
+                actor.disconnect(this.actorDestroyId);
+                this.actorDestroyId = 0;
+            }
             if (this.paintEvent) {
                 actor.disconnect(this.paintEvent);
                 this.paintEvent = null;
@@ -435,13 +452,13 @@ class MagicLampMinimizeEffect extends AbstractCommonMagicLampEffect {
     on_tick_elapsed(timer, msecs) {
         if (Main.overview.visible) {
             this.destroy();
+            return;
         }
 
         this.progress = timer.get_progress();
-        this.k = this.progress <= this.split ? this.progress * (1 / 1 / this.split) : 1;
-        this.j = this.progress > this.split ? (this.progress - this.split) * (1 / 1 / (1 - this.split)) : 0;
+        this.k = smoothPhase(this.progress / this.split);
+        this.j = smoothPhase((this.progress - this.split) / (1 - this.split));
 
-        this.actor.get_parent().queue_redraw();
         this.invalidate();
     }
 
@@ -470,13 +487,13 @@ class MagicLampUnminimizeEffect extends AbstractCommonMagicLampEffect {
     on_tick_elapsed(timer, msecs) {
         if (Main.overview.visible) {
             this.destroy();
+            return;
         }
 
         this.progress = timer.get_progress();
-        this.k = 1 - (this.progress > (1 - this.split) ? (this.progress - (1 - this.split)) * (1 / 1 / (1 - (1 - this.split))) : 0);
-        this.j = 1 - (this.progress <= (1 - this.split) ? this.progress * (1 / 1 / (1 - this.split)) : 1);
+        this.k = 1 - smoothPhase((this.progress - (1 - this.split)) / this.split);
+        this.j = 1 - smoothPhase(this.progress / (1 - this.split));
 
-        this.actor.get_parent().queue_redraw();
         this.invalidate();
     }
 

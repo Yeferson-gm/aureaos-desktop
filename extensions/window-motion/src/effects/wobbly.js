@@ -69,6 +69,7 @@ export class WobblyEffect extends Clutter.DeformEffect {
         this.FRICTION = this.settingsData.FRICTION.get();
         this.SPRING_K = this.settingsData.SPRING_K.get();
         this.SPEEDUP_FACTOR = this.settingsData.SPEEDUP_FACTOR.get();
+        this.simulationRate = 0.12 * 12 / Math.max(1, this.SPEEDUP_FACTOR);
         this.MASS = this.settingsData.MASS.get();
         this.X_TILES = 'maximized' === this.operationType ? 10 : this.settingsData.X_TILES.get();
         this.Y_TILES = 'maximized' === this.operationType ? 10 : this.settingsData.Y_TILES.get();
@@ -77,6 +78,8 @@ export class WobblyEffect extends Clutter.DeformEffect {
 
         this.initialized = false;
         this.ended = false;
+        this.destroyed = false;
+        this.actorDestroyId = 0;
     }
 
     vfunc_set_actor(actor) {
@@ -139,6 +142,7 @@ export class WobblyEffect extends Clutter.DeformEffect {
                 this.moveEvent = actor.connect('notify::allocation', this.on_move_event.bind(this));
             }
 
+            this.actorDestroyId = actor.connect('destroy', () => this.destroy());
             this.overviewShowingEvent = Main.overview.connect('showing', this.destroy.bind(this));
 
             this.timerId = new Clutter.Timeline({actor: actor, duration: this.CLUTTER_TIMELINE_DURATION});
@@ -153,8 +157,12 @@ export class WobblyEffect extends Clutter.DeformEffect {
     }
 
     destroy() {
+        if (this.destroyed)
+            return;
+        this.destroyed = true;
         if (this.overviewShowingEvent) {
             Main.overview.disconnect(this.overviewShowingEvent);
+            this.overviewShowingEvent = null;
         }
 
         if (this.timerId) {
@@ -177,6 +185,10 @@ export class WobblyEffect extends Clutter.DeformEffect {
 
         let actor = this.get_actor();
         if (actor) {
+            if (this.actorDestroyId) {
+                actor.disconnect(this.actorDestroyId);
+                this.actorDestroyId = 0;
+            }
             if (this.paintEvent) {
                 actor.disconnect(this.paintEvent);
                 this.paintEvent = null;
@@ -193,6 +205,8 @@ export class WobblyEffect extends Clutter.DeformEffect {
 
     on_end_event(actor) {
         this.ended = true;
+        if (!this.wobblyModel?.movement)
+            this.destroy();
     }
 
     on_move_event(actor, allocation, flags) {
@@ -205,16 +219,24 @@ export class WobblyEffect extends Clutter.DeformEffect {
         this.deltaX -= deltaX;
         this.deltaY -= deltaY;
 
+        if (!deltaX && !deltaY)
+            return;
         this.wobblyModel.move(deltaX, deltaY);
+        if (this.timerId && !this.timerId.is_playing()) {
+            this.msecOld = 0;
+            this.timerId.start();
+        }
     }
 
     on_new_frame_event(timer, msec) {
+        if (this.destroyed)
+            return;
         if (this.ended && (!this.timerId || !this.wobblyModel || !this.wobblyModel.movement)) {
             this.destroy();
             return;
         }
 
-        this.wobblyModel.step((msec - this.msecOld) / this.SPEEDUP_FACTOR);
+        this.wobblyModel.step(Math.min(64, Math.max(0, msec - this.msecOld)) * this.simulationRate);
         this.msecOld = msec;
 
         let x, y;
@@ -258,6 +280,12 @@ export class WobblyEffect extends Clutter.DeformEffect {
         [this.actorX, this.actorY] = this.actor.get_position();
         if ((this.newX === this.actorX && this.newY === this.actorY) || 'move' !== this.operationType) {
             this.invalidate();
+        }
+        if (!this.wobblyModel.movement) {
+            if (this.ended)
+                this.destroy();
+            else
+                this.timerId.stop();
         }
     }
 

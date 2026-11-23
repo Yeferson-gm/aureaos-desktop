@@ -9,7 +9,7 @@
 		</key>
 
 		<key type="d" name="duration">
-			<default>400</default>
+			<default>300</default>
 			<summary>Duration</summary>
 			<description/>
 		</key>

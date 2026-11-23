@@ -38,6 +38,7 @@ export class WobblyModel {
         this.objects = new Array(this.GRID_WIDTH * this.GRID_HEIGHT);
         this.springs = new Array(this.GRID_WIDTH * this.GRID_HEIGHT);
         this.movement = false;
+        this.pendingTime = 0;
         this.immobileObject = null;
 
         this.width = config.sizeX;
@@ -145,7 +146,7 @@ export class WobblyModel {
             }
         }
 
-        this.step(0);
+        this.step(1);
     }
 
     unmaximize() {
@@ -167,44 +168,48 @@ export class WobblyModel {
             }
         }
 
-        this.step(0);
+        this.step(1);
     }
 
-    step(steps) {
-        let i, j, spring, object, springForce, movementStep = false;
+    step(elapsed) {
+        if (!Number.isFinite(elapsed) || elapsed <= 0)
+            return;
 
-        for (j = steps; j >= 0; --j) {
-            for (i = this.springs.length - 1; i >= 0, spring = this.springs[i]; --i) {
-                springForce = this.springK * (spring.b.x - spring.a.x - spring.offsetX);
-                spring.a.forceX += springForce;
-                spring.b.forceX -= springForce;
-
-                springForce = this.springK * (spring.b.y - spring.a.y - spring.offsetY);
-                spring.a.forceY += springForce;
-                spring.b.forceY -= springForce;
+        const dt = 0.5;
+        this.pendingTime += Math.min(elapsed, 8);
+        const steps = Math.floor((this.pendingTime + 1e-9) / dt);
+        this.pendingTime = Math.max(0, this.pendingTime - steps * dt);
+        for (let step = 0; step < steps; step++) {
+            for (const spring of this.springs) {
+                const forceX = this.springK * (spring.b.x - spring.a.x - spring.offsetX);
+                const forceY = this.springK * (spring.b.y - spring.a.y - spring.offsetY);
+                spring.a.forceX += forceX;
+                spring.b.forceX -= forceX;
+                spring.a.forceY += forceY;
+                spring.b.forceY -= forceY;
             }
 
-            for (i = this.objects.length - 1; i >= 0, object = this.objects[i]; --i) {
+            let moving = false;
+            for (const object of this.objects) {
                 if (!object.immobile) {
-                    object.forceX -= this.friction * object.velocityX;
-                    object.forceY -= this.friction * object.velocityY;
-                    object.velocityX += object.forceX / this.mass;
-                    object.velocityY += object.forceY / this.mass;
-                    object.x += object.velocityX;
-                    object.y += object.velocityY;
-
-                    movementStep |= object.forceX > 1 || object.forceX < -1 || object.forceY > 1 || object.forceY < -1;
-
-                    object.forceX = 0;
-                    object.forceY = 0;
+                    const forceX = object.forceX - this.friction * object.velocityX;
+                    const forceY = object.forceY - this.friction * object.velocityY;
+                    object.velocityX += forceX / this.mass * dt;
+                    object.velocityY += forceY / this.mass * dt;
+                    object.x += object.velocityX * dt;
+                    object.y += object.velocityY * dt;
+                    moving ||= Math.abs(forceX) > 1 || Math.abs(forceY) > 1 ||
+                        Math.abs(object.velocityX) > 0.2 || Math.abs(object.velocityY) > 0.2;
                 }
+                object.forceX = 0;
+                object.forceY = 0;
             }
+            this.movement = moving;
         }
-
-        this.movement = movementStep;
     }
 
     move(deltaX, deltaY) {
+        this.movement = true;
         this.immobileObject.x += deltaX;
         this.immobileObject.y += deltaY;
     }

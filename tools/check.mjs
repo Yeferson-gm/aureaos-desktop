@@ -38,6 +38,7 @@ for (const name of Object.keys(stack.extensions)) {
             {env: {...process.env, GI_TYPELIB_PATH: ['/usr/lib64/gnome-shell', ...fs.readdirSync('/usr/lib64').filter(n => /^mutter-\d+$/.test(n)).map(n => '/usr/lib64/' + n)].join(':'), LD_LIBRARY_PATH: '/usr/lib64/gnome-shell'}});
 }
 const tests = [
+    'tests/window-effects/model.test.mjs',
     'tests/version.test.mjs',
     'tests/runtime-tree.test.mjs',
     'tests/files.test.mjs',

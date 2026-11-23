@@ -1,5 +1,15 @@
 # Barra superior: implementación aprobada
 
+## Fluidez al restaurar y mover ventanas, 22 de noviembre
+
+Corregir los efectos de lámpara y movimiento elástico conservando la geometría del
+Dock. Medir antes/después en Shell aislado: actualizaciones en reposo, repintados
+del padre, consistencia de la física entre frecuencias y liberación de recursos.
+Eliminar trabajo redundante, limitar la recuperación de tiempo tras pausas y
+comprobar interrupciones, desactivación y preferencias de movimiento reducido.
+Documentar, construir desde Git e instalar solo magic-lamp y window-motion.
+
+
 ## Referencias Droppy y ExtraDock, 18 de noviembre
 
 Aplicación autorizada de ambos videos: música, cola MPRIS, baterías al pasar el

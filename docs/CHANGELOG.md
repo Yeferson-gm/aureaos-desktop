@@ -1,5 +1,14 @@
 # Cambios
 
+## 0.17.1
+
+- Restaurar y minimizar con fases suaves, 300 ms por defecto y sin repintados
+  explícitos de todas las ventanas; conserva las duraciones personalizadas.
+- Arrastre con física independiente de la frecuencia de pantalla, sin actualizar
+  fotogramas al quedar quieto y sin recuperar trabajo ilimitado después de pausas.
+- Libera animaciones interrumpidas, evita superponer arrastre y lámpara y respeta
+  las preferencias de movimiento. Pruebas reproducibles de fluidez y ciclo de vida.
+
 ## 0.17.0
 
 - Islas laterales sin marcas permanentes: favoritas desde el borde y baterías de

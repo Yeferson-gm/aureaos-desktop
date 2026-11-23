@@ -685,3 +685,26 @@ gsettings --schemadir "$aurea_schema" set org.gnome.shell.extensions.dynamic-isl
 Cerrar sesión y volver a entrar carga el nuevo código. Para apertura superior solo
 con clic, establecer `hover-open false`. Las baterías no requieren paquetes nuevos;
 el porcentaje depende de que UPower o el dispositivo Bluetooth lo publiquen.
+
+## Fluidez al mover y restaurar ventanas
+
+[Diagnóstico, mediciones y pruebas](docs/fluidez-ventanas.md). El arrastre y el
+recorrido desde el Dock pertenecen a `window-motion` y `magic-lamp`. Para aplicar
+esta corrección a un paquete ya construido, definir `aurea_paquete` como en
+**Instalar un paquete existente** y ejecutar:
+
+```bash
+for aurea_componente in magic-lamp window-motion; do
+  ./aurea.sh install "$aurea_paquete" --component="$aurea_componente" --apply
+  ./aurea.sh install "$aurea_paquete" --component="$aurea_componente" --check
+done
+```
+
+Cerrar sesión y volver a entrar carga la nueva implementación. Se mantienen las
+preferencias existentes; el recorrido dura 300 ms cuando no hay un valor manual.
+Para ajustar la duración o la intensidad, abrir las preferencias:
+
+```bash
+gnome-extensions prefs aurea-magic-lamp@local
+gnome-extensions prefs aurea-window-motion@local
+```

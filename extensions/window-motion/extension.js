@@ -24,6 +24,7 @@
 'use strict';
 
 import Meta from 'gi://Meta';
+import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -64,6 +65,8 @@ export default class CompizWindowsEffectExtension extends Extension {
         this.destroyId = null;
 
         this.grabOpBeginId = global.display.connect('grab-op-begin', (display, window, op) => {
+            if (this.motionDisabled())
+                return;
             if (Meta.GrabOp.MOVING != op &&
                 (!Meta.GrabOp.MOVING_UNCONSTRAINED || Meta.GrabOp.MOVING_UNCONSTRAINED != op) &&
                 (!this.settingsData.RESIZE_EFFECT.get() || this.allowedResizeOp.indexOf(op) === -1)) {
@@ -98,7 +101,7 @@ export default class CompizWindowsEffectExtension extends Extension {
         });
 
         this.startResizeOpId = global.window_manager.connect('size-change', (wm, actor, op, oldFrameRect, oldBufferRect) => {
-            if (!actor) {
+            if (!actor || this.motionDisabled()) {
                 return;
             }
 
@@ -126,6 +129,9 @@ export default class CompizWindowsEffectExtension extends Extension {
             const targetRect = actor.meta_window.get_frame_rect();
 
             this.resizedActor = null;
+
+            if (this.motionDisabled())
+                return;
 
             const metaWindowMaximized = actor.metaWindow.get_maximize_flags();
             if (metaWindowMaximized) {
@@ -162,6 +168,7 @@ export default class CompizWindowsEffectExtension extends Extension {
             }
         });
 
+        this.minimizeId = global.window_manager.connect('minimize', (_wm, actor) => this.destroyActorEffect(actor));
         this.destroyId = global.window_manager.connect("destroy", (wm, actor) => {
             this.destroyActorEffect(actor);
         });
@@ -193,6 +200,10 @@ export default class CompizWindowsEffectExtension extends Extension {
             global.window_manager.disconnect(this.startResizeOpId);
             this.startResizeOpId = null;
         }
+        if (this.minimizeId) {
+            global.window_manager.disconnect(this.minimizeId);
+            this.minimizeId = null;
+        }
         if (this.destroyId) {
             global.window_manager.disconnect(this.destroyId);
             this.destroyId = null;
@@ -201,6 +212,12 @@ export default class CompizWindowsEffectExtension extends Extension {
         global.get_window_actors().forEach((actor) => {
             this.destroyActorEffect(actor);
         });
+    }
+
+    motionDisabled() {
+        const settings = St.Settings.get();
+        return !settings.enable_animations || Main.overview.visible ||
+            (St.ReducedMotion && settings.reduced_motion === St.ReducedMotion.REDUCE);
     }
 
     destroyActorEffect(actor) {
