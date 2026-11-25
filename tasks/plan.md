@@ -1,5 +1,21 @@
 # Barra superior: implementación aprobada
 
+## Memoria y trabajo en segundo plano, 25 de noviembre
+
+Conservar funciones, diseño, transiciones y datos. Reducir la construcción inicial
+de páginas, acotar respuestas HTTP, compartir peticiones idénticas, liberar fotos
+tras el fundido y suspender únicamente temporizadores de repintado sin actor
+visible. Verificar límites, destrucción y reanudación con pruebas unitarias y Shell
+aislado. Medir actores y PSS sin atribuir a una extensión toda la memoria de GNOME.
+Documentar resultados y límites; construir e instalar solo isla dinámica y widgets.
+No migrar de lenguaje ni añadir procesos permanentes sin un cuello de botella medido.
+
+Resultado: 100 actores menos al iniciar; número estable de actores y fuentes
+después de calentamiento y 20 ciclos. Caché acotada, peticiones compartidas y
+repintados ocultos verificados. Pasaron 37 grupos de comprobaciones, widgets en
+Shell y las 19 páginas de la isla en dos monitores. Mediciones y límites en
+`docs/memoria-y-recursos.md`.
+
 ## Fluidez al restaurar y mover ventanas, 22 de noviembre
 
 Corregir los efectos de lámpara y movimiento elástico conservando la geometría del

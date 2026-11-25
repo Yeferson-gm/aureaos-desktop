@@ -93,6 +93,21 @@ Bun se utiliza automáticamente si está instalado; Node queda como alternativa
 y validador sintáctico. Para elegir: `AUREA_RUNTIME=bun ./aurea.sh check` o
 `AUREA_RUNTIME=node ./aurea.sh check`. Las extensiones siguen ejecutándose en GJS.
 
+La [optimización de memoria](docs/memoria-y-recursos.md) limita cachés, comparte
+peticiones y suspende repintados ocultos conservando funciones y animaciones.
+Para aplicarla a un paquete ya construido, definir `aurea_paquete` como en
+**Instalar un paquete existente** y ejecutar:
+
+```bash
+for aurea_componente in dynamic-island widgets; do
+  ./aurea.sh install "$aurea_paquete" --component="$aurea_componente" --apply
+  ./aurea.sh install "$aurea_paquete" --component="$aurea_componente" --check
+done
+```
+
+Cerrar sesión y volver a entrar carga los cambios. Las preferencias se conservan;
+no es necesario desactivar funciones ni modificar el diseño para aprovecharlos.
+
 Herramientas necesarias: Node.js, Git, GJS, GLib (`gsettings`, `gio`,
 `glib-compile-schemas`, `glib-compile-resources`), gettext (`msgfmt`), `gtk-update-icon-cache` y `gnome-extensions`.
 GDM requiere además Python 3, `gresource`, `glib-compile-resources`, `dconf`,

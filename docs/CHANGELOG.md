@@ -1,5 +1,16 @@
 # Cambios
 
+## 0.17.2
+
+- Construcción diferida de reloj y notificaciones: 100 actores menos al iniciar
+  la isla, conservando alarmas y estados de notificación.
+- Caché HTTP de widgets limitada a 64 entradas y 4 MiB de contenido estimado,
+  caducidad y peticiones concurrentes compartidas por URL y formato.
+- Pausa de temporizadores visuales de clima y esferas ocultas, con reanudación
+  inmediata; liberación de la capa de foto anterior al completar el fundido.
+- Pruebas de visibilidad, caché, cierre, reconstrucción y recursos estables;
+  documentación de mediciones y límites sin prometer un ahorro global de RAM.
+
 ## 0.17.1
 
 - Restaurar y minimizar con fases suaves, 300 ms por defecto y sin repintados
