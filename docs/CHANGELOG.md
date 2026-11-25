@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.17.3
+
+- Inicio reutiliza botones de actividades cuando texto, icono, destino y orden
+  no cambian. Conserva acciones, filtros, transiciones y diseño.
+- Pruebas de 100 actualizaciones y documentación del consumo de la sesión,
+  configuración nativa de MCP y ajustes de sistema descartados tras medirlos.
+
 ## 0.17.2
 
 - Construcción diferida de reloj y notificaciones: 100 actores menos al iniciar

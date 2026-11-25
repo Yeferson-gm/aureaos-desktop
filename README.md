@@ -108,6 +108,11 @@ done
 Cerrar sesión y volver a entrar carga los cambios. Las preferencias se conservan;
 no es necesario desactivar funciones ni modificar el diseño para aprovecharlos.
 
+La [revisión del consumo de la sesión](docs/recursos-sesion.md) documenta el inicio
+diferido de herramientas MCP de Codex, cómo activarlo o revertirlo, las mediciones
+de GNOME Software y la reutilización de actividades de la isla. Distingue las
+mejoras comprobadas de los ajustes descartados y de los problemas pendientes.
+
 Herramientas necesarias: Node.js, Git, GJS, GLib (`gsettings`, `gio`,
 `glib-compile-schemas`, `glib-compile-resources`), gettext (`msgfmt`), `gtk-update-icon-cache` y `gnome-extensions`.
 GDM requiere además Python 3, `gresource`, `glib-compile-resources`, `dconf`,

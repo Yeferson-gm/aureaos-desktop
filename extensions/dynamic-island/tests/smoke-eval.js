@@ -5,6 +5,23 @@
     const ext = Main.extensionManager.lookup('dynamic-island-gnome50@local');
     if (!ext?.stateObj) throw new Error('No se cargó la extensión: ' + ext?.error);
     const island = ext.stateObj;
+    const liveState = island._live;
+    island._live = {entries: [{text: 'Prueba de actividad', page: 'notes', icon: 'document-edit-symbolic'}]};
+    const workspace = island._workspace;
+    const savedCards = workspace.cards;
+    workspace.cards = [];
+    workspace.refresh();
+    const liveActor = workspace.liveBox.get_first_child();
+    for (let index = 0; index < 100; index++) workspace.refresh();
+    if (!liveActor || workspace.liveBox.get_first_child() !== liveActor)
+        throw new Error('Inicio reconstruye actividades que no cambiaron');
+    island._live.entries = [{text: 'Actividad actualizada', page: 'notes', icon: 'document-edit-symbolic'}];
+    workspace.refresh();
+    if (workspace.liveBox.get_first_child() === liveActor)
+        throw new Error('Inicio no actualiza una actividad modificada');
+    island._live = liveState;
+    workspace.cards = savedCards;
+    workspace.refresh();
     if (island._pages.clock || island._pages.notifications)
         throw new Error('Las páginas diferidas se construyeron al iniciar');
     if (island._settings.get_string('theme') !== 'dark' || island._settings.get_double('opacity') !== 1) throw new Error('La isla debe iniciar negra y opaca');

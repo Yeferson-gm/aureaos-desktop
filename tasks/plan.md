@@ -1,5 +1,21 @@
 # Barra superior: implementación aprobada
 
+## Consumo después del reinicio, 25 de noviembre
+
+Verificar inicio diferido nativo de MCP con un servidor sintético; conservar
+herramientas y datos. Revisar procesos de Codex sin modificar su paquete ni matar
+trabajos activos. Evaluar GNOME Software manteniendo avisos y operaciones de
+actualización. Reducir reconstrucciones de la isla que no cambian su contenido,
+con pruebas de identidad de actores, actualización y acciones. Medir antes y
+después; documentar límites y aplicar solo cambios comprobados.
+
+Resultado: inicio diferido de MCP verificado en dos chats sintéticos del mismo
+proceso, habilitado localmente; 100 actualizaciones de Inicio reutilizan actores.
+Pruebas generales (38 grupos) y Shell con dos monitores aprobadas. Codex presenta
+errores de interfaz pendientes; no se modificó su paquete. El experimento de
+memoria de GNOME Software se revirtió por mejora insuficiente. Véase
+`docs/recursos-sesion.md`.
+
 ## Memoria y trabajo en segundo plano, 25 de noviembre
 
 Conservar funciones, diseño, transiciones y datos. Reducir la construcción inicial

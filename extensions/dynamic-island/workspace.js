@@ -39,6 +39,7 @@ export class IslandWorkspace {
         }
         page.add_child(shortcuts);
         this.liveBox = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, style_class: 'di-live-list'});
+        this.liveSignature = null;
         page.add_child(this.liveBox);
         this.rebuild();
     }
@@ -120,9 +121,13 @@ export class IslandWorkspace {
             value.text = this.value(id); value.visible = !!value.text;
         }
         this.renderPeek();
+        const activities = e._live.entries.filter(item => !this.cards.some(card => card.id === item.page)).slice(0, 3);
+        const signature = JSON.stringify(activities.map(({text, page, icon}) => [text, page, icon]));
+        if (signature === this.liveSignature) return;
+        this.liveSignature = signature;
         this.liveBox.destroy_all_children();
-        for (const activity of e._live.entries.filter(item => !this.cards.some(card => card.id === item.page)).slice(0, 3)) {
-            const button = e._chip(activity.text, () => e._selectTab(activity.page), activity.icon);
+        for (const {text, page, icon} of activities) {
+            const button = e._chip(text, () => e._selectTab(page), icon);
             button.add_style_class_name('di-live-item');
             this.liveBox.add_child(button);
         }
