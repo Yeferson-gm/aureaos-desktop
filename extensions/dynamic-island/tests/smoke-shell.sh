@@ -26,6 +26,9 @@ cp -a "$project_dir/tests/driver" "$XDG_DATA_HOME/gnome-shell/extensions/island-
 if [[ -n "${DI_SIDE_DOCK_DIR:-}" ]]; then
     cp -aL "$DI_SIDE_DOCK_DIR" "$XDG_DATA_HOME/gnome-shell/extensions/side-dock-gnome50@local"
 fi
+if [[ -n "${DI_BASELINE_REF:-}" ]]; then
+    git -C "$project_dir" show "$DI_BASELINE_REF:extensions/dynamic-island/extension.js" > "$test_extension/extension.js"
+fi
 glib-compile-schemas --strict "$test_extension/schemas"
 export DI_TEST_DIR="$test_dir"
 export DI_PROJECT_DIR="$project_dir"

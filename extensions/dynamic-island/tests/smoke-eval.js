@@ -5,11 +5,16 @@
     const ext = Main.extensionManager.lookup('dynamic-island-gnome50@local');
     if (!ext?.stateObj) throw new Error('No se cargó la extensión: ' + ext?.error);
     const island = ext.stateObj;
+    if (island._pages.clock || island._pages.notifications)
+        throw new Error('Las páginas diferidas se construyeron al iniciar');
     if (island._settings.get_string('theme') !== 'dark' || island._settings.get_double('opacity') !== 1) throw new Error('La isla debe iniciar negra y opaca');
     Main.overview.hide();
     await wait(500);
     const {Notification, Source, Urgency} = await import('resource:///org/gnome/shell/ui/messageTray.js');
     const nativeShow = Main.messageTray._showNotification;
+    const pinnedModules = island._settings.get_strv('pinned-modules');
+    island._settings.set_strv('pinned-modules', ['music', 'notifications']);
+    island._refreshNavigation();
     island._activities.clear();
     island._notificationSettings.set_boolean('show-banners', true);
     const source = new Source({title: 'Avisos aislados'});
@@ -24,6 +29,8 @@
             throw new Error('Se perdió el aviso del historial o se marcó leído sin abrirlo');
         if (island._activities.current?.key !== 'notification')
             throw new Error('La notificación no aparece en la isla');
+        if (island._pages.notifications || !island._tabButtons.notifications?.has_style_class_name('di-tab-unread'))
+            throw new Error('El contador de notificaciones requiere construir su página');
     }
     island._activities.clear();
     island._notificationSettings.set_boolean('show-banners', false);
@@ -32,6 +39,8 @@
     if (island._activities.current) throw new Error('No se respeta No molestar');
     island._notificationSettings.set_boolean('show-banners', true);
     source.destroy();
+    island._settings.set_strv('pinned-modules', pinnedModules);
+    island._refreshNavigation();
     island._presentActivity();
     let delayedHover = false;
     island._hoverTimer = island._timeout(30, () => { delayedHover = true; return GLib.SOURCE_REMOVE; });

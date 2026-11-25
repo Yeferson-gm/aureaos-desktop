@@ -203,6 +203,10 @@ export default class DynamicIsland extends Extension {
 
         this._tab = 'music';
         this._pages = {};
+        this._clockBig = null;
+        this._presets = null;
+        this._worldClock = null;
+        this._notificationList = null;
         this._tabButtons = {};
         this._shelf = [];
         this._shelfPins = new Set();
@@ -1042,7 +1046,7 @@ export default class DynamicIsland extends Extension {
             ['applications', () => buildAppLauncher(this)],
         ];
         this._builders = Object.fromEntries(builders);
-        for (const id of ['music', 'system', 'clock', 'home', 'notifications']) this._ensurePage(id);
+        for (const id of ['music', 'system', 'home']) this._ensurePage(id);
 
         this._island.add_child(body);
         this._island.accessible_name = 'Aurea · Isla dinámica';
@@ -2454,17 +2458,16 @@ export default class DynamicIsland extends Extension {
     }
 
     _renderNotifications() {
-        if (!this._notificationList) return;
-        for (const child of this._notificationList.get_children()) child.destroy();
-
         const entries = this._notificationEntries();
-        this._notificationClearBtn.visible = entries.length > 0;
         const tab = this._tabButtons.notifications;
         if (entries.length > 0) tab?.add_style_class_name('di-tab-unread');
         else tab?.remove_style_class_name('di-tab-unread');
         if (tab) tab.accessible_name = entries.length > 0
             ? `Notificaciones, ${entries.length} pendientes`
             : 'Notificaciones';
+        if (!this._notificationList) return;
+        this._notificationList.destroy_all_children();
+        this._notificationClearBtn.visible = entries.length > 0;
 
         if (entries.length === 0) {
             const empty = new St.BoxLayout({
