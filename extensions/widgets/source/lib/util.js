@@ -1,6 +1,7 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Soup from 'gi://Soup?version=3.0';
+import {ResponseCache} from './response-cache.js';
 
 export const CFG_DIR = GLib.build_filenamev([GLib.get_user_config_dir(), 'lintel-widgets']);
 export const CACHE_DIR = GLib.build_filenamev([GLib.get_user_cache_dir(), 'lintel-widgets']);
@@ -141,14 +142,22 @@ export function listarImagenes(dir, prof = 1, limite = 2500, sinEnlaces = false)
 
 
 let _sesion = null;
-const _cache = new Map();
+const _cache = new ResponseCache();
+const _pending = new Map();
+let _httpGeneration = 0;
 
 export function http(url, {ttl = 0, binario = false} = {}) {
-    const hit = _cache.get(url);
-    if (ttl && hit && Date.now() - hit.t < ttl)
-        return Promise.resolve(hit.v);
+    const key = `${binario ? 'bytes' : 'text'}:${url}`;
+    const hit = ttl ? _cache.get(key, ttl) : undefined;
+    if (hit !== undefined) return Promise.resolve(hit);
+    const generation = _httpGeneration;
+    const remember = value => {
+        if (generation === _httpGeneration && ttl) _cache.set(key, value, ttl);
+        return value;
+    };
+    if (_pending.has(key)) return _pending.get(key).then(remember);
     _sesion ??= new Soup.Session({timeout: 15, user_agent: 'Mozilla/5.0 (X11; Linux x86_64) LintelWidgets/1.0'});
-    return new Promise((resolve, reject) => {
+    const request = new Promise((resolve, reject) => {
         let msg = null;
         try {
             msg = Soup.Message.new('GET', url);
@@ -167,17 +176,21 @@ export function http(url, {ttl = 0, binario = false} = {}) {
                 if (st >= 400)
                     throw new Error(`HTTP ${st}`);
                 const v = binario ? bytes.get_data() : new TextDecoder().decode(bytes.get_data());
-                if (ttl)
-                    _cache.set(url, {t: Date.now(), v});
                 resolve(v);
             } catch (e) {
                 reject(e);
             }
         });
     });
+    _pending.set(key, request);
+    return request.then(remember).finally(() => {
+        if (_pending.get(key) === request) _pending.delete(key);
+    });
 }
 
 export function cerrarHttp() {
+    _httpGeneration++;
+    _pending.clear();
     _sesion?.abort();
     _sesion = null;
     _cache.clear();

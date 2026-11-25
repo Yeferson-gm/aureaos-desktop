@@ -161,7 +161,7 @@ export class Widget extends WidgetBase {
         this._pintar();
         this.cada(15 * 60 * 1000, () => this._cargar(), true);
         if (this.o.animacion && this.core.cfg.global.animaciones) {
-            this.cada(66, () => {
+            this.cadaVisible(this.box, 66, () => {
                 if (!this.movimiento || !this.box.mapped) return;
                 this._t += 0.066;
                 this._areas.forEach(a => a.queue_repaint());

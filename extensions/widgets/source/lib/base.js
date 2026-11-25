@@ -7,6 +7,7 @@ export class WidgetBase {
     constructor(ctx) {
         this.ctx = ctx;
         this._ids = [];
+        this._visualTimers = new Set();
         this._vivo = true;
     }
 
@@ -74,8 +75,38 @@ export class WidgetBase {
             fn();
     }
 
+    cadaVisible(actor, ms, fn) {
+        const timer = {source: 0, mappedId: 0, destroyId: 0};
+        const stop = () => {
+            if (timer.source) GLib.source_remove(timer.source);
+            timer.source = 0;
+        };
+        const sync = () => {
+            if (!this._vivo || !actor.mapped) { stop(); return; }
+            if (timer.source) return;
+            timer.source = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => {
+                fn();
+                return GLib.SOURCE_CONTINUE;
+            });
+            fn();
+        };
+        timer.dispose = () => {
+            stop();
+            if (timer.mappedId) actor.disconnect(timer.mappedId);
+            if (timer.destroyId) actor.disconnect(timer.destroyId);
+            timer.mappedId = timer.destroyId = 0;
+            this._visualTimers.delete(timer);
+        };
+        timer.mappedId = actor.connect('notify::mapped', sync);
+        timer.destroyId = actor.connect('destroy', timer.dispose);
+        this._visualTimers.add(timer);
+        sync();
+    }
+
     destruir() {
+        if (!this._vivo) return;
         this._vivo = false;
+        for (const timer of this._visualTimers) timer.dispose();
         for (const id of this._ids)
             GLib.source_remove(id);
         this._ids = [];

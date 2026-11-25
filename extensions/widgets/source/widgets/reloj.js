@@ -119,7 +119,7 @@ export class Widget extends WidgetBase {
             cr.$dispose();
         });
         box.add_child(area);
-        this.cada(this.o.segundos && this.o.barrido && this.movimiento && !clock.mundial ? 50 : 1000, () => {
+        this.cadaVisible(area, this.o.segundos && this.o.barrido && this.movimiento && !clock.mundial ? 50 : 1000, () => {
             if (area.mapped) area.queue_repaint();
         });
         return area;

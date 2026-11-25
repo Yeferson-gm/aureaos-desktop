@@ -51,6 +51,27 @@
         actor.get_children().forEach(scan);
     };
     scan(core.capa);
+    const visualFrames = core.marcos.filter(frame => ['reloj', 'clima'].includes(frame.cfg.tipo));
+    for (const frame of visualFrames) {
+        const instance = frame._inst;
+        const timers = [...instance._visualTimers];
+        if (!timers.length || timers.some(timer => !timer.source))
+            throw new Error(`Temporizador visible ausente: ${frame.cfg.tipo}`);
+        const backgroundTimers = [...instance._ids];
+        for (let cycle = 0; cycle < 10; cycle++) {
+            frame.actor.hide();
+            await wait(25);
+            if (timers.some(timer => timer.source)) throw new Error('Repintado activo estando oculto');
+            frame.actor.show();
+            await wait(25);
+            if (timers.some(timer => !timer.source)) throw new Error('No se reanuda el repintado');
+        }
+        if (JSON.stringify(instance._ids) !== JSON.stringify(backgroundTimers))
+            throw new Error('Se alteraron las consultas de datos');
+        frame.reconstruir();
+        if (instance._visualTimers.size || timers.some(timer => timer.source))
+            throw new Error('Quedan temporizadores al reconstruir');
+    }
     const output = Gio.File.new_for_path(`${GLib.getenv('DI_TEST_DIR')}/widgets.png`).replace(null,false,Gio.FileCreateFlags.NONE,null);
     await new Shell.Screenshot().screenshot(false,output); output.close(null);
     core.cfg.global.animaciones = true;
